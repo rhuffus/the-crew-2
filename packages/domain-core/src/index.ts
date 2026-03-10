@@ -1,0 +1,5 @@
+export { Entity } from './entity.js'
+export { ValueObject } from './value-object.js'
+export { AggregateRoot } from './aggregate-root.js'
+export type { DomainEvent } from './domain-event.js'
+export type { Repository } from './repository.js'

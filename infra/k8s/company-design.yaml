@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: company-design
+  namespace: the-crew
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: company-design
+  template:
+    metadata:
+      labels:
+        app: company-design
+    spec:
+      containers:
+        - name: company-design
+          image: the-crew/company-design
+          ports:
+            - containerPort: 4020
+          env:
+            - name: REDIS_URL
+              value: redis://redis:6379
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: company-design
+  namespace: the-crew
+spec:
+  selector:
+    app: company-design
+  ports:
+    - port: 4020
+      targetPort: 4020

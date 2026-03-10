@@ -1,0 +1,22 @@
+{
+  "name": "@the-crew/domain-core",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@the-crew/eslint-config": "workspace:*",
+    "@the-crew/tsconfig": "workspace:*",
+    "eslint": "^9.16.0",
+    "vitest": "^2.1.8",
+    "typescript": "^5.7.3"
+  }
+}

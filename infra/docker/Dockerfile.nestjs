@@ -1,0 +1,47 @@
+FROM node:22-alpine
+
+RUN corepack enable
+
+WORKDIR /app
+
+# Copy workspace root files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+
+# Copy all workspace package.json files for dependency resolution
+COPY packages/tsconfig/package.json packages/tsconfig/
+COPY packages/eslint-config/package.json packages/eslint-config/
+COPY packages/domain-core/package.json packages/domain-core/
+COPY packages/shared-types/package.json packages/shared-types/
+COPY apps/api-gateway/package.json apps/api-gateway/
+COPY apps/web/package.json apps/web/
+COPY services/platform/package.json services/platform/
+COPY services/company-design/package.json services/company-design/
+
+# Install dependencies + SWC for transpilation
+RUN pnpm install --frozen-lockfile \
+    && pnpm add -Dw @swc/core @swc/cli
+
+# Copy shared configs and packages source
+COPY packages/ packages/
+
+# Copy service source (set via build arg)
+ARG SERVICE_PATH
+COPY ${SERVICE_PATH}/ ${SERVICE_PATH}/
+
+# Build workspace packages as CJS for NestJS runtime
+RUN cd packages/shared-types \
+    && npx tsc -p tsconfig.build.json --module commonjs --moduleResolution node --skipLibCheck \
+    && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json \
+    && sed -i '/"type": "module"/d' package.json
+
+RUN cd packages/domain-core \
+    && npx tsc -p tsconfig.build.json --module commonjs --moduleResolution node --skipLibCheck \
+    && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json \
+    && sed -i '/"type": "module"/d' package.json
+
+# Build the NestJS service with SWC (transpile only, no type-check)
+RUN cd ${SERVICE_PATH} && npx nest build --builder swc
+
+ENV SERVICE_PATH=${SERVICE_PATH}
+
+CMD sh -c "node ${SERVICE_PATH}/dist/main.js"
