@@ -22,6 +22,7 @@ export class ValidationEngine {
     this.validateContracts(snapshot, issues, deptIds, capIds)
     this.validateWorkflows(snapshot, issues, deptIds, contractIds)
     this.validatePolicies(snapshot, issues, deptIds)
+    this.validateArtifacts(snapshot, issues, deptIds, capIds)
 
     return issues
   }
@@ -256,6 +257,41 @@ export class ValidationEngine {
           message: `Workflow "${wf.name}" references non-existent department "${wf.ownerDepartmentId}"`,
           severity: 'error',
         })
+      }
+    }
+  }
+
+  private validateArtifacts(
+    snapshot: ReleaseSnapshotDto,
+    issues: ValidationIssue[],
+    deptIds: Set<string>,
+    capIds: Set<string>,
+  ) {
+    for (const artifact of snapshot.artifacts ?? []) {
+      if (artifact.producerId) {
+        const ids = artifact.producerType === 'department' ? deptIds : capIds
+        if (!ids.has(artifact.producerId)) {
+          issues.push({
+            entity: 'Artifact',
+            entityId: artifact.id,
+            field: 'producerId',
+            message: `Artifact "${artifact.name}" references non-existent ${artifact.producerType} "${artifact.producerId}" as producer`,
+            severity: 'error',
+          })
+        }
+      }
+      for (const consumerId of artifact.consumerIds) {
+        const isDept = deptIds.has(consumerId)
+        const isCap = capIds.has(consumerId)
+        if (!isDept && !isCap) {
+          issues.push({
+            entity: 'Artifact',
+            entityId: artifact.id,
+            field: 'consumerIds',
+            message: `Artifact "${artifact.name}" references non-existent consumer "${consumerId}"`,
+            severity: 'error',
+          })
+        }
       }
     }
   }

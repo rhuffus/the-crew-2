@@ -12,6 +12,7 @@ const NODE_TYPE_PREFIX: Record<NodeType, string> = {
   'workflow-stage': 'wf-stage',
   contract: 'contract',
   policy: 'policy',
+  artifact: 'artifact',
 }
 
 export function visualNodeId(nodeType: NodeType, entityId: string): string {

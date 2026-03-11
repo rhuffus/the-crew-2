@@ -30,6 +30,7 @@ import { Route as ProjectsProjectIdAdminCompanyModelRouteImport } from './routes
 import { Route as ProjectsProjectIdAdminCapabilitiesRouteImport } from './routes/projects/$projectId/admin/capabilities'
 import { Route as ProjectsProjectIdAdminAuditRouteImport } from './routes/projects/$projectId/admin/audit'
 import { Route as ProjectsProjectIdAdminAgentsRouteImport } from './routes/projects/$projectId/admin/agents'
+import { Route as ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRouteImport } from './routes/projects/$projectId/workflows.$workflowId.stages.$stageId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -151,6 +152,12 @@ const ProjectsProjectIdAdminAgentsRoute =
     path: '/agents',
     getParentRoute: () => ProjectsProjectIdAdminRoute,
   } as any)
+const ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute =
+  ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRouteImport.update({
+    id: '/stages/$stageId',
+    path: '/stages/$stageId',
+    getParentRoute: () => ProjectsProjectIdWorkflowsWorkflowIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -173,7 +180,8 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/admin/validations': typeof ProjectsProjectIdAdminValidationsRoute
   '/projects/$projectId/admin/workflows': typeof ProjectsProjectIdAdminWorkflowsRoute
   '/projects/$projectId/departments/$departmentId': typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRoute
+  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
+  '/projects/$projectId/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -195,7 +203,8 @@ export interface FileRoutesByTo {
   '/projects/$projectId/admin/validations': typeof ProjectsProjectIdAdminValidationsRoute
   '/projects/$projectId/admin/workflows': typeof ProjectsProjectIdAdminWorkflowsRoute
   '/projects/$projectId/departments/$departmentId': typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRoute
+  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
+  '/projects/$projectId/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -219,7 +228,8 @@ export interface FileRoutesById {
   '/projects/$projectId/admin/validations': typeof ProjectsProjectIdAdminValidationsRoute
   '/projects/$projectId/admin/workflows': typeof ProjectsProjectIdAdminWorkflowsRoute
   '/projects/$projectId/departments/$departmentId': typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRoute
+  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
+  '/projects/$projectId/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/admin/workflows'
     | '/projects/$projectId/departments/$departmentId'
     | '/projects/$projectId/workflows/$workflowId'
+    | '/projects/$projectId/workflows/$workflowId/stages/$stageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/admin/workflows'
     | '/projects/$projectId/departments/$departmentId'
     | '/projects/$projectId/workflows/$workflowId'
+    | '/projects/$projectId/workflows/$workflowId/stages/$stageId'
   id:
     | '__root__'
     | '/'
@@ -290,6 +302,7 @@ export interface FileRouteTypes {
     | '/projects/$projectId/admin/workflows'
     | '/projects/$projectId/departments/$departmentId'
     | '/projects/$projectId/workflows/$workflowId'
+    | '/projects/$projectId/workflows/$workflowId/stages/$stageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdAdminAgentsRouteImport
       parentRoute: typeof ProjectsProjectIdAdminRoute
     }
+    '/projects/$projectId/workflows/$workflowId/stages/$stageId': {
+      id: '/projects/$projectId/workflows/$workflowId/stages/$stageId'
+      path: '/stages/$stageId'
+      fullPath: '/projects/$projectId/workflows/$workflowId/stages/$stageId'
+      preLoaderRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRouteImport
+      parentRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdRoute
+    }
   }
 }
 
@@ -491,13 +511,28 @@ const ProjectsProjectIdAdminRouteWithChildren =
     ProjectsProjectIdAdminRouteChildren,
   )
 
+interface ProjectsProjectIdWorkflowsWorkflowIdRouteChildren {
+  ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
+}
+
+const ProjectsProjectIdWorkflowsWorkflowIdRouteChildren: ProjectsProjectIdWorkflowsWorkflowIdRouteChildren =
+  {
+    ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute:
+      ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute,
+  }
+
+const ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren =
+  ProjectsProjectIdWorkflowsWorkflowIdRoute._addFileChildren(
+    ProjectsProjectIdWorkflowsWorkflowIdRouteChildren,
+  )
+
 interface ProjectsProjectIdRouteChildren {
   ProjectsProjectIdAdminRoute: typeof ProjectsProjectIdAdminRouteWithChildren
   ProjectsProjectIdDiffRoute: typeof ProjectsProjectIdDiffRoute
   ProjectsProjectIdOrgRoute: typeof ProjectsProjectIdOrgRoute
   ProjectsProjectIdIndexRoute: typeof ProjectsProjectIdIndexRoute
   ProjectsProjectIdDepartmentsDepartmentIdRoute: typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  ProjectsProjectIdWorkflowsWorkflowIdRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdRoute
+  ProjectsProjectIdWorkflowsWorkflowIdRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
 }
 
 const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
@@ -508,7 +543,7 @@ const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
   ProjectsProjectIdDepartmentsDepartmentIdRoute:
     ProjectsProjectIdDepartmentsDepartmentIdRoute,
   ProjectsProjectIdWorkflowsWorkflowIdRoute:
-    ProjectsProjectIdWorkflowsWorkflowIdRoute,
+    ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren,
 }
 
 const ProjectsProjectIdRouteWithChildren =

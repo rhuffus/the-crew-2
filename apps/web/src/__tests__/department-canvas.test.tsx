@@ -46,6 +46,7 @@ vi.mock('@xyflow/react', async () => {
 
 const mockGraph: VisualGraphDto = {
   projectId: 'p1',
+  scopeType: 'department',
   scope: { level: 'L2', entityId: 'd1', entityType: 'department' },
   zoomLevel: 'L2',
   nodes: [
@@ -129,7 +130,7 @@ describe('Department Canvas', () => {
     expect(mockUseVisualGraph).toHaveBeenCalled()
     const call = mockUseVisualGraph.mock.calls[0]!
     expect(call[0]).toBe('p1')
-    expect(call[1]).toBe('L2')
+    expect(call[1]).toBe('department')
     expect(call[2]).toBe('dept-abc')
   })
 

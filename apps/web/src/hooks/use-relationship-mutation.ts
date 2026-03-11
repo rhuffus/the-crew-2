@@ -26,6 +26,7 @@ const ENTITY_PATHS: Record<MutableEntityType, string> = {
   skill: 'skills',
   contract: 'contracts',
   policy: 'policies',
+  artifact: 'artifacts',
 }
 
 /** Maps a MutableEntityType to the REST API path segment. */
@@ -57,15 +58,22 @@ export interface UseRelationshipMutationReturn {
   ) => Promise<void>
 
   isPending: boolean
+  lastError: string | null
+}
+
+export interface UseRelationshipMutationOptions {
+  onError?: (error: Error) => void
 }
 
 // --- Hook implementation ---
 
 export function useRelationshipMutation(
   projectId: string,
+  options?: UseRelationshipMutationOptions,
 ): UseRelationshipMutationReturn {
   const queryClient = useQueryClient()
   const [isPending, setIsPending] = useState(false)
+  const [lastError, setLastError] = useState<string | null>(null)
 
   const fetchEntity = useCallback(
     (entityType: MutableEntityType, entityId: string) =>
@@ -96,6 +104,15 @@ export function useRelationshipMutation(
     [queryClient, projectId],
   )
 
+  const handleError = useCallback(
+    (err: unknown) => {
+      const error = err instanceof Error ? err : new Error(String(err))
+      setLastError(error.message)
+      options?.onError?.(error)
+    },
+    [options],
+  )
+
   const createEdge = useCallback(
     async (
       edgeType: EdgeType,
@@ -104,6 +121,7 @@ export function useRelationshipMutation(
       metadata?: Record<string, unknown>,
     ): Promise<void> => {
       setIsPending(true)
+      setLastError(null)
       try {
         let currentEntityData: Record<string, unknown> | undefined
         if (requiresCurrentData(edgeType)) {
@@ -124,11 +142,13 @@ export function useRelationshipMutation(
         )
         await patchEntity(mutation.entityType, mutation.entityId, mutation.patch)
         await invalidateGraph()
+      } catch (err) {
+        handleError(err)
       } finally {
         setIsPending(false)
       }
     },
-    [fetchEntity, patchEntity, invalidateGraph],
+    [fetchEntity, patchEntity, invalidateGraph, handleError],
   )
 
   const deleteEdge = useCallback(
@@ -138,6 +158,7 @@ export function useRelationshipMutation(
       targetNode: VisualNodeDto,
     ): Promise<void> => {
       setIsPending(true)
+      setLastError(null)
       try {
         let currentEntityData: Record<string, unknown> | undefined
         if (requiresCurrentData(edgeType)) {
@@ -157,11 +178,13 @@ export function useRelationshipMutation(
         )
         await patchEntity(mutation.entityType, mutation.entityId, mutation.patch)
         await invalidateGraph()
+      } catch (err) {
+        handleError(err)
       } finally {
         setIsPending(false)
       }
     },
-    [fetchEntity, patchEntity, invalidateGraph],
+    [fetchEntity, patchEntity, invalidateGraph, handleError],
   )
 
   const updateEdgeMetadata = useCallback(
@@ -195,12 +218,14 @@ export function useRelationshipMutation(
           participants: updatedParticipants,
         })
         await invalidateGraph()
+      } catch (err) {
+        handleError(err)
       } finally {
         setIsPending(false)
       }
     },
-    [fetchEntity, patchEntity, invalidateGraph],
+    [fetchEntity, patchEntity, invalidateGraph, handleError],
   )
 
-  return { createEdge, deleteEdge, updateEdgeMetadata, isPending }
+  return { createEdge, deleteEdge, updateEdgeMetadata, isPending, lastError }
 }

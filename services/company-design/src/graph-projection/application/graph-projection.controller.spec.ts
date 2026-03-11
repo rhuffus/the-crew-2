@@ -13,6 +13,7 @@ describe('GraphProjectionController', () => {
 
   const mockGraph: VisualGraphDto = {
     projectId: 'p1',
+    scopeType: 'company',
     scope: { level: 'L1', entityId: null, entityType: null },
     zoomLevel: 'L1',
     nodes: [],
@@ -23,6 +24,7 @@ describe('GraphProjectionController', () => {
 
   const mockDiff: VisualGraphDiffDto = {
     projectId: 'p1',
+    scopeType: 'company',
     scope: { level: 'L1', entityId: null, entityType: null },
     zoomLevel: 'L1',
     baseReleaseId: 'rel-1',
@@ -47,54 +49,86 @@ describe('GraphProjectionController', () => {
 
   // ---- getVisualGraph tests ----
 
-  it('should call service with default L1 when no level provided', async () => {
+  it('should call service with company scope when no params provided', async () => {
     const result = await controller.getVisualGraph('p1')
 
-    expect(mockService.projectGraph).toHaveBeenCalledWith('p1', 'L1', null, null)
+    expect(mockService.projectGraph).toHaveBeenCalledWith('p1', 'company', null, null)
     expect(result).toBe(mockGraph)
   })
 
-  it('should parse level and entityId', async () => {
-    await controller.getVisualGraph('p1', 'L3', 'wf1')
+  it('should use scope param directly', async () => {
+    await controller.getVisualGraph('p1', 'workflow', undefined, 'wf1')
 
-    expect(mockService.projectGraph).toHaveBeenCalledWith('p1', 'L3', 'wf1', null)
+    expect(mockService.projectGraph).toHaveBeenCalledWith('p1', 'workflow', 'wf1', null)
+  })
+
+  it('should translate level to scope type for backward compat', async () => {
+    await controller.getVisualGraph('p1', undefined, 'L3', 'wf1')
+
+    expect(mockService.projectGraph).toHaveBeenCalledWith('p1', 'workflow', 'wf1', null)
   })
 
   it('should parse comma-separated layers', async () => {
-    await controller.getVisualGraph('p1', 'L1', undefined, 'organization,governance')
+    await controller.getVisualGraph('p1', 'company', undefined, undefined, 'organization,governance')
 
     expect(mockService.projectGraph).toHaveBeenCalledWith(
-      'p1', 'L1', null, ['organization', 'governance'],
+      'p1', 'company', null, ['organization', 'governance'],
     )
   })
 
-  it('should throw BadRequestException when L2 without entityId', async () => {
+  it('should throw BadRequestException when department scope without entityId', async () => {
     await expect(
-      controller.getVisualGraph('p1', 'L2'),
+      controller.getVisualGraph('p1', 'department'),
     ).rejects.toThrow(BadRequestException)
   })
 
-  it('should throw BadRequestException when L3 without entityId', async () => {
+  it('should throw BadRequestException when workflow scope without entityId', async () => {
     await expect(
-      controller.getVisualGraph('p1', 'L3'),
+      controller.getVisualGraph('p1', 'workflow'),
     ).rejects.toThrow(BadRequestException)
+  })
+
+  it('should throw BadRequestException when L2 without entityId (backward compat)', async () => {
+    await expect(
+      controller.getVisualGraph('p1', undefined, 'L2'),
+    ).rejects.toThrow(BadRequestException)
+  })
+
+  it('should throw BadRequestException for unknown scope type', async () => {
+    await expect(
+      controller.getVisualGraph('p1', 'invalid-scope'),
+    ).rejects.toThrow(BadRequestException)
+  })
+
+  it('scope param takes precedence over level param', async () => {
+    await controller.getVisualGraph('p1', 'department', 'L3', 'd1')
+
+    expect(mockService.projectGraph).toHaveBeenCalledWith('p1', 'department', 'd1', null)
   })
 
   // ---- getVisualDiff tests ----
 
   describe('getVisualDiff', () => {
-    it('should call service.projectDiff with default L1', async () => {
+    it('should call service.projectDiff with company scope by default', async () => {
       const result = await controller.getVisualDiff('p1', 'rel-1', 'rel-2')
 
-      expect(mockService.projectDiff).toHaveBeenCalledWith('p1', 'rel-1', 'rel-2', 'L1', null, null)
+      expect(mockService.projectDiff).toHaveBeenCalledWith('p1', 'rel-1', 'rel-2', 'company', null, null)
       expect(result).toBe(mockDiff)
     })
 
-    it('should parse level, entityId, and layers', async () => {
-      await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L2', 'd1', 'organization,capabilities')
+    it('should use scope param for diff', async () => {
+      await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'department', undefined, 'd1', 'organization,capabilities')
 
       expect(mockService.projectDiff).toHaveBeenCalledWith(
-        'p1', 'rel-1', 'rel-2', 'L2', 'd1', ['organization', 'capabilities'],
+        'p1', 'rel-1', 'rel-2', 'department', 'd1', ['organization', 'capabilities'],
+      )
+    })
+
+    it('should translate level to scope type for diff (backward compat)', async () => {
+      await controller.getVisualDiff('p1', 'rel-1', 'rel-2', undefined, 'L2', 'd1')
+
+      expect(mockService.projectDiff).toHaveBeenCalledWith(
+        'p1', 'rel-1', 'rel-2', 'department', 'd1', null,
       )
     })
 
@@ -110,28 +144,28 @@ describe('GraphProjectionController', () => {
       ).rejects.toThrow(BadRequestException)
     })
 
-    it('should throw BadRequestException when L2 without entityId', async () => {
+    it('should throw BadRequestException when department scope without entityId', async () => {
       await expect(
-        controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L2'),
+        controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'department'),
       ).rejects.toThrow(BadRequestException)
     })
 
-    it('should throw BadRequestException when L3 without entityId', async () => {
+    it('should throw BadRequestException when workflow scope without entityId', async () => {
       await expect(
-        controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L3'),
+        controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'workflow'),
       ).rejects.toThrow(BadRequestException)
     })
 
     it('should pass null layers when not provided', async () => {
-      await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L1', undefined, undefined)
+      await controller.getVisualDiff('p1', 'rel-1', 'rel-2')
 
-      expect(mockService.projectDiff).toHaveBeenCalledWith('p1', 'rel-1', 'rel-2', 'L1', null, null)
+      expect(mockService.projectDiff).toHaveBeenCalledWith('p1', 'rel-1', 'rel-2', 'company', null, null)
     })
 
-    it('should pass entityId for L3 scope', async () => {
-      await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L3', 'wf1')
+    it('should pass entityId for workflow scope', async () => {
+      await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'workflow', undefined, 'wf1')
 
-      expect(mockService.projectDiff).toHaveBeenCalledWith('p1', 'rel-1', 'rel-2', 'L3', 'wf1', null)
+      expect(mockService.projectDiff).toHaveBeenCalledWith('p1', 'rel-1', 'rel-2', 'workflow', 'wf1', null)
     })
   })
 })

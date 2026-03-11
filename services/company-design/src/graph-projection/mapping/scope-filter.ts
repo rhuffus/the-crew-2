@@ -4,76 +4,101 @@ import type {
   VisualNodeDto,
   VisualEdgeDto,
   ReleaseSnapshotDto,
+  ScopeType,
+  ScopeDescriptor,
 } from '@the-crew/shared-types'
+import { scopeTypeFromZoomLevel } from '@the-crew/shared-types'
 
-interface FilterResult {
+export interface FilterResult {
   nodes: VisualNodeDto[]
   edges: VisualEdgeDto[]
 }
 
+type ScopeFilterFn = (
+  nodes: VisualNodeDto[],
+  edges: VisualEdgeDto[],
+  entityId: string | null,
+  activeLayers: LayerId[],
+  snapshot: ReleaseSnapshotDto,
+) => FilterResult
+
+const SCOPE_FILTERS: Record<ScopeType, ScopeFilterFn> = {
+  company: filterCompanyScope,
+  department: filterDepartmentScope,
+  workflow: filterWorkflowScope,
+  'workflow-stage': filterWorkflowStageScope,
+}
+
+/**
+ * Filter graph by scope using dispatch map.
+ * Accepts ScopeDescriptor (new) or GraphScope (legacy).
+ */
 export function filterByScope(
   nodes: VisualNodeDto[],
   edges: VisualEdgeDto[],
-  scope: GraphScope,
+  scope: ScopeDescriptor | GraphScope,
   activeLayers: LayerId[],
   snapshot: ReleaseSnapshotDto,
 ): FilterResult {
-  let filteredNodes: VisualNodeDto[]
+  // Determine scopeType: new ScopeDescriptor has scopeType, legacy GraphScope has level
+  const scopeType: ScopeType = 'scopeType' in scope
+    ? scope.scopeType
+    : scopeTypeFromZoomLevel(scope.level)
 
-  switch (scope.level) {
-    case 'L1':
-      filteredNodes = filterL1(nodes, activeLayers)
-      break
-    case 'L2':
-      filteredNodes = filterL2(nodes, scope.entityId!, activeLayers, snapshot)
-      break
-    case 'L3':
-      filteredNodes = filterL3(nodes, scope.entityId!, activeLayers, snapshot)
-      break
-    default:
-      filteredNodes = nodes
-  }
+  const entityId = 'scopeType' in scope ? scope.entityId : scope.entityId
+
+  const filterFn = SCOPE_FILTERS[scopeType]
+  if (!filterFn) return { nodes, edges }
+
+  const { nodes: filteredNodes, edges: filteredEdges } = filterFn(nodes, edges, entityId, activeLayers, snapshot)
 
   // Layer filtering pass
-  filteredNodes = applyLayerFilter(filteredNodes, activeLayers, scope)
+  const layerFiltered = applyLayerFilter(filteredNodes, activeLayers, scopeType, entityId)
 
   // Keep only edges where both endpoints survive
-  const nodeIdSet = new Set(filteredNodes.map((n) => n.id))
-  const filteredEdges = edges.filter(
+  // Use scope-filtered edges if provided, otherwise fall back to all edges
+  const edgeCandidates = filteredEdges.length > 0 ? filteredEdges : edges
+  const nodeIdSet = new Set(layerFiltered.map((n) => n.id))
+  const cleanEdges = edgeCandidates.filter(
     (e) =>
       nodeIdSet.has(e.sourceId) &&
       nodeIdSet.has(e.targetId) &&
       e.layerIds.some((l) => activeLayers.includes(l)),
   )
 
-  return { nodes: filteredNodes, edges: filteredEdges }
+  return { nodes: layerFiltered, edges: cleanEdges }
 }
 
-function filterL1(nodes: VisualNodeDto[], activeLayers: LayerId[]): VisualNodeDto[] {
-  return nodes.filter((n) => {
-    // Company and department always visible at L1
+function filterCompanyScope(
+  nodes: VisualNodeDto[],
+  _edges: VisualEdgeDto[],
+  _entityId: string | null,
+  activeLayers: LayerId[],
+  _snapshot: ReleaseSnapshotDto,
+): FilterResult {
+  const filteredNodes = nodes.filter((n) => {
     if (n.nodeType === 'company' || n.nodeType === 'department') return true
-    // Other nodes only if their layer is active
     return n.layerIds.some((l) => activeLayers.includes(l))
   })
+  return { nodes: filteredNodes, edges: [] }
 }
 
-function filterL2(
+function filterDepartmentScope(
   nodes: VisualNodeDto[],
-  deptId: string,
+  _edges: VisualEdgeDto[],
+  entityId: string | null,
   activeLayers: LayerId[],
   snapshot: ReleaseSnapshotDto,
-): VisualNodeDto[] {
+): FilterResult {
+  const deptId = entityId!
   const deptVisualId = `dept:${deptId}`
 
-  // Find archetype IDs in this department
   const archetypeIds = new Set(
     snapshot.agentArchetypes
       .filter((a) => a.departmentId === deptId)
       .map((a) => a.id),
   )
 
-  // Find skill IDs referenced by archetypes in scope
   const skillIds = new Set<string>()
   for (const a of snapshot.agentArchetypes) {
     if (a.departmentId === deptId) {
@@ -81,7 +106,6 @@ function filterL2(
     }
   }
 
-  // Find contract IDs where dept or its capabilities are party
   const capIds = new Set(
     snapshot.capabilities
       .filter((c) => c.ownerDepartmentId === deptId)
@@ -98,50 +122,56 @@ function filterL2(
     if (providerMatch || consumerMatch) contractIds.add(c.id)
   }
 
-  return nodes.filter((n) => {
-    // Context node always visible
+  const filteredNodes = nodes.filter((n) => {
     if (n.id === deptVisualId) return true
-    // Sub-departments
     if (n.nodeType === 'department' && n.parentId === deptVisualId) return true
-    // Roles in this dept
     if (n.nodeType === 'role' && n.parentId === deptVisualId) return true
-    // Archetypes in this dept
     if (n.nodeType === 'agent-archetype' && n.parentId === deptVisualId) return true
-    // Assignments for archetypes in scope
     if (n.nodeType === 'agent-assignment' && archetypeIds.has(n.entityId.replace('assignment:', ''))) {
-      // Match by parentId which is archetype visual id
       return n.parentId !== null && archetypeIds.has(n.parentId.replace('archetype:', ''))
     }
-    // Capabilities owned by this dept (if layer active)
     if (n.nodeType === 'capability' && n.parentId === deptVisualId && activeLayers.includes('capabilities'))
       return true
-    // Workflows owned by this dept (if layer active)
     if (n.nodeType === 'workflow' && n.parentId === deptVisualId && activeLayers.includes('workflows'))
       return true
-    // Skills referenced by archetypes (if layer active)
     if (n.nodeType === 'skill' && skillIds.has(n.entityId) && activeLayers.includes('capabilities'))
       return true
-    // Contracts where dept is party (if layer active)
     if (n.nodeType === 'contract' && contractIds.has(n.entityId) && activeLayers.includes('contracts'))
       return true
-    // Policies scoped to this dept (if layer active)
     if (n.nodeType === 'policy' && activeLayers.includes('governance')) {
       const policy = snapshot.policies.find((p) => p.id === n.entityId)
       return policy?.departmentId === deptId
     }
+    if (n.nodeType === 'artifact' && activeLayers.includes('artifacts')) {
+      const artifact = (snapshot.artifacts ?? []).find((a) => a.id === n.entityId)
+      if (!artifact) return false
+      // Show artifacts produced by this dept or its capabilities
+      if (artifact.producerType === 'department' && artifact.producerId === deptId) return true
+      if (artifact.producerType === 'capability' && artifact.producerId && capIds.has(artifact.producerId)) return true
+      // Show artifacts consumed by this dept
+      if (artifact.consumerIds.includes(deptId)) return true
+      // Show artifacts consumed by dept's capabilities
+      for (const cId of artifact.consumerIds) {
+        if (capIds.has(cId)) return true
+      }
+      return false
+    }
     return false
   })
+  return { nodes: filteredNodes, edges: [] }
 }
 
-function filterL3(
+function filterWorkflowScope(
   nodes: VisualNodeDto[],
-  workflowId: string,
+  _edges: VisualEdgeDto[],
+  entityId: string | null,
   activeLayers: LayerId[],
   snapshot: ReleaseSnapshotDto,
-): VisualNodeDto[] {
+): FilterResult {
+  const workflowId = entityId!
   const wfVisualId = `wf:${workflowId}`
   const wf = snapshot.workflows.find((w) => w.id === workflowId)
-  if (!wf) return []
+  if (!wf) return { nodes: [], edges: [] }
 
   const boundContractIds = new Set(wf.contractIds ?? [])
   const participantIds = new Set(
@@ -151,37 +181,74 @@ function filterL3(
     }),
   )
 
-  return nodes.filter((n) => {
-    // Context node
+  const filteredNodes = nodes.filter((n) => {
     if (n.id === wfVisualId) return true
-    // Stages
     if (n.nodeType === 'workflow-stage' && n.parentId === wfVisualId) return true
-    // Bound contracts
     if (n.nodeType === 'contract' && boundContractIds.has(n.entityId) && activeLayers.includes('contracts'))
       return true
-    // Participants
     if ((n.nodeType === 'role' || n.nodeType === 'department') && participantIds.has(n.id) && activeLayers.includes('organization'))
       return true
-    // Governing policies
     if (n.nodeType === 'policy' && activeLayers.includes('governance')) {
       const policy = snapshot.policies.find((p) => p.id === n.entityId)
       return policy?.departmentId === wf.ownerDepartmentId
     }
+    if (n.nodeType === 'artifact' && activeLayers.includes('artifacts')) {
+      const artifact = (snapshot.artifacts ?? []).find((a) => a.id === n.entityId)
+      if (!artifact) return false
+      // Show artifacts whose producer/consumer is a workflow participant
+      const participantEntityIds = new Set(
+        (wf.participants ?? []).map((p) => p.participantId),
+      )
+      if (wf.ownerDepartmentId) participantEntityIds.add(wf.ownerDepartmentId)
+      if (artifact.producerId && participantEntityIds.has(artifact.producerId)) return true
+      for (const cId of artifact.consumerIds) {
+        if (participantEntityIds.has(cId)) return true
+      }
+      return false
+    }
     return false
   })
+  return { nodes: filteredNodes, edges: [] }
+}
+
+function filterWorkflowStageScope(
+  nodes: VisualNodeDto[],
+  edges: VisualEdgeDto[],
+  entityId: string | null,
+  _activeLayers: LayerId[],
+  _snapshot: ReleaseSnapshotDto,
+): FilterResult {
+  const stageNode = nodes.find(
+    (n) => n.entityId === entityId && n.nodeType === 'workflow-stage',
+  )
+  if (!stageNode) return { nodes: [], edges: [] }
+
+  const stageEdges = edges.filter(
+    (e) => e.sourceId === stageNode.id || e.targetId === stageNode.id,
+  )
+  const connectedNodeIds = new Set([
+    stageNode.id,
+    ...stageEdges.flatMap((e) => [e.sourceId, e.targetId]),
+  ])
+  return {
+    nodes: nodes.filter((n) => connectedNodeIds.has(n.id)),
+    edges: stageEdges,
+  }
 }
 
 function applyLayerFilter(
   nodes: VisualNodeDto[],
   activeLayers: LayerId[],
-  scope: GraphScope,
+  scopeType: ScopeType,
+  entityId: string | null,
 ): VisualNodeDto[] {
   return nodes.filter((n) => {
     // Context nodes are always kept
-    if (scope.level === 'L2' && n.id === `dept:${scope.entityId}`) return true
-    if (scope.level === 'L3' && n.id === `wf:${scope.entityId}`) return true
+    if (scopeType === 'department' && n.id === `dept:${entityId}`) return true
+    if (scopeType === 'workflow' && n.id === `wf:${entityId}`) return true
+    if (scopeType === 'workflow-stage' && n.entityId === entityId && n.nodeType === 'workflow-stage') return true
     // Company and department at L1 always visible
-    if (scope.level === 'L1' && (n.nodeType === 'company' || n.nodeType === 'department'))
+    if (scopeType === 'company' && (n.nodeType === 'company' || n.nodeType === 'department'))
       return true
     // Otherwise node must belong to an active layer
     return n.layerIds.some((l) => activeLayers.includes(l))

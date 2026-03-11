@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import type { NodeType } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
+import type { CanvasMode } from '@/stores/visual-workspace-store'
+import { useUndoRedoStore } from '@/stores/undo-redo-store'
 
 export const DRILLABLE_NODE_TYPES: ReadonlySet<NodeType> = new Set([
   'company',
@@ -17,6 +19,15 @@ function isTextInputFocused(): boolean {
   return false
 }
 
+// Mode shortcut map: key → CanvasMode
+const MODE_SHORTCUTS: Record<string, CanvasMode> = {
+  v: 'select',
+  h: 'pan',
+  c: 'connect',
+  n: 'add-node',
+  e: 'add-edge',
+}
+
 export interface UseCanvasKeyboardOptions {
   onDrillIn: (nodeId: string) => void
   onDrillOut: () => void
@@ -31,6 +42,53 @@ export function useCanvasKeyboard({
       if (isTextInputFocused()) return
 
       const store = useVisualWorkspaceStore.getState()
+      const mod = e.ctrlKey || e.metaKey
+
+      // Undo: Ctrl/Cmd+Z (no Shift)
+      if (mod && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault()
+        useUndoRedoStore.getState().undo()
+        return
+      }
+
+      // Redo: Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y
+      if (mod && e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault()
+        useUndoRedoStore.getState().redo()
+        return
+      }
+      if (mod && !e.shiftKey && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault()
+        useUndoRedoStore.getState().redo()
+        return
+      }
+
+      // Select all: Ctrl/Cmd+A
+      if (mod && !e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault()
+        const allIds = store.graphNodes.map((n) => n.id)
+        if (allIds.length > 0) {
+          store.selectNodes(allIds)
+        }
+        return
+      }
+
+      // Keyboard shortcuts help: ?
+      if (e.key === '?' && !mod && !e.altKey) {
+        e.preventDefault()
+        store.toggleKeyboardHelp()
+        return
+      }
+
+      // Mode switching shortcuts: V, H, C, N, E (no modifiers)
+      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+        const mode = MODE_SHORTCUTS[e.key.toLowerCase()]
+        if (mode && !store.isDiffMode) {
+          e.preventDefault()
+          store.setCanvasMode(mode)
+          return
+        }
+      }
 
       switch (e.key) {
         case 'Enter': {
@@ -45,6 +103,32 @@ export function useCanvasKeyboard({
 
         case 'Escape': {
           e.preventDefault()
+
+          // Dismiss context menu first (CAV-008)
+          if (store.contextMenu) {
+            store.dismissContextMenu()
+            return
+          }
+
+          // Dismiss keyboard help first
+          if (store.showKeyboardHelp) {
+            store.dismissKeyboardHelp()
+            return
+          }
+
+          // Cancel add-edge source first
+          if (store.canvasMode === 'add-edge' && store.addEdgeSource) {
+            store.setAddEdgeSource(null)
+            return
+          }
+
+          // Return to select mode if in another mode
+          if (store.canvasMode !== 'select') {
+            store.setCanvasMode('select')
+            return
+          }
+
+          // Default escape: clear selection, then drill out
           if (
             store.selectedNodeIds.length > 0 ||
             store.selectedEdgeIds.length > 0

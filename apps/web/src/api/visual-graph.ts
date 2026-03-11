@@ -1,8 +1,10 @@
-import type { VisualGraphDto, VisualGraphDiffDto, ZoomLevel, LayerId } from '@the-crew/shared-types'
+import type { VisualGraphDto, VisualGraphDiffDto, ScopeType, ZoomLevel, LayerId } from '@the-crew/shared-types'
 import { apiClient } from '@/lib/api-client'
 
 export interface VisualGraphParams {
   projectId: string
+  scope?: ScopeType
+  /** @deprecated Use scope instead */
   level?: ZoomLevel
   entityId?: string
   layers?: LayerId[]
@@ -12,15 +14,18 @@ export interface VisualDiffParams {
   projectId: string
   baseReleaseId: string
   compareReleaseId: string
+  scope?: ScopeType
+  /** @deprecated Use scope instead */
   level?: ZoomLevel
   entityId?: string
   layers?: LayerId[]
 }
 
 export const visualGraphApi = {
-  getVisualGraph({ projectId, level, entityId, layers }: VisualGraphParams): Promise<VisualGraphDto> {
+  getVisualGraph({ projectId, scope, level, entityId, layers }: VisualGraphParams): Promise<VisualGraphDto> {
     const params = new URLSearchParams()
-    if (level) params.set('level', level)
+    if (scope) params.set('scope', scope)
+    else if (level) params.set('level', level)
     if (entityId) params.set('entityId', entityId)
     if (layers?.length) params.set('layers', layers.join(','))
     const qs = params.toString()
@@ -29,11 +34,12 @@ export const visualGraphApi = {
     )
   },
 
-  getVisualDiff({ projectId, baseReleaseId, compareReleaseId, level, entityId, layers }: VisualDiffParams): Promise<VisualGraphDiffDto> {
+  getVisualDiff({ projectId, baseReleaseId, compareReleaseId, scope, level, entityId, layers }: VisualDiffParams): Promise<VisualGraphDiffDto> {
     const params = new URLSearchParams()
     params.set('base', baseReleaseId)
     params.set('compare', compareReleaseId)
-    if (level) params.set('level', level)
+    if (scope) params.set('scope', scope)
+    else if (level) params.set('level', level)
     if (entityId) params.set('entityId', entityId)
     if (layers?.length) params.set('layers', layers.join(','))
     const qs = params.toString()

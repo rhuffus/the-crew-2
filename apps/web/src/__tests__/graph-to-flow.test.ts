@@ -43,6 +43,7 @@ function makeGraph(overrides: Partial<VisualGraphDto>): VisualGraphDto {
   return {
     projectId: 'p1',
     scope: { level: 'L1', entityId: null, entityType: null },
+    scopeType: 'company',
     zoomLevel: 'L1',
     nodes: [],
     edges: [],
@@ -372,6 +373,7 @@ describe('graphToFlow', () => {
 
   it('should use layoutDepartmentGraph for L2 scope', () => {
     const graph = makeGraph({
+      scopeType: 'department',
       zoomLevel: 'L2',
       scope: { level: 'L2', entityId: 'd1', entityType: 'department' },
       nodes: [

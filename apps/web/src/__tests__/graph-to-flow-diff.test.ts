@@ -44,6 +44,7 @@ function makeDiffEdge(overrides: Partial<VisualEdgeDiffDto>): VisualEdgeDiffDto 
 function makeDiffGraph(overrides: Partial<VisualGraphDiffDto>): VisualGraphDiffDto {
   return {
     projectId: 'p1',
+    scopeType: 'company',
     scope: { level: 'L1', entityId: null, entityType: null },
     zoomLevel: 'L1',
     baseReleaseId: 'rel-1',
@@ -260,6 +261,7 @@ describe('layoutDiffGraph', () => {
 
   it('should use L2 layout for department-scoped diff', () => {
     const diff = makeDiffGraph({
+      scopeType: 'department',
       zoomLevel: 'L2',
       scope: { level: 'L2', entityId: 'd1', entityType: 'department' },
       nodes: [

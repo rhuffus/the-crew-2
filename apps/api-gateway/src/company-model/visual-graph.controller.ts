@@ -9,11 +9,12 @@ export class VisualGraphController {
   @Get()
   getVisualGraph(
     @Param('projectId') projectId: string,
+    @Query('scope') scope?: string,
     @Query('level') level?: string,
     @Query('entityId') entityId?: string,
     @Query('layers') layers?: string,
   ): Promise<VisualGraphDto> {
-    return this.companyDesign.getVisualGraph(projectId, level, entityId, layers)
+    return this.companyDesign.getVisualGraph(projectId, scope, level, entityId, layers)
   }
 
   @Get('diff')
@@ -21,6 +22,7 @@ export class VisualGraphController {
     @Param('projectId') projectId: string,
     @Query('base') baseReleaseId: string,
     @Query('compare') compareReleaseId: string,
+    @Query('scope') scope?: string,
     @Query('level') level?: string,
     @Query('entityId') entityId?: string,
     @Query('layers') layers?: string,
@@ -29,6 +31,7 @@ export class VisualGraphController {
       projectId,
       baseReleaseId,
       compareReleaseId,
+      scope,
       level,
       entityId,
       layers,

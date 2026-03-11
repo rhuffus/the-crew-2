@@ -1,7 +1,7 @@
 import type { NodeType, ZoomLevel } from '@the-crew/shared-types'
 
 export type FieldType = 'text' | 'textarea' | 'select' | 'tags' | 'party-select'
-export type OptionsSource = 'departments' | 'roles' | 'capabilities' | 'archetypes'
+export type OptionsSource = 'departments' | 'roles' | 'capabilities' | 'archetypes' | 'skills'
 
 export interface FormFieldSchema {
   name: string
@@ -154,12 +154,32 @@ export const ENTITY_FORM_SCHEMAS: EntityFormSchema[] = [
       { name: 'archetypeId', label: 'Archetype', type: 'select', optionsSource: 'archetypes', required: true },
     ],
   },
+  {
+    nodeType: 'artifact',
+    label: 'Artifact',
+    fields: [
+      { name: 'name', label: 'Name', type: 'text', placeholder: 'Artifact name', required: true },
+      { name: 'description', label: 'Description', type: 'textarea', placeholder: 'What this artifact is' },
+      {
+        name: 'type', label: 'Type', type: 'select', required: true,
+        options: [
+          { value: 'document', label: 'Document' },
+          { value: 'data', label: 'Data' },
+          { value: 'deliverable', label: 'Deliverable' },
+          { value: 'decision', label: 'Decision' },
+          { value: 'template', label: 'Template' },
+        ],
+      },
+      { name: 'producerId', label: 'Producer', type: 'party-select' },
+      { name: 'tags', label: 'Tags', type: 'tags', placeholder: 'Comma-separated tags' },
+    ],
+  },
 ]
 
-const L1_TYPES: NodeType[] = ['department']
+const L1_TYPES: NodeType[] = ['department', 'artifact']
 const L2_TYPES: NodeType[] = [
   'role', 'capability', 'workflow', 'contract', 'policy',
-  'skill', 'agent-archetype', 'agent-assignment',
+  'skill', 'agent-archetype', 'agent-assignment', 'artifact',
 ]
 
 export function getAddableTypes(zoomLevel: ZoomLevel): NodeType[] {

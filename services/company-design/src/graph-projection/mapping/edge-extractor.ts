@@ -235,5 +235,42 @@ export function extractEdges(snapshot: ReleaseSnapshotDto, projectId: string): V
     }
   }
 
+  // produces_artifact: producer -> artifact
+  for (const artifact of snapshot.artifacts ?? []) {
+    if (artifact.producerId) {
+      const producerPrefix = artifact.producerType === 'department' ? 'department' : 'capability'
+      const src = visualNodeId(producerPrefix, artifact.producerId)
+      const tgt = visualNodeId('artifact', artifact.id)
+      edges.push({
+        id: visualEdgeId('produces_artifact', src, tgt),
+        edgeType: 'produces_artifact',
+        sourceId: src,
+        targetId: tgt,
+        label: 'produces',
+        style: 'solid',
+        layerIds: ['artifacts'],
+      })
+    }
+  }
+
+  // consumes_artifact: consumer -> artifact
+  for (const artifact of snapshot.artifacts ?? []) {
+    for (const consumerId of artifact.consumerIds ?? []) {
+      const isDept = snapshot.departments.some((d) => d.id === consumerId)
+      const prefix = isDept ? 'department' : 'capability'
+      const src = visualNodeId(prefix, consumerId)
+      const tgt = visualNodeId('artifact', artifact.id)
+      edges.push({
+        id: visualEdgeId('consumes_artifact', src, tgt),
+        edgeType: 'consumes_artifact',
+        sourceId: src,
+        targetId: tgt,
+        label: 'consumes',
+        style: 'dashed',
+        layerIds: ['artifacts'],
+      })
+    }
+  }
+
   return edges
 }

@@ -23,6 +23,7 @@ function createSnapshot(overrides: Partial<ReleaseSnapshotDto> = {}): ReleaseSna
     contracts: [],
     workflows: [],
     policies: [],
+    artifacts: [],
     ...overrides,
   }
 }
@@ -66,7 +67,7 @@ describe('GraphProjectionService', () => {
 
     expect(result.projectId).toBe('p1')
     expect(result.zoomLevel).toBe('L1')
-    expect(result.scope).toEqual({ level: 'L1', entityId: null, entityType: null })
+    expect(result.scope).toEqual({ level: 'L1', entityId: null, entityType: 'company' })
     expect(result.activeLayers).toEqual(['organization'])
     expect(result.breadcrumb).toHaveLength(1)
     expect(result.breadcrumb[0]!.label).toBe('Test Co')
@@ -187,7 +188,7 @@ describe('GraphProjectionService', () => {
       expect(result.baseReleaseId).toBe('rel-1')
       expect(result.compareReleaseId).toBe('rel-2')
       expect(result.zoomLevel).toBe('L1')
-      expect(result.scope).toEqual({ level: 'L1', entityId: null, entityType: null })
+      expect(result.scope).toEqual({ level: 'L1', entityId: null, entityType: 'company' })
       expect(result.activeLayers).toEqual(['organization'])
       expect(result.breadcrumb.length).toBeGreaterThanOrEqual(1)
       expect(result.summary).toBeDefined()

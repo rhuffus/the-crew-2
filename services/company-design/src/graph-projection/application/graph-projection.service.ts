@@ -7,10 +7,11 @@ import type {
   ReleaseSnapshotDto,
   ZoomLevel,
   LayerId,
-  NodeType,
   BreadcrumbEntry,
+  ScopeType,
+  ScopeDescriptor,
 } from '@the-crew/shared-types'
-import { DEFAULT_LAYERS_PER_LEVEL } from '@the-crew/shared-types'
+import { SCOPE_REGISTRY, scopeTypeFromZoomLevel } from '@the-crew/shared-types'
 import { SnapshotCollector } from '../../releases/application/snapshot-collector'
 import { ValidationEngine } from '../../validations/application/validation-engine'
 import type { ReleaseRepository } from '../../releases/domain/release-repository'
@@ -32,19 +33,22 @@ export class GraphProjectionService {
 
   async projectGraph(
     projectId: string,
-    level: ZoomLevel = 'L1',
+    levelOrScopeType: ZoomLevel | ScopeType = 'L1',
     entityId: string | null = null,
     requestedLayers: LayerId[] | null = null,
   ): Promise<VisualGraphDto> {
+    const { scopeType, level } = this.resolveScopeType(levelOrScopeType)
+    const scopeDef = SCOPE_REGISTRY[scopeType]
+
     const snapshot = await this.snapshotCollector.collect(projectId)
     const issues = this.validationEngine.validate(snapshot)
 
     const allNodes = mapNodes(snapshot, projectId)
     const allEdges = extractEdges(snapshot, projectId)
 
-    const entityType = this.inferEntityType(level)
-    const scope = { level, entityId, entityType }
-    const activeLayers = requestedLayers ?? DEFAULT_LAYERS_PER_LEVEL[level]
+    const scope: ScopeDescriptor = { scopeType, entityId, zoomLevel: level }
+    const legacyScope = { level, entityId, entityType: scopeDef.rootNodeType }
+    const activeLayers = requestedLayers ?? scopeDef.defaultLayers
 
     const { nodes: scopedNodes, edges: scopedEdges } = filterByScope(
       allNodes,
@@ -66,7 +70,8 @@ export class GraphProjectionService {
 
     return {
       projectId,
-      scope,
+      scopeType,
+      scope: legacyScope,
       zoomLevel: level,
       nodes: nodesWithValidation,
       edges: cleanEdges,
@@ -79,7 +84,7 @@ export class GraphProjectionService {
     projectId: string,
     baseReleaseId: string,
     compareReleaseId: string,
-    level: ZoomLevel = 'L1',
+    levelOrScopeType: ZoomLevel | ScopeType = 'L1',
     entityId: string | null = null,
     requestedLayers: LayerId[] | null = null,
   ): Promise<VisualGraphDiffDto> {
@@ -101,17 +106,18 @@ export class GraphProjectionService {
       throw new BadRequestException(`Compare release ${compareReleaseId} is not published`)
     }
 
+    const { scopeType, level } = this.resolveScopeType(levelOrScopeType)
+    const scopeDef = SCOPE_REGISTRY[scopeType]
+
     const baseSnapshot = baseRelease.snapshot!
     const compareSnapshot = compareRelease.snapshot!
 
-    const entityType = this.inferEntityType(level)
-    const scope = { level, entityId, entityType }
-    const activeLayers = requestedLayers ?? DEFAULT_LAYERS_PER_LEVEL[level]
+    const legacyScope = { level, entityId, entityType: scopeDef.rootNodeType }
+    const activeLayers = requestedLayers ?? scopeDef.defaultLayers
 
-    const baseProjected = this.projectFromSnapshot(baseSnapshot, projectId, level, entityId, activeLayers)
-    const compareProjected = this.projectFromSnapshot(compareSnapshot, projectId, level, entityId, activeLayers)
+    const baseProjected = this.projectFromSnapshot(baseSnapshot, projectId, scopeType, entityId, activeLayers)
+    const compareProjected = this.projectFromSnapshot(compareSnapshot, projectId, scopeType, entityId, activeLayers)
 
-    // Use compare breadcrumb if available, fall back to base for removed-entity case
     const breadcrumb = compareProjected.breadcrumb.length > 0
       ? compareProjected.breadcrumb
       : baseProjected.breadcrumb
@@ -121,26 +127,27 @@ export class GraphProjectionService {
       { nodes: compareProjected.nodes, edges: compareProjected.edges },
       baseReleaseId,
       compareReleaseId,
-      scope,
+      legacyScope,
       level,
       activeLayers,
       breadcrumb,
       projectId,
+      scopeType,
     )
   }
 
   private projectFromSnapshot(
     snapshot: ReleaseSnapshotDto,
     projectId: string,
-    level: ZoomLevel,
+    scopeType: ScopeType,
     entityId: string | null,
     activeLayers: LayerId[],
   ): { nodes: VisualNodeDto[]; edges: VisualEdgeDto[]; breadcrumb: BreadcrumbEntry[] } {
+    const level = SCOPE_REGISTRY[scopeType].zoomLevel
     const allNodes = mapNodes(snapshot, projectId)
     const allEdges = extractEdges(snapshot, projectId)
 
-    const entityType = this.inferEntityType(level)
-    const scope = { level, entityId, entityType }
+    const scope: ScopeDescriptor = { scopeType, entityId, zoomLevel: level }
 
     const { nodes: scopedNodes, edges: scopedEdges } = filterByScope(
       allNodes,
@@ -150,7 +157,6 @@ export class GraphProjectionService {
       snapshot,
     )
 
-    // Orphan edge cleanup (no validation overlay for diff — structural only)
     const nodeIdSet = new Set(scopedNodes.map((n) => n.id))
     const cleanEdges = scopedEdges.filter(
       (e) => nodeIdSet.has(e.sourceId) && nodeIdSet.has(e.targetId),
@@ -161,14 +167,14 @@ export class GraphProjectionService {
     return { nodes: scopedNodes, edges: cleanEdges, breadcrumb }
   }
 
-  private inferEntityType(level: ZoomLevel): NodeType | null {
-    switch (level) {
-      case 'L2':
-        return 'department'
-      case 'L3':
-        return 'workflow'
-      default:
-        return null
+  private resolveScopeType(input: ZoomLevel | ScopeType): { scopeType: ScopeType; level: ZoomLevel } {
+    // Check if input is a ScopeType (exists in SCOPE_REGISTRY)
+    if (input in SCOPE_REGISTRY) {
+      const scopeType = input as ScopeType
+      return { scopeType, level: SCOPE_REGISTRY[scopeType].zoomLevel }
     }
+    // Otherwise treat as ZoomLevel (backward compat)
+    const level = input as ZoomLevel
+    return { scopeType: scopeTypeFromZoomLevel(level), level }
   }
 }

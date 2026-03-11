@@ -12,6 +12,7 @@ import {
   GitBranch,
   ArrowRightLeft,
   FileText,
+  FileBox,
   Shield,
   Plus,
   Minus,
@@ -33,6 +34,7 @@ const NODE_TYPE_CONFIG: Record<NodeType, { label: string; icon: typeof Building2
   'workflow-stage': { label: 'Workflow Stages', icon: ArrowRightLeft },
   contract: { label: 'Contracts', icon: FileText },
   policy: { label: 'Policies', icon: Shield },
+  artifact: { label: 'Artifact', icon: FileBox },
 }
 
 const NODE_TYPE_ORDER: NodeType[] = [

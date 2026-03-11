@@ -11,6 +11,7 @@ import {
   Shield,
   User,
   ListOrdered,
+  FileBox,
 } from 'lucide-react'
 
 const NODE_TYPE_ICONS: Record<NodeType, typeof Building2> = {
@@ -25,6 +26,7 @@ const NODE_TYPE_ICONS: Record<NodeType, typeof Building2> = {
   'workflow-stage': ListOrdered,
   contract: FileText,
   policy: Shield,
+  artifact: FileBox,
 }
 
 const NODE_TYPE_LABELS: Record<NodeType, string> = {
@@ -39,6 +41,7 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   'workflow-stage': 'Workflow Stage',
   contract: 'Contract',
   policy: 'Policy',
+  artifact: 'Artifact',
 }
 
 export interface InspectorHeaderProps {

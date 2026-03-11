@@ -1,11 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Inspector } from '@/components/visual-shell/inspector/inspector'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import type { VisualNodeDiffDto, VisualEdgeDiffDto, VisualDiffSummary } from '@the-crew/shared-types'
 
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
+
+function renderInspector(props: Parameters<typeof Inspector>[0] = {}) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <Inspector {...props} />
+    </QueryClientProvider>,
+  )
+}
 
 const mockDiffNodes: VisualNodeDiffDto[] = [
   {
@@ -79,24 +89,20 @@ describe('Inspector in diff mode', () => {
 
   it('should show diff summary panel when no selection and in diff mode', () => {
     useVisualWorkspaceStore.setState({ isDiffMode: true })
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-        diffSummary={mockSummary}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+      diffSummary: mockSummary,
+    })
     expect(screen.getByTestId('diff-summary-panel')).toBeInTheDocument()
     expect(screen.queryByTestId('canvas-summary')).not.toBeInTheDocument()
   })
 
   it('should show canvas summary when no selection and not in diff mode', () => {
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+    })
     expect(screen.getByTestId('canvas-summary')).toBeInTheDocument()
     expect(screen.queryByTestId('diff-summary-panel')).not.toBeInTheDocument()
   })
@@ -106,12 +112,10 @@ describe('Inspector in diff mode', () => {
       isDiffMode: true,
       selectedNodeIds: ['dept:d1'],
     })
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+    })
     expect(screen.getByTestId('tab-changes')).toBeInTheDocument()
     expect(screen.queryByTestId('tab-relations')).not.toBeInTheDocument()
   })
@@ -120,12 +124,10 @@ describe('Inspector in diff mode', () => {
     useVisualWorkspaceStore.setState({
       selectedNodeIds: ['dept:d1'],
     })
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+    })
     expect(screen.queryByTestId('tab-changes')).not.toBeInTheDocument()
     expect(screen.getByTestId('tab-relations')).toBeInTheDocument()
   })
@@ -135,12 +137,10 @@ describe('Inspector in diff mode', () => {
       isDiffMode: true,
       selectedNodeIds: ['dept:d1'],
     })
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+    })
     await userEvent.click(screen.getByTestId('tab-changes'))
     expect(screen.getByTestId('changes-tab')).toBeInTheDocument()
     expect(screen.getByText('Modified entity')).toBeInTheDocument()
@@ -152,12 +152,10 @@ describe('Inspector in diff mode', () => {
       isDiffMode: true,
       selectedNodeIds: ['dept:d2'],
     })
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+    })
     await userEvent.click(screen.getByTestId('tab-changes'))
     expect(screen.getByText('New entity')).toBeInTheDocument()
   })
@@ -167,12 +165,10 @@ describe('Inspector in diff mode', () => {
       isDiffMode: true,
       selectedNodeIds: ['dept:d3'],
     })
-    render(
-      <Inspector
-        graphNodes={mockDiffNodes}
-        graphEdges={mockDiffEdges}
-      />,
-    )
+    renderInspector({
+      graphNodes: mockDiffNodes,
+      graphEdges: mockDiffEdges,
+    })
     await userEvent.click(screen.getByTestId('tab-changes'))
     expect(screen.getByText('Deleted entity')).toBeInTheDocument()
   })

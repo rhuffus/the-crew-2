@@ -10,57 +10,71 @@ vi.mock('@/hooks/use-visual-graph', () => ({
 }))
 
 // Mock zustand store
-const mockSetView = vi.fn()
-const mockSelectNodes = vi.fn()
-const mockSelectEdges = vi.fn()
-const mockClearSelection = vi.fn()
-vi.mock('@/stores/visual-workspace-store', () => ({
-  useVisualWorkspaceStore: (selector?: (s: Record<string, unknown>) => unknown) => {
-    const state = {
-      selectNodes: mockSelectNodes,
-      selectEdges: mockSelectEdges,
-      clearSelection: mockClearSelection,
-      activeLayers: ['workflows'] as string[],
-      explorerCollapsed: false,
-      inspectorCollapsed: false,
-      chatDockOpen: false,
-      currentView: 'workflow' as const,
-      zoomLevel: 'L3' as const,
-      scopeEntityId: 'wf1',
-      selectedNodeIds: [] as string[],
-      selectedEdgeIds: [] as string[],
-      setView: mockSetView,
-      toggleExplorer: vi.fn(),
-      toggleInspector: vi.fn(),
-      toggleChatDock: vi.fn(),
-      toggleLayer: vi.fn(),
-      setActiveLayers: vi.fn(),
-      resetToDefaults: vi.fn(),
-      showValidationOverlay: true,
-      toggleValidationOverlay: vi.fn(),
-      nodeTypeFilter: null,
-      statusFilter: null,
-      clearFilters: vi.fn(),
-      collapsedNodeIds: [] as string[],
-      expandAll: vi.fn(),
-      collapseAll: vi.fn(),
-      graphNodes: [],
-      graphEdges: [],
-      setGraphNodes: vi.fn(),
-      setGraphEdges: vi.fn(),
-      focusNodeId: null,
-      clearFocus: vi.fn(),
-      pendingConnection: null,
-      edgeTypePicker: null,
-      metadataInput: null,
-      deleteConfirm: null,
-      validationIssues: [],
-      projectId: null,
-    }
+vi.mock('@/stores/visual-workspace-store', () => {
+  const state: Record<string, unknown> = {
+    selectNodes: vi.fn(),
+    selectEdges: vi.fn(),
+    clearSelection: vi.fn(),
+    activeLayers: ['workflows'] as string[],
+    explorerCollapsed: false,
+    inspectorCollapsed: false,
+    chatDockOpen: false,
+    currentView: 'workflow' as const,
+    zoomLevel: 'L3' as const,
+    scopeEntityId: 'wf1',
+    selectedNodeIds: [] as string[],
+    selectedEdgeIds: [] as string[],
+    setView: vi.fn(),
+    toggleExplorer: vi.fn(),
+    toggleInspector: vi.fn(),
+    toggleChatDock: vi.fn(),
+    toggleLayer: vi.fn(),
+    setActiveLayers: vi.fn(),
+    resetToDefaults: vi.fn(),
+    showValidationOverlay: true,
+    toggleValidationOverlay: vi.fn(),
+    nodeTypeFilter: null,
+    statusFilter: null,
+    clearFilters: vi.fn(),
+    collapsedNodeIds: [] as string[],
+    expandAll: vi.fn(),
+    collapseAll: vi.fn(),
+    graphNodes: [],
+    graphEdges: [],
+    setGraphNodes: vi.fn(),
+    setGraphEdges: vi.fn(),
+    focusNodeId: null,
+    clearFocus: vi.fn(),
+    pendingConnection: null,
+    edgeTypePicker: null,
+    metadataInput: null,
+    deleteConfirm: null,
+    validationIssues: [],
+    projectId: null,
+    activePreset: null,
+    setActivePreset: vi.fn(),
+    clearActivePreset: vi.fn(),
+    currentScope: { scopeType: 'workflow', entityId: 'wf1', zoomLevel: 'L3' },
+    canvasMode: 'select',
+    setCanvasMode: vi.fn(),
+    isDiffMode: false,
+    preselectedEdgeType: null,
+    toggleKeyboardHelp: vi.fn(),
+    transitionDirection: null,
+    clearTransition: vi.fn(),
+    showContextMenu: vi.fn(),
+    dismissContextMenu: vi.fn(),
+    contextMenu: null,
+  }
+  const storeFn = (selector?: (s: Record<string, unknown>) => unknown) => {
     if (selector) return selector(state)
     return state
-  },
-}))
+  }
+  storeFn.getState = () => state
+  return {
+    useVisualWorkspaceStore: storeFn,
+  }
+})
 
 // Must mock React Flow since jsdom doesn't support canvas
 vi.mock('@xyflow/react', () => {
@@ -93,6 +107,7 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 
 const mockGraph: VisualGraphDto = {
   projectId: 'p1',
+  scopeType: 'workflow',
   scope: { level: 'L3', entityId: 'wf1', entityType: 'workflow' },
   zoomLevel: 'L3',
   nodes: [
@@ -181,7 +196,7 @@ describe('WorkflowCanvas', () => {
       </Wrapper>,
     )
 
-    expect(mockUseVisualGraph).toHaveBeenCalledWith('p1', 'L3', 'wf1')
+    expect(mockUseVisualGraph).toHaveBeenCalledWith('p1', 'workflow', 'wf1')
   })
 
   it('should render empty canvas when graph has no nodes', () => {

@@ -21,6 +21,8 @@ const EDGE_TYPE_LABELS: Record<EdgeType, string> = {
   participates_in: 'Participates In',
   hands_off_to: 'Hands Off To',
   governs: 'Governs',
+  produces_artifact: 'Produces',
+  consumes_artifact: 'Consumes',
 }
 
 const CATEGORY_COLORS: Record<EdgeCategory, string> = {
@@ -31,6 +33,7 @@ const CATEGORY_COLORS: Record<EdgeCategory, string> = {
   contract: 'bg-cyan-100 text-cyan-700',
   workflow: 'bg-orange-100 text-orange-700',
   governance: 'bg-rose-100 text-rose-700',
+  artifact: 'bg-indigo-100 text-indigo-700',
 }
 
 function getEdgeInfo(edgeType: EdgeType): { category: EdgeCategory; style: EdgeStyle } | null {

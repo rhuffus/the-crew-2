@@ -15,6 +15,7 @@ import { SkillsModule } from '../skills/skills.module'
 import { ContractsModule } from '../contracts/contracts.module'
 import { WorkflowsModule } from '../workflows/workflows.module'
 import { PoliciesModule } from '../policies/policies.module'
+import { ArtifactsModule } from '../artifacts/artifacts.module'
 import { ValidationsModule } from '../validations/validations.module'
 
 @Module({
@@ -29,6 +30,7 @@ import { ValidationsModule } from '../validations/validations.module'
     ContractsModule,
     WorkflowsModule,
     PoliciesModule,
+    ArtifactsModule,
     ValidationsModule,
   ],
   controllers: [ReleasesController],

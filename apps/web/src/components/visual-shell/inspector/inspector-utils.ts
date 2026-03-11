@@ -111,6 +111,8 @@ const EDGE_TYPE_LABELS: Record<EdgeType, string> = {
   participates_in: 'Participates In',
   hands_off_to: 'Hands Off To',
   governs: 'Governs',
+  produces_artifact: 'Produces Artifact',
+  consumes_artifact: 'Consumes Artifact',
 }
 
 export function getEdgeTypeLabel(edgeType: EdgeType): string {
@@ -129,6 +131,7 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   'workflow-stage': 'Workflow Stage',
   contract: 'Contract',
   policy: 'Policy',
+  artifact: 'Artifact',
 }
 
 export function getNodeTypeLabel(nodeType: NodeType): string {

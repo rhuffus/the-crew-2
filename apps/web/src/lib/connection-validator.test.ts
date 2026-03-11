@@ -208,9 +208,11 @@ describe('getValidTargetTypes', () => {
     expect(targets).toEqual([])
   })
 
-  it('returns [contract] for capability source', () => {
+  it('returns [contract, artifact] for capability source', () => {
     const targets = getValidTargetTypes('capability', CONNECTION_RULES)
-    expect(targets).toEqual(['contract'])
+    expect(targets).toContain('contract')
+    expect(targets).toContain('artifact')
+    expect(targets).toHaveLength(2)
   })
 
   it('returns empty for agent-assignment (no outgoing edges)', () => {

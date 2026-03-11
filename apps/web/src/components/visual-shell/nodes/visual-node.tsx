@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
-import type { NodeType, NodeStatus, VisualDiffStatus } from '@the-crew/shared-types'
+import type { NodeType, NodeStatus, VisualDiffStatus, ReviewStatus } from '@the-crew/shared-types'
+import type { OperationStatus, ComplianceStatus, OperationBadge } from '@the-crew/shared-types'
 import {
   Building2,
   Users,
@@ -12,12 +13,23 @@ import {
   GitBranch,
   FileText,
   Shield,
+  FileBox,
   Workflow,
   AlertCircle,
   AlertTriangle,
   ArrowUpRight,
   ChevronRight,
   ChevronDown,
+  MessageSquare,
+  Lock,
+  CheckCircle2,
+  AlertOctagon,
+  Play,
+  Pause,
+  XCircle,
+  ShieldAlert,
+  ShieldX,
+  ShieldCheck,
 } from 'lucide-react'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
@@ -39,6 +51,7 @@ const NODE_TYPE_ICONS: Record<NodeType, typeof Building2> = {
   'workflow-stage': GitBranch,
   contract: FileText,
   policy: Shield,
+  artifact: FileBox,
 }
 
 const NODE_TYPE_LABELS: Record<NodeType, string> = {
@@ -53,6 +66,7 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   'workflow-stage': 'Stage',
   contract: 'Contract',
   policy: 'Policy',
+  artifact: 'Artifact',
 }
 
 const STATUS_BORDER: Record<NodeStatus, string> = {
@@ -91,6 +105,16 @@ export interface VisualNodeData {
   diffBgClass?: string
   diffOpacityClass?: string
   changes?: Record<string, { before: unknown; after: unknown }>
+  commentCount?: number
+  reviewStatus?: ReviewStatus | null
+  isLocked?: boolean
+  lockedByName?: string | null
+  operationStatus?: OperationStatus
+  operationBadges?: OperationBadge[]
+  activeRunCount?: number
+  incidentCount?: number
+  queueDepth?: number
+  complianceStatus?: ComplianceStatus | null
   [key: string]: unknown
 }
 
@@ -203,6 +227,108 @@ function VisualNodeComponent({ data, id }: NodeProps) {
             }`}
           >
             {nodeData.diffBadge}
+          </div>
+        )}
+        {/* Collaboration badges (CAV-021) */}
+        {!isDiffMode && (nodeData.commentCount ?? 0) > 0 && (
+          <div
+            data-testid="comment-badge"
+            className="absolute -top-2 right-5 flex h-5 items-center gap-0.5 rounded-full bg-blue-100 px-1.5 shadow"
+            title={`${nodeData.commentCount} comment(s)`}
+          >
+            <MessageSquare className="h-2.5 w-2.5 text-blue-600" />
+            <span className="text-[9px] font-bold text-blue-600">{nodeData.commentCount}</span>
+          </div>
+        )}
+        {!isDiffMode && nodeData.reviewStatus === 'approved' && (
+          <div
+            data-testid="review-badge-approved"
+            className="absolute -bottom-2 right-5 flex h-5 w-5 items-center justify-center rounded-full bg-green-100 shadow"
+            title="Approved"
+          >
+            <CheckCircle2 className="h-3 w-3 text-green-600" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.reviewStatus === 'needs-changes' && (
+          <div
+            data-testid="review-badge-needs-changes"
+            className="absolute -bottom-2 right-5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 shadow"
+            title="Needs changes"
+          >
+            <AlertOctagon className="h-3 w-3 text-amber-600" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.isLocked && (
+          <div
+            data-testid="lock-badge"
+            className="absolute -top-2 left-5 flex h-5 items-center gap-0.5 rounded-full bg-orange-100 px-1.5 shadow"
+            title={nodeData.lockedByName ? `Locked by ${nodeData.lockedByName}` : 'Locked'}
+          >
+            <Lock className="h-2.5 w-2.5 text-orange-600" />
+          </div>
+        )}
+        {/* Operations overlay badges (CAV-019) */}
+        {!isDiffMode && nodeData.operationStatus === 'running' && (
+          <div
+            data-testid="ops-badge-running"
+            className="absolute -bottom-2 -left-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white shadow"
+            title={`${nodeData.activeRunCount ?? 0} active run(s)`}
+          >
+            <Play className="h-3 w-3" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.operationStatus === 'blocked' && (
+          <div
+            data-testid="ops-badge-blocked"
+            className="absolute -bottom-2 -left-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow"
+            title="Blocked"
+          >
+            <Pause className="h-3 w-3" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.operationStatus === 'failed' && (
+          <div
+            data-testid="ops-badge-failed"
+            className="absolute -bottom-2 -left-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white shadow"
+            title={`Failed${nodeData.incidentCount ? `: ${nodeData.incidentCount} incident(s)` : ''}`}
+          >
+            <XCircle className="h-3 w-3" />
+          </div>
+        )}
+        {!isDiffMode && (nodeData.incidentCount ?? 0) > 0 && nodeData.operationStatus !== 'failed' && nodeData.operationStatus !== 'running' && nodeData.operationStatus !== 'blocked' && (
+          <div
+            data-testid="ops-badge-incident"
+            className="absolute -bottom-2 -left-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-white shadow"
+            title={`${nodeData.incidentCount} open incident(s)`}
+          >
+            <AlertOctagon className="h-3 w-3" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.complianceStatus === 'compliant' && (
+          <div
+            data-testid="ops-badge-compliance-ok"
+            className="absolute -bottom-2 left-4 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white shadow"
+            title="Compliant"
+          >
+            <ShieldCheck className="h-3 w-3" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.complianceStatus === 'at-risk' && (
+          <div
+            data-testid="ops-badge-compliance-risk"
+            className="absolute -bottom-2 left-4 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow"
+            title="At risk"
+          >
+            <ShieldAlert className="h-3 w-3" />
+          </div>
+        )}
+        {!isDiffMode && nodeData.complianceStatus === 'violated' && (
+          <div
+            data-testid="ops-badge-compliance-violated"
+            className="absolute -bottom-2 left-4 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white shadow"
+            title="Violated"
+          >
+            <ShieldX className="h-3 w-3" />
           </div>
         )}
         {isDrillable && (

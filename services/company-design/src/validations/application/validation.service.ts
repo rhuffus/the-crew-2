@@ -108,6 +108,7 @@ export class ValidationService {
       contracts: contracts.map(ContractMapper.toDto),
       workflows: workflows.map(WorkflowMapper.toDto),
       policies: policies.map(PolicyMapper.toDto),
+      artifacts: [],
     }
   }
 }

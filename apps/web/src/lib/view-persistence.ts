@@ -1,4 +1,4 @@
-import type { LayerId, NodeType, NodeStatus, VisualDiffStatus } from '@the-crew/shared-types'
+import type { LayerId, NodeType, NodeStatus, VisualDiffStatus, ViewPresetId } from '@the-crew/shared-types'
 
 const STORAGE_PREFIX = 'the-crew:view'
 
@@ -6,23 +6,15 @@ export interface ViewState {
   activeLayers: LayerId[]
   nodeTypeFilter: NodeType[] | null
   statusFilter: NodeStatus[] | null
+  activePreset?: ViewPresetId | null
 }
 
 export interface DiffViewState extends ViewState {
   diffFilter: VisualDiffStatus[] | null
 }
 
-export interface SavedView {
-  name: string
-  state: ViewState
-}
-
 function viewStateKey(projectId: string, scope: string): string {
   return `${STORAGE_PREFIX}:${projectId}:${scope}`
-}
-
-function savedViewsKey(projectId: string): string {
-  return `${STORAGE_PREFIX}:saved:${projectId}`
 }
 
 export function saveViewState(projectId: string, scope: string, state: ViewState): void {
@@ -49,42 +41,6 @@ export function clearViewState(projectId: string, scope: string): void {
   } catch {
     // ignore
   }
-}
-
-export function listSavedViews(projectId: string): SavedView[] {
-  try {
-    const raw = localStorage.getItem(savedViewsKey(projectId))
-    if (!raw) return []
-    return JSON.parse(raw) as SavedView[]
-  } catch {
-    return []
-  }
-}
-
-export function saveNamedView(projectId: string, name: string, state: ViewState): SavedView[] {
-  const views = listSavedViews(projectId)
-  const existing = views.findIndex((v) => v.name === name)
-  if (existing >= 0) {
-    views[existing] = { name, state }
-  } else {
-    views.push({ name, state })
-  }
-  try {
-    localStorage.setItem(savedViewsKey(projectId), JSON.stringify(views))
-  } catch {
-    // ignore
-  }
-  return views
-}
-
-export function deleteNamedView(projectId: string, name: string): SavedView[] {
-  const views = listSavedViews(projectId).filter((v) => v.name !== name)
-  try {
-    localStorage.setItem(savedViewsKey(projectId), JSON.stringify(views))
-  } catch {
-    // ignore
-  }
-  return views
 }
 
 function diffViewKey(projectId: string, baseReleaseId: string, compareReleaseId: string, scope: string): string {

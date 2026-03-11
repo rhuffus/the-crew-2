@@ -1,200 +1,143 @@
-# Backlog completo de TheCrew (v2 — visual-first pivot)
+# Backlog completo de TheCrew (v3 — Canvas Editor v2)
 
-## Estado consolidado
-### Completado
-- Epic 00 — Foundation
-- Epic 01 — Local Platform
-- Epic 02 — Web Shell
-- Epic 03 — Projects
-- Epic 04 — Company Model
-- Epic 05 — Departments
-- Epic 06 — Capabilities
-- Epic 07 — Roles
-- Epic 08 — Agents
-- Epic 09 — Skills
-- Epic 10 — Contracts
-- Epic 11 — Workflows
-- Epic 12 — Policies
-- Epic 13 — Releases
-- Epic 14 — Validation
-- Epic 15 — Audit
+## Contexto
+Las épicas del pivot visual-first inicial ya están mayoritariamente implementadas.
+El siguiente tramo del producto no es “seguir añadiendo vistas”, sino una fase nueva:
 
-### Pendiente legado
-- Epic 16 — Operations placeholder
-- Epic 17 — Authentication & Access
-- Epic 18 — Hardening
+## **Canvas Editor v2**
 
-## Decisión
-No continuar linealmente con 16 → 17 → 18.
-Primero ejecutar el pivot visual-first.
+Objetivo:
+convertir el canvas actual en el sistema visual completo desde el que pueda gestionarse toda la empresa.
 
 ---
 
-## Epic 19 — Visual-First Pivot Baseline
-Objetivo: fijar la nueva dirección sin romper lo ya hecho.
-- ADR del pivot visual-first
-- freeze conceptual del CRUD actual como fallback administrativo
-- criterios de adopción incremental del canvas
-- definición de vistas: org, capabilities, workflows, contracts, artifacts, governance
+## Epic 36 — Canvas Foundations Repair
+Objetivo: reparar los huecos y bugs que impiden que la base actual escale.
 
-## Epic 20 — Visual Grammar v1
-Objetivo: definir el lenguaje visual del producto.
-- tipos de nodo v1
-- tipos de edge v1
-- restricciones de conexiones válidas
-- reglas de semantic zoom
-- reglas de inspector
-- reglas de capas y filtros
+### Hitos
+- wiring real de mutaciones de relaciones
+- contrato consistente de capas/fetch en todos los scopes
+- navegación profunda sin límite artificial
+- contrato honesto de layout
+- feedback de pending/saving en canvas e inspector
 
-## Epic 21 — Graph Projection / Visual Read Model v1
-Objetivo: servir a la UI un modelo de grafo optimizado.
-- DTO del grafo por workspace
-- DTO por department scope
-- DTO por workflow scope
-- mapeo de entidades actuales a nodos/edges
-- estrategia de ids visuales y entidades referenciadas
-- estrategia de diff visual por release
+---
 
-## Epic 22 — Visual Shell Refactor
-Objetivo: rehacer la shell web para que el canvas sea el centro.
-- sidebar explorer/layers/validation
-- canvas viewport central
-- inspector panel derecho
-- chat dock
-- breadcrumb visual
-- toolbar de vista y filtros
+## Epic 37 — Interaction Model & Tooling
+Objetivo: convertir el canvas en un editor de verdad.
 
-## Epic 23 — Company Org Canvas v1
-Objetivo: visualizar la empresa a nivel superior.
-- CEO/root company node
-- departments principales
-- agentes de departamento / roles líderes
-- relaciones jerárquicas
-- navegación a subdiagramas
+### Hitos
+- modos explícitos de interacción
+- toolbar avanzada
+- paleta de nodos
+- paleta de relaciones
+- context menus
+- keyboard shortcuts
+- undo/redo
 
-## Epic 24 — Inspector v1
-Objetivo: editar el modelo desde el panel derecho.
-- overview
-- propiedades
-- relaciones
-- referencias cruzadas
-- historial
-- validaciones
-- acciones de crear/vincular/eliminar
+---
 
-## Epic 25 — Relationship Editing v1
-Objetivo: que las conexiones del canvas tengan semántica real.
-- crear edge tipado
-- editar edge desde inspector
-- adjuntar contrato/condiciones a edge
-- reglas de validación al conectar
-- borrar edge con control de impacto
+## Epic 38 — Inspector v2
+Objetivo: hacer que el panel derecho edite por completo el modelo seleccionado.
 
-## Epic 26 — Department Drilldown Canvas v1
-Objetivo: navegar dentro de un departamento.
-- subcanvas departamental
-- capabilities owned/contributed/consumed
-- roles y agentes del área
-- workflows owned/related
-- contracts principales
+### Hitos
+- formularios tipados por nodo
+- formularios tipados por relación
+- tabs de validation/history/artifacts/runtime
+- bulk actions para multiselección
 
-## Epic 27 — Workflow Canvas v1
-Objetivo: representar y editar workflows visualmente.
-- workflow node root
-- stages
-- handoffs
-- inputs/outputs
-- approvals
-- artifacts relacionados
+---
 
-## Epic 28 — Semantic Zoom & Nested Navigation
-Objetivo: hacer que el zoom sea conceptual.
-- entrar/salir de scopes
-- breadcrumb jerárquico
-- zoom in/out semántico
-- colapso/expansión
-- navegación consistente canvas ↔ explorer ↔ inspector
+## Epic 39 — Generic Scope Navigation
+Objetivo: romper la rigidez org/department/workflow y soportar multi-level real.
 
-## Epic 29 — Visual Validation Overlay
-Objetivo: enseñar la salud del modelo en el canvas.
-- overlays de error/warning/info
-- nodos incompletos
-- edges inválidos
-- contratos faltantes
-- filtros por criticidad
+### Hitos
+- scope model genérico
+- breadcrumbs e historial profundos
+- drilldown arbitrario
+- semantic zoom consistente
+- L4 real
 
-## Epic 30 — Layers, Filters & Saved Views
-Objetivo: controlar complejidad visual.
-- capas activables
-- filtros por owner/tipo/estado
-- guardar vistas
-- layout persistente por vista
-- auto-layout inicial
+---
 
-## Epic 31 — Scoped Persistent Chat
-Objetivo: conversar con la empresa desde cada ámbito.
-- chat de CEO/company
-- chat de department
-- chat de workflow
-- chat del elemento seleccionado
-- persistencia por scope
-- vinculación con artifacts y decisiones
+## Epic 40 — Visual Views, Layers & Artifact Flow
+Objetivo: permitir ver toda la empresa desde distintas perspectivas.
 
-## Epic 32 — Artifact/Explorer Synchronization
-Objetivo: unificar navegación visual y navegación densa.
-- explorer bidireccional con canvas
-- artifacts sidebar
-- tabla/lista como fallback
-- navegación contextual desde cualquier entidad
+### Hitos
+- presets de vista
+- artifact layer
+- artifact nodes y edges
+- mejoras de filters/search/view persistence
 
-## Epic 33 — Release-Aware Visual Diff
-Objetivo: comparar cambios del operating model visualmente.
-- diff entre draft/published
-- nodos añadidos/cambiados/eliminados
-- edges añadidos/cambiados/eliminados
-- impacto por scope
+---
 
-## Epic 34 — Authentication & Access (reframed)
-Objetivo: permisos conscientes del nuevo producto.
-- acceso plataforma/proyecto
-- permisos por módulo
-- permisos por canvas action
-- permisos por chat scope
+## Epic 41 — Layout Persistence & Shared Views
+Objetivo: convertir el canvas en un workspace estable y personalizable.
 
-## Epic 35 — Operations v1 on Canvas
-Objetivo: empezar a enseñar runtime dentro del mapa.
-- activity overlays
-- runs vinculados a workflow
-- incidents sobre nodos/edges
-- tasks/queue view
+### Hitos
+- auto-layout real
+- persistencia de posiciones
+- layouts por scope/preset
+- saved views compartidas del proyecto
 
-## Epic 36 — Hardening v2
-Objetivo: cerrar la primera versión visual usable.
-- rendimiento de grafos grandes
-- fixtures realistas
-- pruebas e2e/playwright
-- observabilidad ampliada
-- docs finales de v1 visual
+---
+
+## Epic 42 — Scoped Chat & AI Assistance
+Objetivo: introducir el eje conversacional real del producto.
+
+### Hitos
+- chat persistente company
+- chat persistente department
+- chat persistente workflow/node
+- acciones sugeridas desde chat
+
+---
+
+## Epic 43 — Operations Overlay
+Objetivo: proyectar runtime y ejecución encima del modelo visual.
+
+### Hitos
+- runs overlay
+- queue/incidents overlay
+- stage live state
+- contractual/runtime failures
+
+---
+
+## Epic 44 — Permissions & Collaboration
+Objetivo: hacer el editor seguro y colaborativo.
+
+### Hitos
+- enforcement de permisos reales
+- bloqueo de acciones por rol
+- vistas compartidas
+- comentarios/review/locks básicos
+
+---
+
+## Epic 45 — Hardening, Performance & Accessibility
+Objetivo: dejar el editor preparado para uso continuado.
+
+### Hitos
+- rendimiento con grafos medianos/grandes
+- accesibilidad por teclado
+- robustez de autosave / recovery
+- test e2e y Playwright reforzados
 
 ---
 
 ## Orden recomendado
-19 → 20 → 21 → 22 → 23 → 24 → 25 → 26 → 27 → 28 → 29 → 30 → 32 → 33 → 31 → 34 → 35 → 36
+1. Epic 36
+2. Epic 37 + Epic 38
+3. Epic 39
+4. Epic 40 + Epic 41
+5. Epic 42
+6. Epic 43
+7. Epic 44
+8. Epic 45
 
-## Qué queda aparcado temporalmente
-- Epic 16 solo como placeholder
-- Epic 17 absorbido y reformulado en Epic 34
-- Epic 18 absorbido y reformulado en Epic 36
+---
 
-## Primera demo visual útil
-La primera demo que ya cambia realmente la naturaleza del producto debería cubrir:
-- shell visual
-- canvas empresa v1
-- inspector v1
-- relaciones tipadas v1
-- drilldown departamental v1
-- workflow canvas v1
-- overlays de validación
-- explorer sincronizado
-
-Eso ya permitiría entender una empresa visualmente y no solo por formularios/listados.
+## Regla de implementación
+No seguir añadiendo features visuales aisladas sobre una base inestable.
+Antes de abrir nuevas superficies visuales, cerrar Foundation Repair.

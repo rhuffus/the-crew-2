@@ -13,6 +13,7 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   'workflow-stage': 'Workflow Stage',
   'contract': 'Contract',
   'policy': 'Policy',
+  'artifact': 'Artifact',
 }
 
 const STATUS_LABELS: Record<NodeStatus, string> = {

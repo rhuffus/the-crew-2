@@ -18,6 +18,7 @@ describe('VisualGraphController (gateway)', () => {
   it('should get visual graph for a project', async () => {
     const graph = {
       projectId: 'p1',
+      scopeType: 'company',
       scope: { level: 'company', entityId: null },
       zoomLevel: 'company',
       nodes: [],
@@ -30,36 +31,45 @@ describe('VisualGraphController (gateway)', () => {
     const response = await controller.getVisualGraph('p1')
 
     expect(response).toEqual(graph)
-    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', undefined, undefined, undefined)
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', undefined, undefined, undefined, undefined)
   })
 
-  it('should pass level query param', async () => {
+  it('should pass scope query param', async () => {
     mockClient.getVisualGraph.mockResolvedValue({ projectId: 'p1', nodes: [], edges: [] })
 
     await controller.getVisualGraph('p1', 'department')
 
-    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'department', undefined, undefined)
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'department', undefined, undefined, undefined)
   })
 
-  it('should pass level and entityId query params', async () => {
+  it('should pass scope and entityId query params', async () => {
     mockClient.getVisualGraph.mockResolvedValue({ projectId: 'p1', nodes: [], edges: [] })
 
-    await controller.getVisualGraph('p1', 'department', 'd1')
+    await controller.getVisualGraph('p1', 'department', undefined, 'd1')
 
-    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'department', 'd1', undefined)
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'department', undefined, 'd1', undefined)
   })
 
   it('should pass all query params', async () => {
     mockClient.getVisualGraph.mockResolvedValue({ projectId: 'p1', nodes: [], edges: [] })
 
-    await controller.getVisualGraph('p1', 'department', 'd1', 'structure,governance')
+    await controller.getVisualGraph('p1', 'department', undefined, 'd1', 'structure,governance')
 
-    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'department', 'd1', 'structure,governance')
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'department', undefined, 'd1', 'structure,governance')
+  })
+
+  it('should pass level for backward compat', async () => {
+    mockClient.getVisualGraph.mockResolvedValue({ projectId: 'p1', nodes: [], edges: [] })
+
+    await controller.getVisualGraph('p1', undefined, 'L2', 'd1')
+
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', undefined, 'L2', 'd1', undefined)
   })
 
   it('should return graph with nodes and edges', async () => {
     const graph = {
       projectId: 'p1',
+      scopeType: 'department',
       scope: { level: 'department', entityId: 'd1' },
       zoomLevel: 'department',
       nodes: [
@@ -76,7 +86,7 @@ describe('VisualGraphController (gateway)', () => {
     }
     mockClient.getVisualGraph.mockResolvedValue(graph)
 
-    const response = await controller.getVisualGraph('p1', 'department', 'd1')
+    const response = await controller.getVisualGraph('p1', 'department', undefined, 'd1')
 
     expect(response).toEqual(graph)
     expect(response.nodes).toHaveLength(1)
@@ -88,6 +98,7 @@ describe('VisualGraphController (gateway)', () => {
   it('should get visual diff with base and compare release IDs', async () => {
     const diff = {
       projectId: 'p1',
+      scopeType: 'company',
       scope: { level: 'company', entityId: null, entityType: null },
       zoomLevel: 'L1',
       baseReleaseId: 'rel-1',
@@ -107,33 +118,34 @@ describe('VisualGraphController (gateway)', () => {
 
     expect(response).toEqual(diff)
     expect(mockClient.getVisualGraphDiff).toHaveBeenCalledWith(
-      'p1', 'rel-1', 'rel-2', undefined, undefined, undefined,
+      'p1', 'rel-1', 'rel-2', undefined, undefined, undefined, undefined,
     )
   })
 
-  it('should pass level and entityId to visual diff', async () => {
+  it('should pass scope and entityId to visual diff', async () => {
     mockClient.getVisualGraphDiff.mockResolvedValue({ projectId: 'p1', nodes: [], edges: [] })
 
-    await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L2', 'dept-1')
+    await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'department', undefined, 'dept-1')
 
     expect(mockClient.getVisualGraphDiff).toHaveBeenCalledWith(
-      'p1', 'rel-1', 'rel-2', 'L2', 'dept-1', undefined,
+      'p1', 'rel-1', 'rel-2', 'department', undefined, 'dept-1', undefined,
     )
   })
 
   it('should pass all query params to visual diff', async () => {
     mockClient.getVisualGraphDiff.mockResolvedValue({ projectId: 'p1', nodes: [], edges: [] })
 
-    await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'L3', 'wf-1', 'workflows,contracts')
+    await controller.getVisualDiff('p1', 'rel-1', 'rel-2', 'workflow', undefined, 'wf-1', 'workflows,contracts')
 
     expect(mockClient.getVisualGraphDiff).toHaveBeenCalledWith(
-      'p1', 'rel-1', 'rel-2', 'L3', 'wf-1', 'workflows,contracts',
+      'p1', 'rel-1', 'rel-2', 'workflow', undefined, 'wf-1', 'workflows,contracts',
     )
   })
 
   it('should return diff with nodes, edges and summary', async () => {
     const diff = {
       projectId: 'p1',
+      scopeType: 'company',
       scope: { level: 'company', entityId: null, entityType: null },
       zoomLevel: 'L1',
       baseReleaseId: 'rel-1',
@@ -166,6 +178,7 @@ describe('VisualGraphController (gateway)', () => {
   it('should return diff with modified nodes including changes', async () => {
     const diff = {
       projectId: 'p1',
+      scopeType: 'company',
       scope: { level: 'company', entityId: null, entityType: null },
       zoomLevel: 'L1',
       baseReleaseId: 'rel-1',

@@ -40,6 +40,10 @@ import {
   POLICY_REPOSITORY,
   type PolicyRepository,
 } from '../../policies/domain/policy-repository'
+import {
+  ARTIFACT_REPOSITORY,
+  type ArtifactRepository,
+} from '../../artifacts/domain/artifact-repository'
 import { CompanyModelMapper } from '../../company-model/application/company-model.mapper'
 import { DepartmentMapper } from '../../departments/application/department.mapper'
 import { CapabilityMapper } from '../../capabilities/application/capability.mapper'
@@ -50,6 +54,7 @@ import { AgentArchetypeMapper } from '../../agent-archetypes/application/agent-a
 import { AgentAssignmentMapper } from '../../agent-assignments/application/agent-assignment.mapper'
 import { SkillMapper } from '../../skills/application/skill.mapper'
 import { PolicyMapper } from '../../policies/application/policy.mapper'
+import { ArtifactMapper } from '../../artifacts/application/artifact.mapper'
 
 @Injectable()
 export class SnapshotCollector {
@@ -64,10 +69,11 @@ export class SnapshotCollector {
     @Inject(SKILL_REPOSITORY) private readonly skillRepo: SkillRepository,
     @Inject(WORKFLOW_REPOSITORY) private readonly workflowRepo: WorkflowRepository,
     @Inject(POLICY_REPOSITORY) private readonly policyRepo: PolicyRepository,
+    @Inject(ARTIFACT_REPOSITORY) private readonly artifactRepo: ArtifactRepository,
   ) {}
 
   async collect(projectId: string): Promise<ReleaseSnapshotDto> {
-    const [companyModel, departments, capabilities, roles, agentArchetypes, agentAssignments, skills, contracts, workflows, policies] =
+    const [companyModel, departments, capabilities, roles, agentArchetypes, agentAssignments, skills, contracts, workflows, policies, artifacts] =
       await Promise.all([
         this.companyModelRepo.findByProjectId(projectId),
         this.departmentRepo.findByProjectId(projectId),
@@ -79,6 +85,7 @@ export class SnapshotCollector {
         this.contractRepo.findByProjectId(projectId),
         this.workflowRepo.findByProjectId(projectId),
         this.policyRepo.findByProjectId(projectId),
+        this.artifactRepo.findByProjectId(projectId),
       ])
 
     return {
@@ -92,6 +99,7 @@ export class SnapshotCollector {
       contracts: contracts.map(ContractMapper.toDto),
       workflows: workflows.map(WorkflowMapper.toDto),
       policies: policies.map(PolicyMapper.toDto),
+      artifacts: artifacts.map(ArtifactMapper.toDto),
     }
   }
 }

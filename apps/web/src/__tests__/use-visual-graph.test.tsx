@@ -40,11 +40,11 @@ describe('useVisualGraph', () => {
       json: () => Promise.resolve({}),
     })
 
-    renderHook(() => useVisualGraph('p1', 'L2', 'dept-1'), { wrapper })
+    renderHook(() => useVisualGraph('p1', 'department', 'dept-1'), { wrapper })
 
     await waitFor(() =>
       expect(mockFetch).toHaveBeenCalledWith(
-        '/api/projects/p1/visual-graph?level=L2&entityId=dept-1',
+        '/api/projects/p1/visual-graph?scope=department&entityId=dept-1',
       ),
     )
   })

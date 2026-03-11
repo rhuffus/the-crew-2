@@ -245,13 +245,13 @@ describe('createEdge', () => {
     )
   })
 
-  it('rejects hands_off_to edge', async () => {
+  it('catches hands_off_to edge error and surfaces via lastError', async () => {
     const { wrapper } = createWrapper()
     const { result } = renderHook(() => useRelationshipMutation(PROJECT_ID), { wrapper })
 
-    await expect(
-      act(() => result.current.createEdge('hands_off_to', deptA, deptB)),
-    ).rejects.toThrow('hands_off_to')
+    await act(() => result.current.createEdge('hands_off_to', deptA, deptB))
+
+    expect(result.current.lastError).toContain('hands_off_to')
     expect(apiClient.patch).not.toHaveBeenCalled()
   })
 
@@ -267,15 +267,15 @@ describe('createEdge', () => {
     })
   })
 
-  it('propagates API error and does not invalidate', async () => {
+  it('catches API error and surfaces via lastError without invalidating', async () => {
     vi.mocked(apiClient.patch).mockRejectedValue(new Error('Server error'))
     const { wrapper, queryClient } = createWrapper()
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const { result } = renderHook(() => useRelationshipMutation(PROJECT_ID), { wrapper })
 
-    await expect(
-      act(() => result.current.createEdge('reports_to', deptA, deptB)),
-    ).rejects.toThrow('Server error')
+    await act(() => result.current.createEdge('reports_to', deptA, deptB))
+
+    expect(result.current.lastError).toBe('Server error')
     expect(invalidateSpy).not.toHaveBeenCalled()
   })
 
@@ -361,13 +361,13 @@ describe('deleteEdge', () => {
     )
   })
 
-  it('rejects hands_off_to deletion', async () => {
+  it('catches hands_off_to deletion error and surfaces via lastError', async () => {
     const { wrapper } = createWrapper()
     const { result } = renderHook(() => useRelationshipMutation(PROJECT_ID), { wrapper })
 
-    await expect(
-      act(() => result.current.deleteEdge('hands_off_to', deptA, deptB)),
-    ).rejects.toThrow('hands_off_to')
+    await act(() => result.current.deleteEdge('hands_off_to', deptA, deptB))
+
+    expect(result.current.lastError).toContain('hands_off_to')
     expect(apiClient.patch).not.toHaveBeenCalled()
   })
 
@@ -383,14 +383,14 @@ describe('deleteEdge', () => {
     })
   })
 
-  it('propagates API error on deletion', async () => {
+  it('catches API error on deletion and surfaces via lastError', async () => {
     vi.mocked(apiClient.patch).mockRejectedValue(new Error('Not found'))
     const { wrapper } = createWrapper()
     const { result } = renderHook(() => useRelationshipMutation(PROJECT_ID), { wrapper })
 
-    await expect(
-      act(() => result.current.deleteEdge('reports_to', deptA, deptB)),
-    ).rejects.toThrow('Not found')
+    await act(() => result.current.deleteEdge('reports_to', deptA, deptB))
+
+    expect(result.current.lastError).toBe('Not found')
   })
 })
 
@@ -442,18 +442,18 @@ describe('updateEdgeMetadata', () => {
     expect(apiClient.patch).not.toHaveBeenCalled()
   })
 
-  it('propagates API error during metadata update', async () => {
+  it('catches API error during metadata update and surfaces via lastError', async () => {
     vi.mocked(apiClient.get).mockResolvedValue({ participants: [] })
     vi.mocked(apiClient.patch).mockRejectedValue(new Error('Conflict'))
     const { wrapper } = createWrapper()
     const { result } = renderHook(() => useRelationshipMutation(PROJECT_ID), { wrapper })
 
-    await expect(
-      act(() =>
-        result.current.updateEdgeMetadata('participates_in', roleNode, workflowNode, {
-          responsibility: 'X',
-        }),
-      ),
-    ).rejects.toThrow('Conflict')
+    await act(() =>
+      result.current.updateEdgeMetadata('participates_in', roleNode, workflowNode, {
+        responsibility: 'X',
+      }),
+    )
+
+    expect(result.current.lastError).toBe('Conflict')
   })
 })

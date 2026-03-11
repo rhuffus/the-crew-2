@@ -14,9 +14,15 @@ import { ReleasesModule } from './releases/releases.module'
 import { ValidationsModule } from './validations/validations.module'
 import { AuditModule } from './audit/audit.module'
 import { GraphProjectionModule } from './graph-projection/graph-projection.module'
+import { SavedViewsModule } from './saved-views/saved-views.module'
+import { ChatModule } from './chat/chat.module'
+import { ArtifactsModule } from './artifacts/artifacts.module'
+import { CommentsModule } from './comments/comments.module'
+import { CollaborationModule } from './collaboration/collaboration.module'
+import { OperationsModule } from './operations/operations.module'
 
 @Module({
-  imports: [CompanyModelModule, DepartmentsModule, CapabilitiesModule, RolesModule, AgentArchetypesModule, AgentAssignmentsModule, SkillsModule, ContractsModule, WorkflowsModule, PoliciesModule, ReleasesModule, ValidationsModule, AuditModule, GraphProjectionModule],
+  imports: [CompanyModelModule, DepartmentsModule, CapabilitiesModule, RolesModule, AgentArchetypesModule, AgentAssignmentsModule, SkillsModule, ContractsModule, WorkflowsModule, PoliciesModule, ArtifactsModule, ReleasesModule, ValidationsModule, AuditModule, GraphProjectionModule, SavedViewsModule, ChatModule, CommentsModule, CollaborationModule, OperationsModule],
   controllers: [HealthController],
 })
 export class AppModule {}

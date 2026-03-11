@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactFlowProvider } from '@xyflow/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ValidationIssue } from '@the-crew/shared-types'
 import { VisualNode } from '@/components/visual-shell/nodes/visual-node'
 import { WorkflowStageNode } from '@/components/visual-shell/nodes/workflow-stage-node'
@@ -147,6 +148,15 @@ describe('Inspector validation issues', () => {
     { entity: 'Contract', entityId: 'ct1', field: null, message: 'No consumer defined', severity: 'warning' },
   ]
 
+  function renderInspector(props: Parameters<typeof Inspector>[0] = {}) {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    return render(
+      <QueryClientProvider client={queryClient}>
+        <Inspector {...props} />
+      </QueryClientProvider>,
+    )
+  }
+
   beforeEach(() => {
     useVisualWorkspaceStore.setState({
       inspectorCollapsed: false,
@@ -158,36 +168,41 @@ describe('Inspector validation issues', () => {
     })
   })
 
-  it('should show validation issues in overview tab for selected node', () => {
+  it('should show validation issues in validation tab for selected node', async () => {
     useVisualWorkspaceStore.setState({
       selectedNodeIds: ['contract:ct1'],
       validationIssues: mockIssues,
       projectId: 'proj-1',
     })
-    render(<Inspector graphNodes={allMockNodes} graphEdges={allMockEdges} />)
-    expect(screen.getByTestId('inspector-validation-issues')).toBeInTheDocument()
+    renderInspector({ graphNodes: allMockNodes, graphEdges: allMockEdges })
+    // Editable nodes now default to edit tab; click validation tab
+    await userEvent.click(screen.getByTestId('tab-validation'))
+    expect(screen.getByTestId('validation-tab')).toBeInTheDocument()
     expect(screen.getByText('Missing provider')).toBeInTheDocument()
     expect(screen.getByText('No consumer defined')).toBeInTheDocument()
   })
 
-  it('should not show validation section when no issues for selected node', () => {
+  it('should show no validation issues message when no issues for selected node', async () => {
     useVisualWorkspaceStore.setState({
       selectedNodeIds: ['dept:abc'],
       validationIssues: mockIssues,
       projectId: 'proj-1',
     })
-    render(<Inspector graphNodes={allMockNodes} graphEdges={allMockEdges} />)
-    expect(screen.queryByTestId('inspector-validation-issues')).not.toBeInTheDocument()
+    renderInspector({ graphNodes: allMockNodes, graphEdges: allMockEdges })
+    await userEvent.click(screen.getByTestId('tab-validation'))
+    expect(screen.getByText('No validation issues')).toBeInTheDocument()
   })
 
-  it('should not show validation section without projectId', () => {
+  it('should show no validation issues without projectId', async () => {
     useVisualWorkspaceStore.setState({
       selectedNodeIds: ['contract:ct1'],
       validationIssues: mockIssues,
       projectId: null,
     })
-    render(<Inspector graphNodes={allMockNodes} graphEdges={allMockEdges} />)
-    expect(screen.queryByTestId('inspector-validation-issues')).not.toBeInTheDocument()
+    renderInspector({ graphNodes: allMockNodes, graphEdges: allMockEdges })
+    // Without projectId, nodeValidationIssues is empty
+    await userEvent.click(screen.getByTestId('tab-validation'))
+    expect(screen.getByText('No validation issues')).toBeInTheDocument()
   })
 })
 

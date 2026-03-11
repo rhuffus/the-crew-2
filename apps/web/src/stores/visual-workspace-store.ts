@@ -1,13 +1,19 @@
 import { create } from 'zustand'
-import type { LayerId, ZoomLevel, VisualNodeDto, VisualEdgeDto, NodeType, NodeStatus, ValidationIssue, BreadcrumbEntry, EdgeType, VisualDiffStatus } from '@the-crew/shared-types'
-import { DEFAULT_LAYERS_PER_LEVEL } from '@the-crew/shared-types'
+import type { LayerId, ZoomLevel, VisualNodeDto, VisualEdgeDto, NodeType, NodeStatus, ValidationIssue, BreadcrumbEntry, EdgeType, VisualDiffStatus, ScopeType, ScopeDescriptor, ViewPresetId, OperationsStatusDto } from '@the-crew/shared-types'
+import { SCOPE_REGISTRY, VIEW_PRESET_REGISTRY } from '@the-crew/shared-types'
 
+/** @deprecated Use ScopeType instead */
 export type CanvasView = 'org' | 'department' | 'workflow'
 
+export type CanvasMode = 'select' | 'pan' | 'connect' | 'add-node' | 'add-edge'
+
 export interface NavigationEntry {
-  view: CanvasView
-  entityId: string | null
+  scope: ScopeDescriptor
   focusNodeId: string | null
+  /** @deprecated Use scope.scopeType instead */
+  view?: CanvasView
+  /** @deprecated Use scope.entityId instead */
+  entityId?: string | null
 }
 
 export interface PendingConnection {
@@ -34,11 +40,32 @@ export interface DeleteConfirmState {
   targetNodeId: string
 }
 
+export type ContextMenuTarget = 'node' | 'edge' | 'pane' | 'multi-select'
+
+export interface ContextMenuState {
+  x: number
+  y: number
+  type: ContextMenuTarget
+  targetId?: string
+}
+
 export interface VisualWorkspaceState {
+  // Scope model (CAV-011)
+  currentScope: ScopeDescriptor
+
+  /** @deprecated Use currentScope.scopeType */
   currentView: CanvasView
+  /** @deprecated Use currentScope.zoomLevel */
   zoomLevel: ZoomLevel
+  /** @deprecated Use currentScope.entityId */
   scopeEntityId: string | null
+
   projectId: string | null
+
+  // Canvas interaction mode (CAV-005)
+  canvasMode: CanvasMode
+  addEdgeSource: string | null
+  preselectedEdgeType: EdgeType | null
 
   selectedNodeIds: string[]
   selectedEdgeIds: string[]
@@ -85,8 +112,39 @@ export interface VisualWorkspaceState {
   entityFormNodeType: NodeType | null
   pendingFocusNodeId: string | null
 
+  // Keyboard shortcuts help (CAV-009)
+  showKeyboardHelp: boolean
+
+  // Context menu (CAV-008)
+  contextMenu: ContextMenuState | null
+
+  // Chat (CAV-017)
+  activeChatThreadId: string | null
+
+  // View presets (CAV-013)
+  activePreset: ViewPresetId | null
+
+  // Collaboration (CAV-021)
+  commentPanelOpen: boolean
+  commentTargetId: string | null
+
+  // Operations overlay (CAV-019)
+  showOperationsOverlay: boolean
+  operationsStatus: OperationsStatusDto | null
+
+  // Canvas interaction mode (CAV-005)
+  setCanvasMode(mode: CanvasMode): void
+  setAddEdgeSource(nodeId: string | null): void
+  setPreselectedEdgeType(edgeType: EdgeType | null): void
+
   setProjectId(projectId: string): void
+
+  // Scope model (CAV-011) — replaces setView
+  setScope(scopeType: ScopeType, entityId?: string | null): void
+
+  /** @deprecated Use setScope() instead */
   setView(view: CanvasView, entityId?: string | null): void
+
   selectNodes(ids: string[]): void
   selectEdges(ids: string[]): void
   clearSelection(): void
@@ -129,6 +187,29 @@ export interface VisualWorkspaceState {
   setPendingFocus(id: string): void
   clearPendingFocus(): void
 
+  // Keyboard shortcuts help (CAV-009)
+  toggleKeyboardHelp(): void
+  dismissKeyboardHelp(): void
+
+  // Context menu (CAV-008)
+  showContextMenu(x: number, y: number, type: ContextMenuTarget, targetId?: string): void
+  dismissContextMenu(): void
+
+  // Chat (CAV-017)
+  setActiveChatThread(threadId: string | null): void
+
+  // View presets (CAV-013)
+  setActivePreset(presetId: ViewPresetId): void
+  clearActivePreset(): void
+
+  // Collaboration (CAV-021)
+  openCommentPanel(targetId: string | null): void
+  closeCommentPanel(): void
+
+  // Operations overlay (CAV-019)
+  toggleOperationsOverlay(): void
+  setOperationsStatus(status: OperationsStatusDto | null): void
+
   // Diff mode (VIS-015f)
   enterDiffMode(baseReleaseId: string, compareReleaseId: string): void
   exitDiffMode(): void
@@ -144,22 +225,39 @@ export interface VisualWorkspaceState {
   clearTransition(): void
 }
 
-function zoomLevelForView(view: CanvasView): ZoomLevel {
-  switch (view) {
-    case 'org':
-      return 'L1'
-    case 'department':
-      return 'L2'
-    case 'workflow':
-      return 'L3'
+function scopeTypeToView(scopeType: ScopeType): CanvasView {
+  switch (scopeType) {
+    case 'company': return 'org'
+    case 'department': return 'department'
+    case 'workflow': return 'workflow'
+    case 'workflow-stage': return 'workflow'
   }
 }
 
+function viewToScopeType(view: CanvasView): ScopeType {
+  switch (view) {
+    case 'org': return 'company'
+    case 'department': return 'department'
+    case 'workflow': return 'workflow'
+  }
+}
+
+const DEFAULT_SCOPE: ScopeDescriptor = {
+  scopeType: 'company',
+  entityId: null,
+  zoomLevel: 'L1',
+}
+
 export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) => ({
+  currentScope: DEFAULT_SCOPE,
   currentView: 'org',
   zoomLevel: 'L1',
   scopeEntityId: null,
   projectId: null,
+
+  canvasMode: 'select',
+  addEdgeSource: null,
+  preselectedEdgeType: null,
 
   selectedNodeIds: [],
   selectedEdgeIds: [],
@@ -172,7 +270,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   inspectorCollapsed: false,
   chatDockOpen: false,
 
-  activeLayers: DEFAULT_LAYERS_PER_LEVEL.L1,
+  activeLayers: SCOPE_REGISTRY.company.defaultLayers,
   nodeTypeFilter: null,
   statusFilter: null,
 
@@ -198,22 +296,54 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   entityFormNodeType: null,
   pendingFocusNodeId: null,
 
+  showKeyboardHelp: false,
+
+  contextMenu: null,
+
+  activeChatThreadId: null,
+
+  activePreset: null,
+
+  commentPanelOpen: false,
+  commentTargetId: null,
+
+  showOperationsOverlay: false,
+  operationsStatus: null,
+
+  setCanvasMode(mode) {
+    set({ canvasMode: mode, addEdgeSource: null, preselectedEdgeType: mode !== 'add-edge' ? null : get().preselectedEdgeType })
+  },
+
+  setAddEdgeSource(nodeId) {
+    set({ addEdgeSource: nodeId })
+  },
+
+  setPreselectedEdgeType(edgeType) {
+    set({ preselectedEdgeType: edgeType, canvasMode: 'add-edge', addEdgeSource: null })
+  },
+
   setProjectId(projectId) {
     set({ projectId })
   },
 
-  setView(view, entityId = null) {
-    const zoomLevel = zoomLevelForView(view)
+  setScope(scopeType, entityId = null) {
+    const def = SCOPE_REGISTRY[scopeType]
+    const scope: ScopeDescriptor = {
+      scopeType,
+      entityId,
+      zoomLevel: def.zoomLevel,
+    }
     set({
-      currentView: view,
-      zoomLevel,
+      currentScope: scope,
+      currentView: scopeTypeToView(scopeType),
+      zoomLevel: def.zoomLevel,
       scopeEntityId: entityId,
       selectedNodeIds: [],
       selectedEdgeIds: [],
       graphNodes: [],
       graphEdges: [],
       focusNodeId: null,
-      activeLayers: DEFAULT_LAYERS_PER_LEVEL[zoomLevel],
+      activeLayers: def.defaultLayers,
       nodeTypeFilter: null,
       statusFilter: null,
       pendingConnection: null,
@@ -222,7 +352,17 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
       deleteConfirm: null,
       collapsedNodeIds: [],
       breadcrumb: [],
+      canvasMode: 'select',
+      addEdgeSource: null,
+      preselectedEdgeType: null,
+      activePreset: null,
     })
+  },
+
+  /** @deprecated Use setScope() */
+  setView(view, entityId = null) {
+    const scopeType = viewToScopeType(view)
+    get().setScope(scopeType, entityId)
   },
 
   selectNodes(ids) {
@@ -272,28 +412,31 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
         activeLayers: has
           ? s.activeLayers.filter((l) => l !== layer)
           : [...s.activeLayers, layer],
+        activePreset: null,
       }
     })
   },
 
   setActiveLayers(layers) {
-    set({ activeLayers: layers })
+    set({ activeLayers: layers, activePreset: null })
   },
 
-  resetToDefaults(level) {
-    set({ activeLayers: DEFAULT_LAYERS_PER_LEVEL[level] })
+  resetToDefaults(_level) {
+    const state = get()
+    const def = SCOPE_REGISTRY[state.currentScope.scopeType]
+    set({ activeLayers: def.defaultLayers })
   },
 
   setNodeTypeFilter(types) {
-    set({ nodeTypeFilter: types })
+    set({ nodeTypeFilter: types, activePreset: null })
   },
 
   setStatusFilter(statuses) {
-    set({ statusFilter: statuses })
+    set({ statusFilter: statuses, activePreset: null })
   },
 
   clearFilters() {
-    set({ nodeTypeFilter: null, statusFilter: null })
+    set({ nodeTypeFilter: null, statusFilter: null, activePreset: null })
   },
 
   setValidationIssues(issues) {
@@ -350,7 +493,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
 
   collapseAll() {
     const state = get()
-    if (state.zoomLevel === 'L1') return
+    if (state.currentScope.zoomLevel === 'L1') return
     const parentIds = new Set<string>()
     for (const n of state.graphNodes) {
       if (n.parentId) parentIds.add(n.parentId)
@@ -374,6 +517,64 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
     set({ pendingFocusNodeId: null })
   },
 
+  toggleKeyboardHelp() {
+    set((s) => ({ showKeyboardHelp: !s.showKeyboardHelp }))
+  },
+
+  dismissKeyboardHelp() {
+    set({ showKeyboardHelp: false })
+  },
+
+  showContextMenu(x, y, type, targetId) {
+    set({ contextMenu: { x, y, type, targetId } })
+  },
+
+  dismissContextMenu() {
+    set({ contextMenu: null })
+  },
+
+  setActiveChatThread(threadId) {
+    set({ activeChatThreadId: threadId })
+  },
+
+  setActivePreset(presetId) {
+    const state = get()
+    const preset = VIEW_PRESET_REGISTRY[presetId]
+    if (!preset) return
+    if (!preset.availableAtScopes.includes(state.currentScope.scopeType)) return
+    set({
+      activePreset: presetId,
+      activeLayers: preset.layers,
+      nodeTypeFilter: preset.emphasisNodeTypes,
+    })
+  },
+
+  clearActivePreset() {
+    const state = get()
+    const def = SCOPE_REGISTRY[state.currentScope.scopeType]
+    set({
+      activePreset: null,
+      activeLayers: def.defaultLayers,
+      nodeTypeFilter: null,
+    })
+  },
+
+  openCommentPanel(targetId) {
+    set({ commentPanelOpen: true, commentTargetId: targetId })
+  },
+
+  closeCommentPanel() {
+    set({ commentPanelOpen: false, commentTargetId: null })
+  },
+
+  toggleOperationsOverlay() {
+    set((s) => ({ showOperationsOverlay: !s.showOperationsOverlay }))
+  },
+
+  setOperationsStatus(status) {
+    set({ operationsStatus: status })
+  },
+
   enterDiffMode(baseReleaseId, compareReleaseId) {
     set({
       isDiffMode: true,
@@ -381,6 +582,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
       compareReleaseId,
       diffFilter: null,
       showValidationOverlay: false,
+      showOperationsOverlay: false,
     })
   },
 
@@ -412,7 +614,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
 
   pushNavigation(entry) {
     set((s) => ({
-      navigationStack: [...s.navigationStack.slice(0, 2), entry],
+      navigationStack: [...s.navigationStack, entry],
     }))
   },
 

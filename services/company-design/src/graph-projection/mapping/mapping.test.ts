@@ -37,6 +37,7 @@ function createSnapshot(overrides: Partial<ReleaseSnapshotDto> = {}): ReleaseSna
     contracts: [],
     workflows: [],
     policies: [],
+    artifacts: [],
     ...overrides,
   }
 }

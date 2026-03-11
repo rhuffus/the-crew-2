@@ -14,9 +14,11 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:ci": "turbo run test -- --run",
+    "test:e2e": "npx playwright test",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^25.4.0",
     "prettier": "^3.4.2",
     "turbo": "^2.3.3",

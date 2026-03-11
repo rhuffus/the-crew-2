@@ -3,10 +3,18 @@ import { PanelRight } from 'lucide-react'
 import type { VisualNodeDto, VisualEdgeDto, ValidationIssue, EdgeType, NodeType, VisualDiffStatus, VisualDiffSummary } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { groupIssuesByVisualNodeId } from '@/lib/validation-mapping'
+import { useEntityDetail } from '@/hooks/use-entity-detail'
+import { usePermission } from '@/hooks/use-permissions'
+import { LockIndicator } from './lock-indicator'
+import { ReviewIndicator } from './review-indicator'
 import { InspectorHeader } from './inspector-header'
 import { OverviewTab } from './overview-tab'
+import { EditFormPanel } from './edit-form-panel'
 import { PropertiesTab } from './properties-tab'
 import { RelationsTab } from './relations-tab'
+import { ValidationTab } from './validation-tab'
+import { CommentsTab } from './comments-tab'
+import { OperationsTab } from './operations-tab'
 import { ChangesTab } from './changes-tab'
 import { EdgeInspector } from './edge-inspector'
 import { MultiSelectSummary } from './multi-select-summary'
@@ -19,17 +27,29 @@ import {
   getRelatedEdges,
 } from './inspector-utils'
 
-export type InspectorTabId = 'overview' | 'properties' | 'relations' | 'changes'
+export type InspectorTabId = 'overview' | 'edit' | 'properties' | 'relations' | 'validation' | 'changes' | 'comments' | 'operations'
 
 const TAB_LABELS: Record<InspectorTabId, string> = {
   overview: 'Overview',
+  edit: 'Edit',
   properties: 'Properties',
   relations: 'Relations',
+  validation: 'Validation',
   changes: 'Changes',
+  comments: 'Comments',
+  operations: 'Ops',
 }
 
-const STANDARD_TABS: InspectorTabId[] = ['overview', 'properties', 'relations']
+const STANDARD_TABS: InspectorTabId[] = ['edit', 'relations', 'validation', 'comments', 'properties']
+const STANDARD_TABS_WITH_OPS: InspectorTabId[] = ['edit', 'relations', 'validation', 'comments', 'operations', 'properties']
+const READ_ONLY_TABS: InspectorTabId[] = ['overview', 'relations', 'comments', 'properties']
+const READ_ONLY_TABS_WITH_OPS: InspectorTabId[] = ['overview', 'relations', 'comments', 'operations', 'properties']
 const DIFF_TABS: InspectorTabId[] = ['overview', 'changes', 'properties']
+
+const EDITABLE_NODE_TYPES = new Set<NodeType>([
+  'department', 'capability', 'role', 'agent-archetype', 'agent-assignment',
+  'skill', 'workflow', 'contract', 'policy',
+])
 
 export interface InspectorProps {
   graphNodes?: VisualNodeDto[]
@@ -37,12 +57,13 @@ export interface InspectorProps {
   onEdgeDelete?: (edgeType: EdgeType, sourceNodeId: string, targetNodeId: string) => void
   onEdgeCreate?: (edgeType: EdgeType, sourceNodeId: string, targetNodeId: string, metadata?: Record<string, unknown>) => void
   onEdgeUpdateMetadata?: (edgeType: EdgeType, sourceNodeId: string, targetNodeId: string, metadata: Record<string, unknown>) => void
-  onNodeUpdate?: (entityId: string, nodeType: NodeType, patch: Record<string, string>) => void
+  onNodeUpdate?: (entityId: string, nodeType: NodeType, patch: Record<string, unknown>) => void
+  onNodeDelete?: (entityId: string, nodeType: NodeType) => void
   isPending?: boolean
   diffSummary?: VisualDiffSummary | null
 }
 
-export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, onEdgeUpdateMetadata, onNodeUpdate, isPending = false, diffSummary }: InspectorProps) {
+export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, onEdgeUpdateMetadata, onNodeUpdate, onNodeDelete, isPending = false, diffSummary }: InspectorProps) {
   const {
     inspectorCollapsed,
     toggleInspector,
@@ -54,8 +75,16 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
     graphNodes: storeNodes,
     graphEdges: storeEdges,
     showDeleteConfirm,
+    currentScope,
+    showOperationsOverlay,
   } = useVisualWorkspaceStore()
-  const [activeTab, setActiveTab] = useState<InspectorTabId>('overview')
+  const [activeTab, setActiveTab] = useState<InspectorTabId>('edit')
+
+  // Permission checks (CAV-020)
+  const canEditNodes = usePermission('canvas:node:edit')
+  const canDeleteNodes = usePermission('canvas:node:delete')
+  const canCreateEdges = usePermission('canvas:edge:create')
+  const canDeleteEdges = usePermission('canvas:edge:delete')
 
   // Use props if provided, otherwise fall back to store
   const resolvedNodes = graphNodes && graphNodes.length > 0 ? graphNodes : storeNodes
@@ -71,6 +100,41 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
     },
     [onEdgeDelete, showDeleteConfirm],
   )
+
+  const summary = getSelectionSummary(selectedNodeIds, selectedEdgeIds)
+
+  let selectedNode: VisualNodeDto | undefined
+  let selectedEdge: VisualEdgeDto | undefined
+  let nodeValidationIssues: ValidationIssue[] = []
+
+  if (summary.type === 'single-node' && selectedNodeIds[0]) {
+    selectedNode = findNodeInGraph(selectedNodeIds[0], resolvedNodes)
+    if (selectedNode && projectId && validationIssues.length > 0) {
+      const issueMap = groupIssuesByVisualNodeId(validationIssues, projectId)
+      nodeValidationIssues = issueMap.get(selectedNode.id) ?? []
+    }
+  } else if (summary.type === 'single-edge' && selectedEdgeIds[0]) {
+    selectedEdge = findEdgeInGraph(selectedEdgeIds[0], resolvedEdges)
+  }
+
+  // Fetch full entity data for edit form
+  const isEditable = selectedNode ? EDITABLE_NODE_TYPES.has(selectedNode.nodeType) : false
+  const { data: entityData, isLoading: entityLoading } = useEntityDetail(
+    projectId,
+    selectedNode?.nodeType ?? null,
+    selectedNode?.entityId ?? null,
+  )
+
+  // Determine which tabs to show (CAV-020: gate edit by permission, CAV-019: ops tab when overlay active)
+  const getTabOrder = (): InspectorTabId[] => {
+    if (isDiffMode) return DIFF_TABS
+    if (!isEditable || !canEditNodes) return showOperationsOverlay ? READ_ONLY_TABS_WITH_OPS : READ_ONLY_TABS
+    return showOperationsOverlay ? STANDARD_TABS_WITH_OPS : STANDARD_TABS
+  }
+
+  // Ensure active tab is valid for current tab set
+  const tabOrder = selectedNode ? getTabOrder() : []
+  const effectiveTab = tabOrder.includes(activeTab) ? activeTab : tabOrder[0] ?? 'edit'
 
   if (inspectorCollapsed) {
     return (
@@ -88,22 +152,6 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
         </button>
       </div>
     )
-  }
-
-  const summary = getSelectionSummary(selectedNodeIds, selectedEdgeIds)
-
-  let selectedNode: VisualNodeDto | undefined
-  let selectedEdge: VisualEdgeDto | undefined
-  let nodeValidationIssues: ValidationIssue[] = []
-
-  if (summary.type === 'single-node' && selectedNodeIds[0]) {
-    selectedNode = findNodeInGraph(selectedNodeIds[0], resolvedNodes)
-    if (selectedNode && projectId && validationIssues.length > 0) {
-      const issueMap = groupIssuesByVisualNodeId(validationIssues, projectId)
-      nodeValidationIssues = issueMap.get(selectedNode.id) ?? []
-    }
-  } else if (summary.type === 'single-edge' && selectedEdgeIds[0]) {
-    selectedEdge = findEdgeInGraph(selectedEdgeIds[0], resolvedEdges)
   }
 
   return (
@@ -136,50 +184,98 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
       )}
 
       {summary.type === 'single-node' && selectedNode && (() => {
-        const tabOrder = isDiffMode ? DIFF_TABS : STANDARD_TABS
         const nodeDiffStatus = (selectedNode as VisualNodeDto & { diffStatus?: VisualDiffStatus }).diffStatus
         const nodeChanges = (selectedNode as VisualNodeDto & { changes?: Record<string, { before: unknown; after: unknown }> }).changes
         return (
         <>
-          <div className="flex border-b border-border">
+          {/* Collaboration indicators (CAV-021) */}
+          {!isDiffMode && projectId && isEditable && (
+            <div data-testid="collaboration-indicators" className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-1.5">
+              <LockIndicator projectId={projectId} entityId={selectedNode.entityId} nodeType={selectedNode.nodeType} />
+              <ReviewIndicator projectId={projectId} entityId={selectedNode.entityId} nodeType={selectedNode.nodeType} />
+            </div>
+          )}
+          <div className="flex border-b border-border" role="tablist" aria-label="Inspector tabs">
             {tabOrder.map((tabId) => (
               <button
                 key={tabId}
                 type="button"
+                role="tab"
+                aria-selected={effectiveTab === tabId}
+                aria-controls={`inspector-tabpanel-${tabId}`}
+                id={`inspector-tab-${tabId}`}
                 data-testid={`tab-${tabId}`}
                 onClick={() => setActiveTab(tabId)}
                 className={`flex-1 px-2 py-1.5 text-xs font-medium ${
-                  activeTab === tabId
+                  effectiveTab === tabId
                     ? 'border-b-2 border-primary text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {TAB_LABELS[tabId]}
+                {tabId === 'validation' && nodeValidationIssues.length > 0 && (
+                  <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-semibold text-red-700">
+                    {nodeValidationIssues.length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
-          <div className="flex-1 overflow-y-auto p-3">
+          <div
+            className="flex-1 overflow-y-auto p-3"
+            role="tabpanel"
+            id={`inspector-tabpanel-${effectiveTab}`}
+            aria-labelledby={`inspector-tab-${effectiveTab}`}
+          >
             <div data-testid="inspector-detail">
-              {activeTab === 'overview' && (
-                <OverviewTab node={selectedNode} validationIssues={nodeValidationIssues} onNodeUpdate={onNodeUpdate} isPending={isPending} />
+              {effectiveTab === 'edit' && isEditable && projectId && (
+                <EditFormPanel
+                  nodeType={selectedNode.nodeType}
+                  entityId={selectedNode.entityId}
+                  entityData={entityData as Record<string, unknown> | undefined}
+                  isLoadingData={entityLoading}
+                  projectId={projectId}
+                  onSave={onNodeUpdate ?? (() => {})}
+                  isPending={isPending}
+                />
               )}
-              {activeTab === 'changes' && isDiffMode && nodeDiffStatus && (
+              {effectiveTab === 'overview' && (
+                <OverviewTab node={selectedNode} validationIssues={nodeValidationIssues} onNodeUpdate={onNodeUpdate as ((entityId: string, nodeType: NodeType, patch: Record<string, string>) => void) | undefined} isPending={isPending} />
+              )}
+              {effectiveTab === 'changes' && isDiffMode && nodeDiffStatus && (
                 <ChangesTab
                   diffStatus={nodeDiffStatus}
                   changes={nodeChanges}
                   label={selectedNode.label}
                 />
               )}
-              {activeTab === 'properties' && <PropertiesTab node={selectedNode} />}
-              {activeTab === 'relations' && !isDiffMode && (
+              {effectiveTab === 'properties' && <PropertiesTab node={selectedNode} />}
+              {effectiveTab === 'relations' && !isDiffMode && (
                 <RelationsTab
                   node={selectedNode}
                   relatedEdges={getRelatedEdges(selectedNode.id, resolvedEdges)}
                   allNodes={resolvedNodes}
                   allEdges={resolvedEdges}
                   projectId={projectId ?? undefined}
-                  onRemoveRelation={handleEdgeDelete}
-                  onAddRelation={onEdgeCreate}
+                  onRemoveRelation={canDeleteEdges ? handleEdgeDelete : undefined}
+                  onAddRelation={canCreateEdges ? onEdgeCreate : undefined}
+                />
+              )}
+              {effectiveTab === 'validation' && !isDiffMode && (
+                <ValidationTab validationIssues={nodeValidationIssues} />
+              )}
+              {effectiveTab === 'comments' && !isDiffMode && projectId && (
+                <CommentsTab
+                  projectId={projectId}
+                  entityId={selectedNode.entityId}
+                  scopeType={currentScope.scopeType}
+                />
+              )}
+              {effectiveTab === 'operations' && !isDiffMode && projectId && (
+                <OperationsTab
+                  entityId={selectedNode.entityId}
+                  nodeType={selectedNode.nodeType}
+                  projectId={projectId}
                 />
               )}
             </div>
@@ -202,7 +298,19 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
 
       {summary.type === 'multi' && (
         <div className="flex-1 overflow-y-auto p-3">
-          <MultiSelectSummary summary={summary} />
+          <MultiSelectSummary
+            summary={summary}
+            onDeleteSelected={(onNodeDelete && canDeleteNodes) ? () => {
+              // Bulk delete: delete all selected nodes
+              for (const nodeId of selectedNodeIds) {
+                const node = findNodeInGraph(nodeId, resolvedNodes)
+                if (node && EDITABLE_NODE_TYPES.has(node.nodeType)) {
+                  onNodeDelete(node.entityId, node.nodeType)
+                }
+              }
+            } : undefined}
+            selectedNodeCount={selectedNodeIds.length}
+          />
         </div>
       )}
 

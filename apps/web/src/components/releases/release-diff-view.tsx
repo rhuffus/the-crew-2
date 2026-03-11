@@ -20,6 +20,7 @@ const entityTypeLabels: Record<DiffEntityType, string> = {
   contract: 'Contracts',
   workflow: 'Workflows',
   policy: 'Policies',
+  artifact: 'Artifact',
 }
 
 const changeTypeConfig = {

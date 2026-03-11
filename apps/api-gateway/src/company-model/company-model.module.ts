@@ -14,11 +14,18 @@ import { ReleasesController } from './releases.controller'
 import { ValidationsController } from './validations.controller'
 import { AuditController } from './audit.controller'
 import { VisualGraphController } from './visual-graph.controller'
+import { SavedViewsController } from './saved-views.controller'
+import { ChatController } from './chat.controller'
+import { PermissionsController } from './permissions.controller'
+import { ArtifactsController } from './artifacts.controller'
+import { CommentsController } from './comments.controller'
+import { CollaborationController } from './collaboration.controller'
+import { OperationsController } from './operations.controller'
 import { CompanyDesignClient } from './company-design.client'
 
 @Module({
   imports: [HttpModule],
-  controllers: [CompanyModelController, DepartmentsController, CapabilitiesController, RolesController, AgentArchetypesController, AgentAssignmentsController, SkillsController, ContractsController, WorkflowsController, PoliciesController, ReleasesController, ValidationsController, AuditController, VisualGraphController],
+  controllers: [CompanyModelController, DepartmentsController, CapabilitiesController, RolesController, AgentArchetypesController, AgentAssignmentsController, SkillsController, ContractsController, WorkflowsController, PoliciesController, ReleasesController, ValidationsController, AuditController, VisualGraphController, SavedViewsController, ChatController, PermissionsController, ArtifactsController, CommentsController, CollaborationController, OperationsController],
   providers: [CompanyDesignClient],
 })
 export class CompanyModelModule {}

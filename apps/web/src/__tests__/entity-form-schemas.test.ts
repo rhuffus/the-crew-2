@@ -7,8 +7,8 @@ import {
 } from '@/lib/entity-form-schemas'
 
 describe('ENTITY_FORM_SCHEMAS', () => {
-  it('should define 9 entity schemas', () => {
-    expect(ENTITY_FORM_SCHEMAS).toHaveLength(9)
+  it('should define 10 entity schemas', () => {
+    expect(ENTITY_FORM_SCHEMAS).toHaveLength(10)
   })
 
   it('should have unique node types', () => {
@@ -79,13 +79,13 @@ describe('ENTITY_FORM_SCHEMAS', () => {
 })
 
 describe('getAddableTypes', () => {
-  it('should return department for L1', () => {
-    expect(getAddableTypes('L1')).toEqual(['department'])
+  it('should return department and artifact for L1', () => {
+    expect(getAddableTypes('L1')).toEqual(['department', 'artifact'])
   })
 
-  it('should return 8 types for L2', () => {
+  it('should return 9 types for L2', () => {
     const types = getAddableTypes('L2')
-    expect(types).toHaveLength(8)
+    expect(types).toHaveLength(9)
     expect(types).toContain('role')
     expect(types).toContain('capability')
     expect(types).toContain('workflow')

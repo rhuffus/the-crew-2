@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet, Link } from '@tanstack/react-router'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -6,7 +7,11 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
-  return <Outlet />
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  )
 }
 
 function NotFoundComponent() {

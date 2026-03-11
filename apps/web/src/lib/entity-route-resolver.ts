@@ -1,4 +1,5 @@
-import type { NodeType } from '@the-crew/shared-types'
+import type { NodeType, ScopeType } from '@the-crew/shared-types'
+import { SCOPE_REGISTRY } from '@the-crew/shared-types'
 
 export interface EntityRoute {
   path: string
@@ -20,12 +21,18 @@ const NODE_TYPE_TO_PREFIX: Record<NodeType, string> = {
   'workflow-stage': 'wf-stage',
   contract: 'contract',
   policy: 'policy',
+  artifact: 'artifact',
 }
 
 /**
- * Node types that have their own canvas scope (direct navigation).
+ * Route patterns per scope type.
  */
-const SCOPE_TYPES = new Set<NodeType>(['department', 'workflow'])
+const SCOPE_ROUTE_PATTERNS: Record<ScopeType, string> = {
+  company: '/projects/:projectId/org',
+  department: '/projects/:projectId/departments/:entityId',
+  workflow: '/projects/:projectId/workflows/:entityId',
+  'workflow-stage': '/projects/:projectId/workflows/:parentId/stages/:entityId',
+}
 
 /**
  * Node types whose parent department can be inferred from parentId.
@@ -52,6 +59,7 @@ export function buildVisualId(nodeType: NodeType, entityId: string): string {
  *
  * - department → /projects/:projectId/departments/:entityId (direct L2 scope)
  * - workflow → /projects/:projectId/workflows/:entityId (direct L3 scope)
+ * - workflow-stage → /projects/:projectId/workflows/:parentId/stages/:entityId (L4 scope)
  * - Leaf entities with a known parentDeptId → navigate to parent dept L2, focus on entity
  * - contract/policy with no parent dept → navigate to org L1, focus on entity
  * - company → /projects/:projectId/org
@@ -80,6 +88,15 @@ export function resolveEntityRoute(
     }
   }
 
+  if (nodeType === 'workflow-stage') {
+    // workflow-stage needs parent workflow info for routing
+    // Fallback: focus on the stage in the workflow view if parent is known
+    return {
+      path: `/projects/${projectId}/org`,
+      focusNodeId: buildVisualId(nodeType, entityId),
+    }
+  }
+
   const visualId = buildVisualId(nodeType, entityId)
 
   // Leaf entities with a known parent department → navigate to that dept's L2
@@ -99,9 +116,10 @@ export function resolveEntityRoute(
 
 /**
  * Checks if a node type supports direct scope navigation (has its own canvas level).
+ * Uses SCOPE_REGISTRY for extensibility.
  */
 export function isScopeType(nodeType: NodeType): boolean {
-  return SCOPE_TYPES.has(nodeType)
+  return Object.values(SCOPE_REGISTRY).some(def => def.rootNodeType === nodeType)
 }
 
 /**
@@ -112,4 +130,28 @@ export function extractDeptIdFromParent(parentId: string | null): string | null 
   if (!parentId) return null
   if (parentId.startsWith('dept:')) return parentId.slice(5)
   return null
+}
+
+/**
+ * Generic drilldown resolution using SCOPE_REGISTRY.
+ * Returns the target route and scope type for a given node.
+ */
+export function resolveDrillTarget(
+  nodeType: NodeType,
+  entityId: string,
+  projectId: string,
+): { route: string; scopeType: ScopeType } | null {
+  const scopeDef = Object.values(SCOPE_REGISTRY).find(
+    def => def.rootNodeType === nodeType,
+  )
+  if (!scopeDef) return null // not a drillable type
+
+  const routePattern = SCOPE_ROUTE_PATTERNS[scopeDef.scopeType]
+  if (!routePattern) return null
+
+  const route = routePattern
+    .replace(':projectId', projectId)
+    .replace(':entityId', entityId)
+
+  return { route, scopeType: scopeDef.scopeType }
 }

@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react'
 import type { VisualNodeDto } from '@the-crew/shared-types'
 import { useCanvasKeyboard } from '@/hooks/use-canvas-keyboard'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
+import { useUndoRedoStore } from '@/stores/undo-redo-store'
 
 function makeNode(
   id: string,
@@ -329,6 +330,76 @@ describe('useCanvasKeyboard', () => {
     expect(useVisualWorkspaceStore.getState().selectedNodeIds).toEqual([])
 
     document.body.removeChild(select)
+  })
+
+  // --- Undo/Redo shortcuts (CAV-009) ---
+
+  it('should call undo on Ctrl+Z', () => {
+    const undoSpy = vi.spyOn(useUndoRedoStore.getState(), 'undo').mockResolvedValue(undefined)
+    setup()
+    fireKey('z', { ctrlKey: true })
+    expect(undoSpy).toHaveBeenCalledOnce()
+    undoSpy.mockRestore()
+  })
+
+  it('should call undo on Meta+Z (Mac)', () => {
+    const undoSpy = vi.spyOn(useUndoRedoStore.getState(), 'undo').mockResolvedValue(undefined)
+    setup()
+    fireKey('z', { metaKey: true })
+    expect(undoSpy).toHaveBeenCalledOnce()
+    undoSpy.mockRestore()
+  })
+
+  it('should call redo on Ctrl+Shift+Z', () => {
+    const redoSpy = vi.spyOn(useUndoRedoStore.getState(), 'redo').mockResolvedValue(undefined)
+    setup()
+    fireKey('Z', { ctrlKey: true, shiftKey: true })
+    expect(redoSpy).toHaveBeenCalledOnce()
+    redoSpy.mockRestore()
+  })
+
+  it('should call redo on Ctrl+Y', () => {
+    const redoSpy = vi.spyOn(useUndoRedoStore.getState(), 'redo').mockResolvedValue(undefined)
+    setup()
+    fireKey('y', { ctrlKey: true })
+    expect(redoSpy).toHaveBeenCalledOnce()
+    redoSpy.mockRestore()
+  })
+
+  // --- Select All (CAV-009) ---
+
+  it('should select all nodes on Ctrl+A', () => {
+    const nodes = [makeNode('n1'), makeNode('n2'), makeNode('n3')]
+    useVisualWorkspaceStore.setState({ graphNodes: nodes })
+    setup()
+    fireKey('a', { ctrlKey: true })
+    expect(useVisualWorkspaceStore.getState().selectedNodeIds).toEqual(['n1', 'n2', 'n3'])
+  })
+
+  it('should not select all when no nodes', () => {
+    setup()
+    fireKey('a', { ctrlKey: true })
+    expect(useVisualWorkspaceStore.getState().selectedNodeIds).toEqual([])
+  })
+
+  // --- Keyboard shortcuts help (CAV-009) ---
+
+  it('should toggle keyboard help on ?', () => {
+    useVisualWorkspaceStore.setState({ showKeyboardHelp: false })
+    setup()
+    fireKey('?', { shiftKey: true })
+    expect(useVisualWorkspaceStore.getState().showKeyboardHelp).toBe(true)
+    fireKey('?', { shiftKey: true })
+    expect(useVisualWorkspaceStore.getState().showKeyboardHelp).toBe(false)
+  })
+
+  it('should dismiss keyboard help on Escape', () => {
+    useVisualWorkspaceStore.setState({ showKeyboardHelp: true })
+    setup()
+    fireKey('Escape')
+    expect(useVisualWorkspaceStore.getState().showKeyboardHelp).toBe(false)
+    // Should NOT drill out when dismissing help
+    expect(onDrillOut).not.toHaveBeenCalled()
   })
 
   // --- Cleanup ---

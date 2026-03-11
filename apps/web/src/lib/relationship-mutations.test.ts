@@ -474,8 +474,8 @@ describe('getEntityToFetch', () => {
 // ============================================================
 
 describe('exported constants', () => {
-  it('ARRAY_MUTATION_EDGE_TYPES contains 5 types', () => {
-    expect(ARRAY_MUTATION_EDGE_TYPES.size).toBe(5)
+  it('ARRAY_MUTATION_EDGE_TYPES contains 6 types', () => {
+    expect(ARRAY_MUTATION_EDGE_TYPES.size).toBe(6)
   })
 
   it('METADATA_REQUIRED_EDGE_TYPES contains only participates_in', () => {

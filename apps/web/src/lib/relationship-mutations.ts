@@ -16,6 +16,7 @@ export type MutableEntityType =
   | 'skill'
   | 'contract'
   | 'policy'
+  | 'artifact'
 
 export interface RelationshipMutation {
   /** Which entity to PATCH */
@@ -62,6 +63,7 @@ const NODE_TYPE_TO_ENTITY_TYPE: Partial<Record<NodeType, MutableEntityType>> = {
   skill: 'skill',
   contract: 'contract',
   policy: 'policy',
+  artifact: 'artifact',
 }
 
 function toEntityType(nodeType: NodeType): MutableEntityType {
@@ -191,6 +193,27 @@ export function resolveEdgeCreation(
       }
     }
 
+    case 'produces_artifact':
+      return {
+        entityType: 'artifact',
+        entityId: targetNode.entityId,
+        patch: {
+          producerId: sourceNode.entityId,
+          producerType: toPartyType(sourceNode.nodeType),
+        },
+        description: `Set "${sourceNode.label}" as producer of artifact "${targetNode.label}"`,
+      }
+
+    case 'consumes_artifact': {
+      const currentIds = extractStringArray(currentEntityData, 'consumerIds')
+      return {
+        entityType: 'artifact',
+        entityId: targetNode.entityId,
+        patch: { consumerIds: [...currentIds, sourceNode.entityId] },
+        description: `Add "${sourceNode.label}" as consumer of artifact "${targetNode.label}"`,
+      }
+    }
+
     case 'governs':
       return resolveGovernsCreation(sourceNode, targetNode)
 
@@ -315,6 +338,24 @@ export function resolveEdgeDeletion(
       }
     }
 
+    case 'produces_artifact':
+      return {
+        entityType: 'artifact',
+        entityId: targetNode.entityId,
+        patch: { producerId: null, producerType: null },
+        description: `Remove "${sourceNode.label}" as producer of artifact "${targetNode.label}"`,
+      }
+
+    case 'consumes_artifact': {
+      const currentIds = extractStringArray(currentEntityData, 'consumerIds')
+      return {
+        entityType: 'artifact',
+        entityId: targetNode.entityId,
+        patch: { consumerIds: currentIds.filter((id) => id !== sourceNode.entityId) },
+        description: `Remove "${sourceNode.label}" as consumer of artifact "${targetNode.label}"`,
+      }
+    }
+
     case 'governs':
       return {
         entityType: 'policy',
@@ -429,6 +470,7 @@ export const ARRAY_MUTATION_EDGE_TYPES: ReadonlySet<EdgeType> = new Set([
   'compatible_with',
   'bound_by',
   'participates_in',
+  'consumes_artifact',
 ])
 
 /** Edge types that require additional metadata input from the user */
@@ -473,6 +515,8 @@ export function getEntityToFetch(
       return { entityType: 'workflow', entityId: sourceNode.entityId }
     case 'participates_in':
       return { entityType: 'workflow', entityId: targetNode.entityId }
+    case 'consumes_artifact':
+      return { entityType: 'artifact', entityId: targetNode.entityId }
     default:
       return null
   }

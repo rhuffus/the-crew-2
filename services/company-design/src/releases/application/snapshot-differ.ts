@@ -30,6 +30,7 @@ export class SnapshotDiffer {
     this.diffCollection(base.contracts, compare.contracts, 'contract', changes)
     this.diffCollection(base.workflows, compare.workflows, 'workflow', changes)
     this.diffCollection(base.policies, compare.policies, 'policy', changes)
+    this.diffCollection(base.artifacts ?? [], compare.artifacts ?? [], 'artifact', changes)
 
     const summary: DiffSummary = {
       added: changes.filter((c) => c.changeType === 'added').length,

@@ -23,6 +23,7 @@ const validSnapshot: ReleaseSnapshotDto = {
   contracts: [],
   workflows: [],
   policies: [],
+  artifacts: [],
 }
 
 function createMockSnapshotCollector(): SnapshotCollector {

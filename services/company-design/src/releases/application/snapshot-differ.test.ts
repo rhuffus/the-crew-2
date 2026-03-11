@@ -14,6 +14,7 @@ function emptySnapshot(): ReleaseSnapshotDto {
     contracts: [],
     workflows: [],
     policies: [],
+    artifacts: [],
   }
 }
 
@@ -184,6 +185,7 @@ describe('SnapshotDiffer', () => {
       policies: [
         { id: 'pol1', projectId: 'p1', name: 'Policy A', description: '', scope: 'global', departmentId: null, type: 'rule', condition: 'always', enforcement: 'mandatory', status: 'active', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
       ],
+      artifacts: [],
     }
     const compare: ReleaseSnapshotDto = {
       companyModel: { projectId: 'p1', purpose: 'New', type: 'SaaS', scope: '', principles: [], updatedAt: '2026-02-01T00:00:00Z' },
@@ -200,6 +202,7 @@ describe('SnapshotDiffer', () => {
       policies: [
         { id: 'pol1', projectId: 'p1', name: 'Policy A', description: '', scope: 'global', departmentId: null, type: 'rule', condition: 'always', enforcement: 'mandatory', status: 'active', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
       ],
+      artifacts: [],
     }
 
     const result = differ.diff(base, compare)

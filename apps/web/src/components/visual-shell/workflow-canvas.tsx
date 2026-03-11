@@ -1,22 +1,27 @@
-import { useMemo, useCallback, useRef } from 'react'
+import { useMemo, useCallback, useRef, useEffect, useState } from 'react'
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
   BackgroundVariant,
+  type Node,
   type OnSelectionChangeParams,
   type ReactFlowInstance,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useVisualGraph } from '@/hooks/use-visual-graph'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
-import { graphToFlow, enrichWithValidationCounts } from '@/lib/graph-to-flow'
+import { VIEW_PRESET_REGISTRY } from '@the-crew/shared-types'
+import { graphToFlow, enrichWithValidationCounts, applyEdgeEmphasis } from '@/lib/graph-to-flow'
+import { enrichWithOperationsBadges } from '@/lib/operations-enrichment'
 import { filterGraph } from '@/lib/graph-filter'
 import { applyCollapse, getContainerNodeIds, enrichWithCollapseState } from '@/lib/collapse-filter'
+import { loadNodePositions, saveNodePositions, clearNodePositions, applyPersistedPositions, updatePosition, type LayoutPositions } from '@/lib/layout-persistence'
 import { visualNodeTypes } from './nodes'
 import { CanvasToolbar } from './canvas-toolbar'
 import { TransitionWrapper } from './transition-wrapper'
+import { CanvasContextMenu } from './context-menu'
 
 interface WorkflowCanvasProps {
   projectId: string
@@ -25,13 +30,38 @@ interface WorkflowCanvasProps {
 
 export function WorkflowCanvas({ projectId, workflowId }: WorkflowCanvasProps) {
   const rfInstance = useRef<ReactFlowInstance | null>(null)
-  const { selectNodes, selectEdges, clearSelection, activeLayers, nodeTypeFilter, statusFilter, showValidationOverlay, validationIssues, collapsedNodeIds, transitionDirection, clearTransition } =
-    useVisualWorkspaceStore()
+  // Data selectors — each subscribes independently to avoid unnecessary re-renders
+  const activeLayers = useVisualWorkspaceStore(s => s.activeLayers)
+  const nodeTypeFilter = useVisualWorkspaceStore(s => s.nodeTypeFilter)
+  const statusFilter = useVisualWorkspaceStore(s => s.statusFilter)
+  const showValidationOverlay = useVisualWorkspaceStore(s => s.showValidationOverlay)
+  const showOperationsOverlay = useVisualWorkspaceStore(s => s.showOperationsOverlay)
+  const operationsStatus = useVisualWorkspaceStore(s => s.operationsStatus)
+  const validationIssues = useVisualWorkspaceStore(s => s.validationIssues)
+  const collapsedNodeIds = useVisualWorkspaceStore(s => s.collapsedNodeIds)
+  const transitionDirection = useVisualWorkspaceStore(s => s.transitionDirection)
+  const activePreset = useVisualWorkspaceStore(s => s.activePreset)
+  // Actions — stable references, won't cause re-renders
+  const selectNodes = useVisualWorkspaceStore(s => s.selectNodes)
+  const selectEdges = useVisualWorkspaceStore(s => s.selectEdges)
+  const clearSelection = useVisualWorkspaceStore(s => s.clearSelection)
+  const clearTransition = useVisualWorkspaceStore(s => s.clearTransition)
+  const showContextMenu = useVisualWorkspaceStore(s => s.showContextMenu)
+  const dismissContextMenu = useVisualWorkspaceStore(s => s.dismissContextMenu)
+
+  // Layout position persistence
+  const positionsRef = useRef<LayoutPositions>({})
+  const [layoutVersion, setLayoutVersion] = useState(0)
+  const layoutScope = `workflow:${workflowId}`
+
+  useEffect(() => {
+    positionsRef.current = loadNodePositions(projectId, layoutScope) ?? {}
+  }, [projectId, layoutScope])
 
   // Fetch full graph — filtering done client-side
   const { data: graph, isLoading, error } = useVisualGraph(
     projectId,
-    'L3',
+    'workflow',
     workflowId,
   )
 
@@ -51,13 +81,24 @@ export function WorkflowCanvas({ projectId, workflowId }: WorkflowCanvasProps) {
       nodes: visibleNodes,
       edges: visibleEdges,
     })
-    const enrichedNodes = enrichWithCollapseState(flowGraph.nodes, containerIds, collapsedNodeIds, hiddenCounts)
+    // Apply persisted positions over computed layout
+    const positionedNodes = applyPersistedPositions(flowGraph.nodes, positionsRef.current)
+    const enrichedNodes = enrichWithCollapseState(positionedNodes, containerIds, collapsedNodeIds, hiddenCounts)
     let result = { nodes: enrichedNodes, edges: flowGraph.edges }
+    // Apply edge emphasis from active preset
+    if (activePreset) {
+      const presetDef = VIEW_PRESET_REGISTRY[activePreset]
+      result = applyEdgeEmphasis(result, presetDef?.emphasisEdgeTypes)
+    }
     if (showValidationOverlay && validationIssues.length > 0) {
       result = enrichWithValidationCounts(result, validationIssues, projectId)
     }
+    if (showOperationsOverlay && operationsStatus) {
+      result = enrichWithOperationsBadges(result, operationsStatus)
+    }
     return result
-  }, [graph, activeLayers, nodeTypeFilter, statusFilter, collapsedNodeIds, showValidationOverlay, validationIssues, projectId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph, activeLayers, nodeTypeFilter, statusFilter, collapsedNodeIds, showValidationOverlay, validationIssues, projectId, layoutVersion, activePreset, showOperationsOverlay, operationsStatus])
 
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes, edges: selectedEdges }: OnSelectionChangeParams) => {
@@ -76,8 +117,44 @@ export function WorkflowCanvas({ projectId, workflowId }: WorkflowCanvasProps) {
   const handleZoomOut = useCallback(() => rfInstance.current?.zoomOut(), [])
   const handleFitView = useCallback(() => rfInstance.current?.fitView(), [])
   const handleAutoLayout = useCallback(() => {
-    rfInstance.current?.fitView({ duration: 300 })
-  }, [])
+    positionsRef.current = {}
+    clearNodePositions(projectId, layoutScope)
+    setLayoutVersion((v) => v + 1)
+    setTimeout(() => rfInstance.current?.fitView({ duration: 300 }), 50)
+  }, [projectId, layoutScope])
+
+  const handleNodeDragStop = useCallback(
+    (_event: React.MouseEvent, _node: Node, draggedNodes: Node[]) => {
+      for (const n of draggedNodes) {
+        positionsRef.current = updatePosition(positionsRef.current, n.id, n.position)
+      }
+      saveNodePositions(projectId, layoutScope, positionsRef.current)
+    },
+    [projectId, layoutScope],
+  )
+
+  // Context menu handlers (CAV-008)
+  const handleNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      event.preventDefault()
+      showContextMenu(event.clientX, event.clientY, 'node', node.id)
+    },
+    [showContextMenu],
+  )
+
+  const handlePaneContextMenu = useCallback(
+    (event: MouseEvent | React.MouseEvent) => {
+      event.preventDefault()
+      showContextMenu(event.clientX, event.clientY, 'pane')
+    },
+    [showContextMenu],
+  )
+
+  const handlePaneClick = useCallback(() => {
+    if (useVisualWorkspaceStore.getState().contextMenu) {
+      dismissContextMenu()
+    }
+  }, [dismissContextMenu])
 
   if (isLoading) {
     return (
@@ -113,6 +190,10 @@ export function WorkflowCanvas({ projectId, workflowId }: WorkflowCanvasProps) {
               rfInstance.current = instance
             }}
             onSelectionChange={onSelectionChange}
+            onNodeDragStop={handleNodeDragStop}
+            onNodeContextMenu={handleNodeContextMenu}
+            onPaneContextMenu={handlePaneContextMenu}
+            onPaneClick={handlePaneClick}
             fitView
             minZoom={0.1}
             maxZoom={4}
@@ -124,6 +205,10 @@ export function WorkflowCanvas({ projectId, workflowId }: WorkflowCanvasProps) {
           </ReactFlow>
         </div>
       </TransitionWrapper>
+      <CanvasContextMenu
+        onFitView={handleFitView}
+        onAutoLayout={handleAutoLayout}
+      />
     </div>
   )
 }

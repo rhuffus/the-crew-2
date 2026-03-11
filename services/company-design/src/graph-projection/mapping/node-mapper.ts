@@ -200,5 +200,24 @@ export function mapNodes(snapshot: ReleaseSnapshotDto, projectId: string): Visua
     })
   }
 
+  // Artifact nodes
+  for (const artifact of snapshot.artifacts ?? []) {
+    const parentId = artifact.producerId
+      ? visualNodeId(artifact.producerType === 'department' ? 'department' : 'capability', artifact.producerId)
+      : null
+    nodes.push({
+      id: visualNodeId('artifact', artifact.id),
+      nodeType: 'artifact',
+      entityId: artifact.id,
+      label: artifact.name,
+      sublabel: artifact.type || null,
+      position: null,
+      collapsed: false,
+      status: 'normal',
+      layerIds: ['artifacts'],
+      parentId,
+    })
+  }
+
   return nodes
 }

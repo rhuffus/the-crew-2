@@ -9,6 +9,7 @@ import type {
   ZoomLevel,
   LayerId,
   BreadcrumbEntry,
+  ScopeType,
 } from '@the-crew/shared-types'
 
 // ---------------------------------------------------------------------------
@@ -74,6 +75,7 @@ export function diffVisualGraphs(
   activeLayers: LayerId[],
   breadcrumb: BreadcrumbEntry[],
   projectId: string,
+  scopeType?: ScopeType,
 ): VisualGraphDiffDto {
   // Build lookup maps by visual ID
   const baseNodeMap = new Map<string, VisualNodeDto>()
@@ -167,6 +169,7 @@ export function diffVisualGraphs(
 
   return {
     projectId,
+    scopeType: scopeType ?? 'company',
     scope,
     zoomLevel,
     baseReleaseId,

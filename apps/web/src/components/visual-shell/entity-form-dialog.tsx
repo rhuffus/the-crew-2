@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useId } from 'react'
 import { X } from 'lucide-react'
 import type { NodeType } from '@the-crew/shared-types'
 import { getSchemaForType } from '@/lib/entity-form-schemas'
 import type { FormFieldSchema } from '@/lib/entity-form-schemas'
 import { useEntityFormData } from '@/hooks/use-entity-form-data'
+import { useFocusTrap } from '@/hooks/use-focus-trap'
 
 export interface EntityFormDialogProps {
   nodeType: NodeType
@@ -44,17 +45,10 @@ export function EntityFormDialog({
   })
   const [submitting, setSubmitting] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
 
-  // Focus first input on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const firstInput = dialogRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-        'input:not([type=hidden]), textarea, select',
-      )
-      firstInput?.focus()
-    }, 50)
-    return () => clearTimeout(timer)
-  }, [])
+  // Focus trap + auto-focus first input + return focus on close
+  useFocusTrap(dialogRef, true)
 
   // Escape to close
   useEffect(() => {
@@ -141,11 +135,14 @@ export function EntityFormDialog({
     >
       <div
         ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         data-testid="entity-form-dialog"
         className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-xl"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-card-foreground">
+          <h3 id={titleId} className="text-lg font-semibold text-card-foreground">
             New {schema.label}
           </h3>
           <button
@@ -239,14 +236,17 @@ function FormField({
     return <PartySelectField field={field} values={values} optionsMap={optionsMap} onChange={onChange} />
   }
 
+  const fieldId = `entity-form-field-${field.name}`
+
   if (field.type === 'select') {
     const options = field.options ?? optionsMap[field.optionsSource ?? ''] ?? []
     return (
       <div data-testid={`field-${field.name}`}>
-        <label className="mb-1 block text-xs font-medium text-muted-foreground">
+        <label htmlFor={fieldId} className="mb-1 block text-xs font-medium text-muted-foreground">
           {field.label}{field.required && ' *'}
         </label>
         <select
+          id={fieldId}
           value={value}
           onChange={(e) => onChange(field.name, e.target.value)}
           disabled={isAutoFilled}
@@ -265,10 +265,11 @@ function FormField({
   if (field.type === 'textarea') {
     return (
       <div data-testid={`field-${field.name}`}>
-        <label className="mb-1 block text-xs font-medium text-muted-foreground">
+        <label htmlFor={fieldId} className="mb-1 block text-xs font-medium text-muted-foreground">
           {field.label}{field.required && ' *'}
         </label>
         <textarea
+          id={fieldId}
           value={value}
           onChange={(e) => onChange(field.name, e.target.value)}
           placeholder={field.placeholder}
@@ -283,10 +284,11 @@ function FormField({
   // text and tags
   return (
     <div data-testid={`field-${field.name}`}>
-      <label className="mb-1 block text-xs font-medium text-muted-foreground">
+      <label htmlFor={fieldId} className="mb-1 block text-xs font-medium text-muted-foreground">
         {field.label}{field.required && ' *'}
       </label>
       <input
+        id={fieldId}
         type="text"
         value={value}
         onChange={(e) => onChange(field.name, e.target.value)}
@@ -316,13 +318,17 @@ function PartySelectField({
   const baseInputClass =
     'w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:ring-1 focus:ring-primary'
 
+  const typeFieldId = `entity-form-field-${field.name}-type`
+  const idFieldId = `entity-form-field-${field.name}-id`
+
   return (
     <div data-testid={`field-${field.name}`}>
-      <label className="mb-1 block text-xs font-medium text-muted-foreground">
+      <label htmlFor={typeFieldId} className="mb-1 block text-xs font-medium text-muted-foreground">
         {field.label}
       </label>
       <div className="flex gap-2">
         <select
+          id={typeFieldId}
           value={partyType}
           onChange={(e) => {
             onChange(`${field.name}Type`, e.target.value)
@@ -335,6 +341,8 @@ function PartySelectField({
           <option value="capability">Cap</option>
         </select>
         <select
+          id={idFieldId}
+          aria-label={`${field.label} entity`}
           value={partyId}
           onChange={(e) => onChange(`${field.name}Id`, e.target.value)}
           data-testid={`input-${field.name}-id`}

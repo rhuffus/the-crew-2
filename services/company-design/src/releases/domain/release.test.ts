@@ -13,6 +13,7 @@ const emptySnapshot: ReleaseSnapshotDto = {
   contracts: [],
   workflows: [],
   policies: [],
+  artifacts: [],
 }
 
 describe('Release', () => {

@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { EdgeType, VisualNodeDto } from '@the-crew/shared-types'
 import { getEdgeTypeLabel, findNodeInGraph } from './inspector/inspector-utils'
+import { useFocusTrap } from '@/hooks/use-focus-trap'
 
 export interface EdgeDeleteConfirmProps {
   edgeType: EdgeType
@@ -25,6 +26,9 @@ export function EdgeDeleteConfirm({
   const targetNode = findNodeInGraph(targetNodeId, allNodes)
   const sourceLabel = sourceNode?.label ?? sourceNodeId
   const targetLabel = targetNode?.label ?? targetNodeId
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useFocusTrap(dialogRef, true)
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -43,11 +47,15 @@ export function EdgeDeleteConfirm({
       onClick={onCancel}
     >
       <div
+        ref={dialogRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="edge-delete-title"
         data-testid="edge-delete-confirm"
         className="w-80 rounded-lg border bg-card p-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h4 className="text-sm font-semibold text-foreground">Delete relationship?</h4>
+        <h4 id="edge-delete-title" className="text-sm font-semibold text-foreground">Delete relationship?</h4>
         <p className="mt-2 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">{sourceLabel}</span>
           <span className="mx-1">&rarr;</span>

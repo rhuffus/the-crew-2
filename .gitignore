@@ -30,6 +30,9 @@ pnpm-debug.log*
 
 # Test
 coverage/
+test-results/
+playwright-report/
+blob-report/
 
 # Misc
 *.tgz

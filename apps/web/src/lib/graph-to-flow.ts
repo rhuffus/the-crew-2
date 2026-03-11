@@ -8,6 +8,8 @@ import type {
   VisualGraphDiffDto,
   VisualDiffStatus,
   ValidationIssue,
+  ScopeType,
+  EdgeType,
 } from '@the-crew/shared-types'
 import { groupIssuesByVisualNodeId } from './validation-mapping'
 
@@ -84,20 +86,29 @@ export function visualEdgeToFlowEdge(edge: VisualEdgeDto): Edge {
 export function layoutWorkflowGraph(graph: VisualGraphDto): FlowGraph {
   const nodes: Node[] = []
 
-  // Separate nodes by type
-  const workflowNode = graph.nodes.find((n) => n.nodeType === 'workflow')
-  const stages = graph.nodes
-    .filter((n) => n.nodeType === 'workflow-stage')
-    .sort((a, b) => {
-      const orderA = parseInt(a.id.split(':').pop() ?? '0', 10)
-      const orderB = parseInt(b.id.split(':').pop() ?? '0', 10)
-      return orderA - orderB
-    })
-  const participants = graph.nodes.filter(
-    (n) => n.nodeType === 'role' || n.nodeType === 'department',
-  )
-  const contracts = graph.nodes.filter((n) => n.nodeType === 'contract')
-  const policies = graph.nodes.filter((n) => n.nodeType === 'policy')
+  // Single-pass categorization (perf: replaces 4x filter + 1x find)
+  let workflowNode: VisualNodeDto | undefined
+  const stages: VisualNodeDto[] = []
+  const participants: VisualNodeDto[] = []
+  const contracts: VisualNodeDto[] = []
+  const policies: VisualNodeDto[] = []
+
+  for (const n of graph.nodes) {
+    switch (n.nodeType) {
+      case 'workflow': workflowNode = n; break
+      case 'workflow-stage': stages.push(n); break
+      case 'role':
+      case 'department': participants.push(n); break
+      case 'contract': contracts.push(n); break
+      case 'policy': policies.push(n); break
+    }
+  }
+
+  stages.sort((a, b) => {
+    const orderA = parseInt(a.id.split(':').pop() ?? '0', 10)
+    const orderB = parseInt(b.id.split(':').pop() ?? '0', 10)
+    return orderA - orderB
+  })
 
   // Layout workflow context node
   if (workflowNode) {
@@ -370,15 +381,77 @@ export function enrichWithExternalRefCounts(
   }
 }
 
-export function graphToFlow(graph: VisualGraphDto): FlowGraph {
-  switch (graph.zoomLevel) {
-    case 'L2':
-      return layoutDepartmentGraph(graph)
-    case 'L3':
-      return layoutWorkflowGraph(graph)
-    default:
-      return layoutOrgGraph(graph)
+/**
+ * Applies edge emphasis by dimming edges not in the emphasis list.
+ * Used by view presets to highlight relevant edge types.
+ */
+export function applyEdgeEmphasis(
+  flowGraph: FlowGraph,
+  emphasisEdgeTypes: EdgeType[] | null | undefined,
+): FlowGraph {
+  if (!emphasisEdgeTypes || emphasisEdgeTypes.length === 0) return flowGraph
+  return {
+    ...flowGraph,
+    edges: flowGraph.edges.map((edge) => {
+      const edgeType = (edge.data as Record<string, unknown> | undefined)?.edgeType as string | undefined
+      if (!edgeType || emphasisEdgeTypes.includes(edgeType as EdgeType)) return edge
+      return {
+        ...edge,
+        style: { ...edge.style, opacity: 0.2 },
+      }
+    }),
   }
+}
+
+export function layoutWorkflowStageGraph(graph: VisualGraphDto): FlowGraph {
+  const nodes: Node[] = []
+
+  // Find the stage node (center)
+  const stageNode = graph.nodes.find((n) => n.nodeType === 'workflow-stage')
+  const otherNodes = graph.nodes.filter((n) => n.nodeType !== 'workflow-stage')
+
+  if (stageNode) {
+    nodes.push(visualNodeToFlowNode(stageNode, { x: 0, y: 0 }))
+  }
+
+  // Radial layout for connected nodes around the center
+  const radius = 250
+  otherNodes.forEach((n, i) => {
+    const angle = (2 * Math.PI * i) / Math.max(otherNodes.length, 1)
+    nodes.push(
+      visualNodeToFlowNode(n, {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+      }),
+    )
+  })
+
+  const edges = graph.edges.map(visualEdgeToFlowEdge)
+  return { nodes, edges }
+}
+
+type LayoutFn = (graph: VisualGraphDto) => FlowGraph
+
+const SCOPE_LAYOUTS: Record<ScopeType, LayoutFn> = {
+  company: layoutOrgGraph,
+  department: layoutDepartmentGraph,
+  workflow: layoutWorkflowGraph,
+  'workflow-stage': layoutWorkflowStageGraph,
+}
+
+function inferScopeTypeFromLevel(zoomLevel: string): ScopeType {
+  switch (zoomLevel) {
+    case 'L2': return 'department'
+    case 'L3': return 'workflow'
+    case 'L4': return 'workflow-stage'
+    default: return 'company'
+  }
+}
+
+export function graphToFlow(graph: VisualGraphDto): FlowGraph {
+  const scopeType = graph.scopeType ?? inferScopeTypeFromLevel(graph.zoomLevel)
+  const layoutFn = SCOPE_LAYOUTS[scopeType] ?? layoutOrgGraph
+  return layoutFn(graph)
 }
 
 // --- Diff rendering ---
@@ -463,6 +536,7 @@ export function layoutDiffGraph(diff: VisualGraphDiffDto): FlowGraph {
   // Layout the compare graph using the standard layout algorithm
   const compareGraph: VisualGraphDto = {
     projectId: diff.projectId,
+    scopeType: diff.scopeType,
     scope: diff.scope,
     zoomLevel: diff.zoomLevel,
     nodes: compareNodes,

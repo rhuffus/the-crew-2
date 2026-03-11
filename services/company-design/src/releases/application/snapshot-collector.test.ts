@@ -10,6 +10,7 @@ import type { AgentArchetypeRepository } from '../../agent-archetypes/domain/age
 import type { AgentAssignmentRepository } from '../../agent-assignments/domain/agent-assignment-repository'
 import type { SkillRepository } from '../../skills/domain/skill-repository'
 import type { PolicyRepository } from '../../policies/domain/policy-repository'
+import type { ArtifactRepository } from '../../artifacts/domain/artifact-repository'
 
 function mockCompanyModelRepo(hasModel: boolean): CompanyModelRepository {
   return {
@@ -43,6 +44,7 @@ describe('SnapshotCollector', () => {
       mockRepo() as unknown as SkillRepository,
       mockRepo() as unknown as WorkflowRepository,
       mockRepo() as unknown as PolicyRepository,
+      mockRepo() as unknown as ArtifactRepository,
     )
 
     const snapshot = await collector.collect('p1')
@@ -56,6 +58,7 @@ describe('SnapshotCollector', () => {
     expect(snapshot.contracts).toEqual([])
     expect(snapshot.workflows).toEqual([])
     expect(snapshot.policies).toEqual([])
+    expect(snapshot.artifacts).toEqual([])
   })
 
   it('should collect snapshot with company model', async () => {
@@ -70,6 +73,7 @@ describe('SnapshotCollector', () => {
       mockRepo() as unknown as SkillRepository,
       mockRepo() as unknown as WorkflowRepository,
       mockRepo() as unknown as PolicyRepository,
+      mockRepo() as unknown as ArtifactRepository,
     )
 
     const snapshot = await collector.collect('p1')
@@ -99,6 +103,7 @@ describe('SnapshotCollector', () => {
       mockRepo() as unknown as SkillRepository,
       mockRepo() as unknown as WorkflowRepository,
       mockRepo() as unknown as PolicyRepository,
+      mockRepo() as unknown as ArtifactRepository,
     )
 
     const snapshot = await collector.collect('p1')
@@ -129,6 +134,7 @@ describe('SnapshotCollector', () => {
       mockRepo() as unknown as SkillRepository,
       mockRepo() as unknown as WorkflowRepository,
       mockRepo() as unknown as PolicyRepository,
+      mockRepo() as unknown as ArtifactRepository,
     )
 
     const snapshot = await collector.collect('p1')
@@ -191,6 +197,7 @@ describe('SnapshotCollector', () => {
       mockRepo() as unknown as SkillRepository,
       mockRepo([workflow]) as unknown as WorkflowRepository,
       mockRepo([policy]) as unknown as PolicyRepository,
+      mockRepo() as unknown as ArtifactRepository,
     )
 
     const snapshot = await collector.collect('p1')

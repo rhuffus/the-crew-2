@@ -9,6 +9,7 @@ describe('VisualGraphController (gateway)', () => {
 
   const mockGraph: VisualGraphDto = {
     projectId: 'p1',
+    scopeType: 'company',
     scope: { level: 'L1', entityId: null, entityType: null },
     zoomLevel: 'L1',
     nodes: [],
@@ -22,17 +23,17 @@ describe('VisualGraphController (gateway)', () => {
     controller = new VisualGraphController(mockClient as unknown as InstanceType<typeof import('./company-design.client').CompanyDesignClient>)
   })
 
-  it('should proxy to companyDesignClient.getVisualGraph', async () => {
-    const result = await controller.getVisualGraph('p1', 'L3', 'wf1', 'workflows')
+  it('should proxy to companyDesignClient.getVisualGraph with scope', async () => {
+    const result = await controller.getVisualGraph('p1', 'workflow', 'L3', 'wf1', 'workflows')
 
-    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'L3', 'wf1', 'workflows')
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', 'workflow', 'L3', 'wf1', 'workflows')
     expect(result).toBe(mockGraph)
   })
 
   it('should pass undefined params when not provided', async () => {
     const result = await controller.getVisualGraph('p1')
 
-    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', undefined, undefined, undefined)
+    expect(mockClient.getVisualGraph).toHaveBeenCalledWith('p1', undefined, undefined, undefined, undefined)
     expect(result).toBe(mockGraph)
   })
 })

@@ -13,6 +13,7 @@ const baseSnapshot: ReleaseSnapshotDto = {
   contracts: [{ id: 'ct1', projectId: 'p1', name: 'SLA', description: 'SLA desc', type: 'SLA', status: 'active', providerId: 'd1', providerType: 'department', consumerId: 'c1', consumerType: 'capability', acceptanceCriteria: ['99.9%'], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
   workflows: [{ id: 'w1', projectId: 'p1', name: 'Deploy', description: 'Deploy flow', ownerDepartmentId: 'd1', status: 'active', triggerDescription: 'Push', stages: [], participants: [], contractIds: ['ct1'], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
   policies: [],
+  artifacts: [],
 }
 
 describe('ValidationEngine', () => {
@@ -559,6 +560,7 @@ describe('ValidationEngine', () => {
         contracts: [],
         workflows: [{ id: 'w1', projectId: 'p1', name: 'WF', description: '', ownerDepartmentId: null, status: 'draft', triggerDescription: '', stages: [], participants: [], contractIds: [], createdAt: '', updatedAt: '' }],
         policies: [],
+        artifacts: [],
       }
       const issues = engine.validate(snapshot)
       expect(issues).toHaveLength(4)
@@ -582,6 +584,7 @@ describe('ValidationEngine', () => {
           departmentId: 'ghost', type: 'rule', condition: '', enforcement: 'mandatory',
           status: 'active', createdAt: '', updatedAt: '',
         }],
+        artifacts: [],
       }
       const issues = engine.validate(snapshot)
       const errors = issues.filter((i) => i.severity === 'error')

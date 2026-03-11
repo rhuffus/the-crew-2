@@ -137,8 +137,8 @@ describe('isScopeType', () => {
     expect(isScopeType('role')).toBe(false)
   })
 
-  it('returns false for company', () => {
-    expect(isScopeType('company')).toBe(false)
+  it('returns true for company', () => {
+    expect(isScopeType('company')).toBe(true)
   })
 })
 

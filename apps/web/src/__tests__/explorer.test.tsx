@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Explorer } from '@/components/visual-shell/explorer/explorer'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
@@ -9,6 +10,17 @@ vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
 vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ projectId: 'test-project' }),
 }))
+
+function renderExplorer() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <Explorer />
+    </QueryClientProvider>,
+  )
+}
 
 describe('Explorer', () => {
   beforeEach(() => {
@@ -24,53 +36,53 @@ describe('Explorer', () => {
   })
 
   it('should render expanded explorer', () => {
-    render(<Explorer />)
+    renderExplorer()
     expect(screen.getByTestId('explorer')).toBeInTheDocument()
     expect(screen.getByText('Explorer')).toBeInTheDocument()
   })
 
   it('should render collapsed explorer when collapsed', () => {
     useVisualWorkspaceStore.setState({ explorerCollapsed: true })
-    render(<Explorer />)
+    renderExplorer()
     expect(screen.getByTestId('explorer-collapsed')).toBeInTheDocument()
   })
 
   it('should show entity tree tab by default', () => {
-    render(<Explorer />)
+    renderExplorer()
     expect(screen.getByTestId('entity-tree')).toBeInTheDocument()
   })
 
   it('should switch to layers tab', async () => {
-    render(<Explorer />)
-    const layersBtn = screen.getByRole('button', { name: 'Layers' })
+    renderExplorer()
+    const layersBtn = screen.getByRole('tab', { name: 'Layers' })
     await userEvent.click(layersBtn)
     expect(screen.getByTestId('layers-panel')).toBeInTheDocument()
   })
 
   it('should switch to validation tab', async () => {
-    render(<Explorer />)
-    const validBtn = screen.getByRole('button', { name: 'Validation' })
+    renderExplorer()
+    const validBtn = screen.getByRole('tab', { name: 'Validation' })
     await userEvent.click(validBtn)
     expect(screen.getByTestId('validation-summary')).toBeInTheDocument()
   })
 
   it('should toggle collapse when clicking collapse button', async () => {
-    render(<Explorer />)
+    renderExplorer()
     const collapseBtn = screen.getByRole('button', { name: 'Collapse explorer' })
     await userEvent.click(collapseBtn)
     expect(useVisualWorkspaceStore.getState().explorerCollapsed).toBe(true)
   })
 
   it('should switch to filters tab', async () => {
-    render(<Explorer />)
-    const filtersBtn = screen.getByRole('button', { name: 'Filters' })
+    renderExplorer()
+    const filtersBtn = screen.getByRole('tab', { name: 'Filters' })
     await userEvent.click(filtersBtn)
     expect(screen.getByTestId('filter-panel')).toBeInTheDocument()
   })
 
   it('should switch to saved views tab', async () => {
-    render(<Explorer />)
-    const viewsBtn = screen.getByRole('button', { name: 'Saved Views' })
+    renderExplorer()
+    const viewsBtn = screen.getByRole('tab', { name: 'Saved Views' })
     await userEvent.click(viewsBtn)
     expect(screen.getByTestId('saved-views-panel')).toBeInTheDocument()
   })

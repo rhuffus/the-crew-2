@@ -258,36 +258,36 @@ describe('visual workspace store', () => {
   })
 
   it('should push navigation entry', () => {
-    const entry: NavigationEntry = { view: 'org', entityId: null, focusNodeId: 'dept-1' }
+    const entry: NavigationEntry = { scope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' }, focusNodeId: 'dept-1' }
     useVisualWorkspaceStore.getState().pushNavigation(entry)
     expect(useVisualWorkspaceStore.getState().navigationStack).toEqual([entry])
   })
 
   it('should push multiple navigation entries', () => {
-    const entry1: NavigationEntry = { view: 'org', entityId: null, focusNodeId: 'dept-1' }
-    const entry2: NavigationEntry = { view: 'department', entityId: 'dept-1', focusNodeId: 'wf-1' }
+    const entry1: NavigationEntry = { scope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' }, focusNodeId: 'dept-1' }
+    const entry2: NavigationEntry = { scope: { scopeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' }, focusNodeId: 'wf-1' }
     useVisualWorkspaceStore.getState().pushNavigation(entry1)
     useVisualWorkspaceStore.getState().pushNavigation(entry2)
     expect(useVisualWorkspaceStore.getState().navigationStack).toEqual([entry1, entry2])
   })
 
-  it('should cap navigation stack at 3 entries', () => {
-    const entry1: NavigationEntry = { view: 'org', entityId: null, focusNodeId: 'dept-1' }
-    const entry2: NavigationEntry = { view: 'department', entityId: 'dept-1', focusNodeId: 'wf-1' }
-    const entry3: NavigationEntry = { view: 'workflow', entityId: 'wf-1', focusNodeId: null }
-    const entry4: NavigationEntry = { view: 'org', entityId: null, focusNodeId: 'dept-2' }
+  it('should allow deep navigation stack without artificial limit', () => {
+    const entry1: NavigationEntry = { scope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' }, focusNodeId: 'dept-1' }
+    const entry2: NavigationEntry = { scope: { scopeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' }, focusNodeId: 'wf-1' }
+    const entry3: NavigationEntry = { scope: { scopeType: 'workflow', entityId: 'wf-1', zoomLevel: 'L3' }, focusNodeId: null }
+    const entry4: NavigationEntry = { scope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' }, focusNodeId: 'dept-2' }
     useVisualWorkspaceStore.getState().pushNavigation(entry1)
     useVisualWorkspaceStore.getState().pushNavigation(entry2)
     useVisualWorkspaceStore.getState().pushNavigation(entry3)
     useVisualWorkspaceStore.getState().pushNavigation(entry4)
     const stack = useVisualWorkspaceStore.getState().navigationStack
-    expect(stack).toHaveLength(3)
-    expect(stack[2]).toEqual(entry4)
+    expect(stack).toHaveLength(4)
+    expect(stack).toEqual([entry1, entry2, entry3, entry4])
   })
 
   it('should pop navigation entry', () => {
-    const entry1: NavigationEntry = { view: 'org', entityId: null, focusNodeId: 'dept-1' }
-    const entry2: NavigationEntry = { view: 'department', entityId: 'dept-1', focusNodeId: 'wf-1' }
+    const entry1: NavigationEntry = { scope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' }, focusNodeId: 'dept-1' }
+    const entry2: NavigationEntry = { scope: { scopeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' }, focusNodeId: 'wf-1' }
     useVisualWorkspaceStore.getState().pushNavigation(entry1)
     useVisualWorkspaceStore.getState().pushNavigation(entry2)
     const popped = useVisualWorkspaceStore.getState().popNavigation()
@@ -302,7 +302,7 @@ describe('visual workspace store', () => {
   })
 
   it('should clear navigation stack', () => {
-    useVisualWorkspaceStore.getState().pushNavigation({ view: 'org', entityId: null, focusNodeId: 'x' })
+    useVisualWorkspaceStore.getState().pushNavigation({ scope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' }, focusNodeId: 'x' })
     useVisualWorkspaceStore.getState().clearNavigationStack()
     expect(useVisualWorkspaceStore.getState().navigationStack).toEqual([])
   })
