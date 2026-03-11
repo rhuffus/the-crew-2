@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common'
 import { OperationsController } from './application/operations.controller'
 import { OperationsService } from './application/operations.service'
-import { InMemoryWorkflowRunRepository } from './infrastructure/in-memory-workflow-run.repository'
-import { InMemoryStageExecutionRepository } from './infrastructure/in-memory-stage-execution.repository'
-import { InMemoryIncidentRepository } from './infrastructure/in-memory-incident.repository'
-import { InMemoryContractComplianceRepository } from './infrastructure/in-memory-contract-compliance.repository'
+import { InMemoryWorkflowRunRepository } from './infra/in-memory-workflow-run.repository'
+import { InMemoryStageExecutionRepository } from './infra/in-memory-stage-execution.repository'
+import { InMemoryIncidentRepository } from './infra/in-memory-incident.repository'
+import { InMemoryContractComplianceRepository } from './infra/in-memory-contract-compliance.repository'
 import {
   WORKFLOW_RUN_REPOSITORY,
   STAGE_EXECUTION_REPOSITORY,

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GraphProjectionController } from './graph-projection.controller'
 import { BadRequestException } from '@nestjs/common'
 import type { VisualGraphDto, VisualGraphDiffDto } from '@the-crew/shared-types'
+import type { GraphProjectionService } from './graph-projection.service'
 
 describe('GraphProjectionController', () => {
   let controller: GraphProjectionController
@@ -44,7 +45,7 @@ describe('GraphProjectionController', () => {
       projectGraph: vi.fn().mockResolvedValue(mockGraph),
       projectDiff: vi.fn().mockResolvedValue(mockDiff),
     }
-    controller = new GraphProjectionController(mockService as any)
+    controller = new GraphProjectionController(mockService as unknown as GraphProjectionService)
   })
 
   // ---- getVisualGraph tests ----

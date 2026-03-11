@@ -2,8 +2,8 @@ import 'reflect-metadata'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { CollaborationController } from './collaboration.controller'
 import { CollaborationService } from './collaboration.service'
-import { InMemoryReviewRepository } from '../infrastructure/in-memory-review.repository'
-import { InMemoryLockRepository } from '../infrastructure/in-memory-lock.repository'
+import { InMemoryReviewRepository } from '../infra/in-memory-review.repository'
+import { InMemoryLockRepository } from '../infra/in-memory-lock.repository'
 
 describe('CollaborationController', () => {
   let controller: CollaborationController

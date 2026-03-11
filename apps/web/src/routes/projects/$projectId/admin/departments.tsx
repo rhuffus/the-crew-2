@@ -124,7 +124,7 @@ function EditDepartmentPanel({
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={updateDepartment.isPending}>
             <Save className="mr-1.5 h-4 w-4" />
-            {updateDepartment.isPending ? 'Saving...' : 'Save'}
+            {updateDepartment.isPending ? 'Updating...' : 'Update'}
           </Button>
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
             Cancel

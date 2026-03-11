@@ -1,11 +1,12 @@
 import 'reflect-metadata'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { OperationsService } from './operations.service'
-import { InMemoryWorkflowRunRepository } from '../infrastructure/in-memory-workflow-run.repository'
-import { InMemoryStageExecutionRepository } from '../infrastructure/in-memory-stage-execution.repository'
-import { InMemoryIncidentRepository } from '../infrastructure/in-memory-incident.repository'
-import { InMemoryContractComplianceRepository } from '../infrastructure/in-memory-contract-compliance.repository'
+import { InMemoryWorkflowRunRepository } from '../infra/in-memory-workflow-run.repository'
+import { InMemoryStageExecutionRepository } from '../infra/in-memory-stage-execution.repository'
+import { InMemoryIncidentRepository } from '../infra/in-memory-incident.repository'
+import { InMemoryContractComplianceRepository } from '../infra/in-memory-contract-compliance.repository'
 import type { ReleaseSnapshotDto } from '@the-crew/shared-types'
+import type { SnapshotCollector } from '../../releases/application/snapshot-collector'
 
 function emptySnapshot(): ReleaseSnapshotDto {
   return {
@@ -54,7 +55,7 @@ describe('OperationsService', () => {
       stageRepo,
       incidentRepo,
       complianceRepo,
-      mockSnapshotCollector as any,
+      mockSnapshotCollector as unknown as SnapshotCollector,
     )
   })
 

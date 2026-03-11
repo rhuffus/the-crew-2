@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { describe, it, expect, vi } from 'vitest'
 import { OperationsController } from './operations.controller'
+import type { OperationsService } from './operations.service'
 
 const mockService = {
   getOperationsStatus: vi.fn().mockResolvedValue({ projectId: 'p1', summary: {} }),
@@ -20,7 +21,7 @@ const mockService = {
 }
 
 describe('OperationsController', () => {
-  const ctrl = new OperationsController(mockService as any)
+  const ctrl = new OperationsController(mockService as unknown as OperationsService)
 
   it('getStatus delegates with scopeType and entityId', async () => {
     await ctrl.getStatus('p1', 'department', 'd1')

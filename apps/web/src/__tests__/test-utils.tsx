@@ -3,7 +3,7 @@ import { RouterProvider, createRouter, createMemoryHistory } from '@tanstack/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from '../routeTree.gen'
 
-export function renderWithRouter(initialLocation = '/'): RenderResult {
+export async function renderWithRouter(initialLocation = '/'): Promise<RenderResult> {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -14,6 +14,11 @@ export function renderWithRouter(initialLocation = '/'): RenderResult {
     routeTree,
     history: createMemoryHistory({ initialEntries: [initialLocation] }),
   })
+
+  // Pre-load lazy route components so the router renders synchronously.
+  // Without this, autoCodeSplitting causes async route loading that can
+  // exceed the default 1000ms findBy/waitFor timeout.
+  await router.load()
 
   return render(
     <QueryClientProvider client={queryClient}>

@@ -9,6 +9,7 @@ import { Inspector } from './inspector/inspector'
 import { CanvasViewport } from './canvas-viewport'
 import { ChatDock } from './chat-dock/chat-dock'
 import { MutationErrorBanner, type MutationError } from './mutation-error-banner'
+import { DevModeBanner } from '@/components/dev-mode-banner'
 
 export interface VisualShellProps {
   children?: ReactNode
@@ -45,6 +46,7 @@ export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onN
 
   return (
     <div data-testid="visual-shell" className="flex h-screen flex-col overflow-hidden bg-background">
+      <DevModeBanner />
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
         {explorerCollapsed && <Explorer />}

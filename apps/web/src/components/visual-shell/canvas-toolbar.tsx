@@ -178,7 +178,7 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
         {isPending && (
           <span className="flex items-center gap-1 text-xs text-primary" data-testid="saving-indicator" aria-live="polite">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Saving...
+            Applying...
           </span>
         )}
         <span className="text-xs font-medium text-primary" data-testid="mode-label">

@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CollaborationController } from './collaboration.controller'
 import type { CompanyDesignClient } from './company-design.client'
+import type { CreateReviewMarkerDto, AcquireLockDto } from '@the-crew/shared-types'
 
 const mockClient = {
   listReviews: vi.fn(),
@@ -40,7 +41,7 @@ describe('CollaborationController (gateway)', () => {
   it('should create a review', async () => {
     const dto = { entityId: 'e1', entityType: 'department', status: 'needs-review' }
     mockClient.createReview.mockResolvedValue({ id: 'r1', ...dto })
-    const result = await controller.createReview('p1', dto as any)
+    const result = await controller.createReview('p1', dto as unknown as CreateReviewMarkerDto)
     expect(result).toEqual({ id: 'r1', ...dto })
     expect(mockClient.createReview).toHaveBeenCalledWith('p1', dto)
   })
@@ -48,7 +49,7 @@ describe('CollaborationController (gateway)', () => {
   it('should acquire a lock', async () => {
     const dto = { entityId: 'e1', entityType: 'department' }
     mockClient.acquireLock.mockResolvedValue({ id: 'l1', ...dto, lockedBy: 'user1' })
-    const result = await controller.acquireLock('p1', dto as any)
+    const result = await controller.acquireLock('p1', dto as unknown as AcquireLockDto)
     expect(result).toEqual({ id: 'l1', ...dto, lockedBy: 'user1' })
     expect(mockClient.acquireLock).toHaveBeenCalledWith('p1', dto)
   })

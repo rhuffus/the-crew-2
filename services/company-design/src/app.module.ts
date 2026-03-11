@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { HealthController } from './health.controller'
+import { BootstrapModule } from './bootstrap/bootstrap.module'
 import { CompanyModelModule } from './company-model/company-model.module'
 import { DepartmentsModule } from './departments/departments.module'
 import { CapabilitiesModule } from './capabilities/capabilities.module'
@@ -22,7 +23,7 @@ import { CollaborationModule } from './collaboration/collaboration.module'
 import { OperationsModule } from './operations/operations.module'
 
 @Module({
-  imports: [CompanyModelModule, DepartmentsModule, CapabilitiesModule, RolesModule, AgentArchetypesModule, AgentAssignmentsModule, SkillsModule, ContractsModule, WorkflowsModule, PoliciesModule, ArtifactsModule, ReleasesModule, ValidationsModule, AuditModule, GraphProjectionModule, SavedViewsModule, ChatModule, CommentsModule, CollaborationModule, OperationsModule],
+  imports: [BootstrapModule, CompanyModelModule, DepartmentsModule, CapabilitiesModule, RolesModule, AgentArchetypesModule, AgentAssignmentsModule, SkillsModule, ContractsModule, WorkflowsModule, PoliciesModule, ArtifactsModule, ReleasesModule, ValidationsModule, AuditModule, GraphProjectionModule, SavedViewsModule, ChatModule, CommentsModule, CollaborationModule, OperationsModule],
   controllers: [HealthController],
 })
 export class AppModule {}

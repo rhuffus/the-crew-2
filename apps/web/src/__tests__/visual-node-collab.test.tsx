@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ReactFlowProvider } from '@xyflow/react'
-import { VisualNode } from '@/components/visual-shell/nodes/visual-node'
+import { VisualNode, type VisualNodeData } from '@/components/visual-shell/nodes/visual-node'
 
 function renderNode(dataOverrides: Record<string, unknown> = {}) {
   const defaultData = {
@@ -19,7 +19,7 @@ function renderNode(dataOverrides: Record<string, unknown> = {}) {
     <ReactFlowProvider>
       <VisualNode
         id="n1"
-        data={defaultData as any}
+        data={defaultData as unknown as VisualNodeData}
         type="visual-node"
         dragging={false}
         draggable={true}

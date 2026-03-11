@@ -104,7 +104,7 @@ beforeEach(() => {
 
 describe('Diff route', () => {
   it('should render empty state when no releases selected', async () => {
-    renderWithRouter('/projects/p1/diff')
+    await renderWithRouter('/projects/p1/diff')
 
     await waitFor(() => {
       expect(screen.getByTestId('diff-empty-state')).toBeInTheDocument()
@@ -112,7 +112,7 @@ describe('Diff route', () => {
   })
 
   it('should render diff selector with release dropdowns', async () => {
-    renderWithRouter('/projects/p1/diff')
+    await renderWithRouter('/projects/p1/diff')
 
     await waitFor(() => {
       expect(screen.getByTestId('diff-selector')).toBeInTheDocument()
@@ -122,7 +122,7 @@ describe('Diff route', () => {
   })
 
   it('should render diff canvas when both releases are selected', async () => {
-    renderWithRouter('/projects/p1/diff?base=rel-1&compare=rel-2')
+    await renderWithRouter('/projects/p1/diff?base=rel-1&compare=rel-2')
 
     await waitFor(() => {
       expect(screen.getByTestId('diff-canvas-page')).toBeInTheDocument()
@@ -131,7 +131,7 @@ describe('Diff route', () => {
   })
 
   it('should render diff summary when data is loaded', async () => {
-    renderWithRouter('/projects/p1/diff?base=rel-1&compare=rel-2')
+    await renderWithRouter('/projects/p1/diff?base=rel-1&compare=rel-2')
 
     await waitFor(() => {
       expect(screen.getByTestId('diff-summary')).toBeInTheDocument()
@@ -139,7 +139,7 @@ describe('Diff route', () => {
   })
 
   it('should render diff filter buttons', async () => {
-    renderWithRouter('/projects/p1/diff?base=rel-1&compare=rel-2')
+    await renderWithRouter('/projects/p1/diff?base=rel-1&compare=rel-2')
 
     await waitFor(() => {
       expect(screen.getByTestId('diff-filter-show-all')).toBeInTheDocument()

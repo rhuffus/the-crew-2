@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CommentsController } from './comments.controller'
 import type { CompanyDesignClient } from './company-design.client'
+import type { CreateCommentDto } from '@the-crew/shared-types'
 
 const mockClient = {
   listComments: vi.fn(),
@@ -37,7 +38,7 @@ describe('CommentsController (gateway)', () => {
   it('should create a comment', async () => {
     const dto = { content: 'New comment', targetType: 'department', targetId: 'd1' }
     mockClient.createComment.mockResolvedValue({ id: 'c1', ...dto })
-    const result = await controller.create('p1', dto as any)
+    const result = await controller.create('p1', dto as CreateCommentDto)
     expect(result).toEqual({ id: 'c1', ...dto })
     expect(mockClient.createComment).toHaveBeenCalledWith('p1', dto)
   })

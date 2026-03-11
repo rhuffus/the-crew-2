@@ -38,7 +38,7 @@ export function SavedViewsPanel() {
   return (
     <div data-testid="saved-views-panel" className="p-3">
       <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Saved Views
+        Saved Views <span className="font-normal normal-case">(session)</span>
       </h4>
 
       <div className="mb-3 flex gap-1">

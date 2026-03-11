@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ReactFlowProvider } from '@xyflow/react'
+import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ValidationIssue } from '@the-crew/shared-types'
 import { VisualNode } from '@/components/visual-shell/nodes/visual-node'
@@ -26,10 +26,11 @@ vi.mock('@xyflow/react', async () => {
 
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
 
-function renderNode(Component: React.ComponentType<any>, data: Record<string, unknown>) {
+function renderNode(Component: React.ComponentType<NodeProps>, data: Record<string, unknown>) {
+  const C = Component as React.ComponentType<Record<string, unknown>>
   return render(
     <ReactFlowProvider>
-      <Component
+      <C
         id="test"
         data={data}
         type="test"

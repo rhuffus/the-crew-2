@@ -3,6 +3,7 @@ import type { PermissionManifest } from '@the-crew/shared-types'
 import { hasPermission, hasAnyPermission, buildManifest } from '@the-crew/shared-types'
 import { PermissionContext, usePermissionManifest } from '@/hooks/use-permissions'
 
+// DEV_MODE: no auth system — hardcoded editor permissions. TODO: resolve from real auth when available
 const DEV_MANIFEST = buildManifest('project:editor', 'platform:member')
 
 interface PermissionProviderProps {

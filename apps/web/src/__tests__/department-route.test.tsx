@@ -38,14 +38,14 @@ vi.mock('@xyflow/react', async () => {
 
 describe('Department route', () => {
   it('should render department canvas page at /projects/p1/departments/d1', async () => {
-    const { findByTestId } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByTestId } = await renderWithRouter('/projects/p1/departments/d1')
 
     const loading = await findByTestId('canvas-loading')
     expect(loading).toBeDefined()
   })
 
   it('should render loading text for department graph', async () => {
-    const { findByText } = renderWithRouter('/projects/p1/departments/dept-abc')
+    const { findByText } = await renderWithRouter('/projects/p1/departments/dept-abc')
 
     const text = await findByText('Loading graph...')
     expect(text).toBeDefined()

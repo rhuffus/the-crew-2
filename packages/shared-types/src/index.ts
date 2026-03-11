@@ -1,3 +1,5 @@
+export { VERTICALER_PROJECT_ID, VERTICALER_PROJECT_NAME, VERTICALER_PROJECT_DESCRIPTION } from './verticaler'
+
 export interface ProjectSummary {
   id: string
   name: string

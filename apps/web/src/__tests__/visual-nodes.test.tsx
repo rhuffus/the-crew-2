@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { ReactFlowProvider } from '@xyflow/react'
+import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
 import { VisualNode } from '@/components/visual-shell/nodes/visual-node'
 import { WorkflowStageNode } from '@/components/visual-shell/nodes/workflow-stage-node'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
@@ -16,10 +16,11 @@ vi.mock('@xyflow/react', async () => {
   }
 })
 
-function renderNode(Component: React.ComponentType<any>, data: Record<string, unknown>) {
+function renderNode(Component: React.ComponentType<NodeProps>, data: Record<string, unknown>) {
+  const C = Component as React.ComponentType<Record<string, unknown>>
   return render(
     <ReactFlowProvider>
-      <Component
+      <C
         id="test"
         data={data}
         type="test"

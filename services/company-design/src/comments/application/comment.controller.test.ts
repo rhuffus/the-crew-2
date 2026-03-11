@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { CommentController } from './comment.controller'
 import { CommentService } from './comment.service'
-import { InMemoryCommentRepository } from '../infrastructure/in-memory-comment.repository'
+import { InMemoryCommentRepository } from '../infra/in-memory-comment.repository'
 
 describe('CommentController', () => {
   let controller: CommentController

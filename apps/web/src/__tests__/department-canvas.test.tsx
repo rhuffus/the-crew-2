@@ -87,7 +87,7 @@ describe('Department Canvas', () => {
   it('should render loading state at department route', async () => {
     mockUseVisualGraph.mockReturnValue({ data: undefined, isLoading: true, error: null })
 
-    const { findByTestId } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByTestId } = await renderWithRouter('/projects/p1/departments/d1')
 
     const loading = await findByTestId('canvas-loading')
     expect(loading).toBeDefined()
@@ -96,7 +96,7 @@ describe('Department Canvas', () => {
   it('should render error state when graph fetch fails', async () => {
     mockUseVisualGraph.mockReturnValue({ data: undefined, isLoading: false, error: new Error('fail') })
 
-    const { findByText } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByText } = await renderWithRouter('/projects/p1/departments/d1')
 
     const errorText = await findByText('Failed to load department graph')
     expect(errorText).toBeDefined()
@@ -105,7 +105,7 @@ describe('Department Canvas', () => {
   it('should render React Flow with department graph nodes and edges', async () => {
     mockUseVisualGraph.mockReturnValue({ data: mockGraph, isLoading: false, error: null })
 
-    const { findByTestId } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByTestId } = await renderWithRouter('/projects/p1/departments/d1')
 
     const reactFlow = await findByTestId('react-flow')
     expect(reactFlow).toBeDefined()
@@ -122,7 +122,7 @@ describe('Department Canvas', () => {
   it('should call useVisualGraph with L2 and departmentId', async () => {
     mockUseVisualGraph.mockReturnValue({ data: undefined, isLoading: true, error: null })
 
-    const { findByTestId } = renderWithRouter('/projects/p1/departments/dept-abc')
+    const { findByTestId } = await renderWithRouter('/projects/p1/departments/dept-abc')
 
     await findByTestId('canvas-loading')
 
@@ -142,7 +142,7 @@ describe('Department Canvas', () => {
     }
     mockUseVisualGraph.mockReturnValue({ data: emptyGraph, isLoading: false, error: null })
 
-    const { findByTestId } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByTestId } = await renderWithRouter('/projects/p1/departments/d1')
 
     const nodeCount = await findByTestId('node-count')
     expect(nodeCount.textContent).toBe('0')
@@ -154,7 +154,7 @@ describe('Department Canvas', () => {
   it('should render breadcrumb with backend labels', async () => {
     mockUseVisualGraph.mockReturnValue({ data: mockGraph, isLoading: false, error: null })
 
-    const { findByText, findAllByText } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByText, findAllByText } = await renderWithRouter('/projects/p1/departments/d1')
 
     // TopBar now uses store breadcrumb from graph response
     // The graph breadcrumb has entries: Acme (L1) → Engineering (L2)
@@ -168,7 +168,7 @@ describe('Department Canvas', () => {
   it('should render the visual shell wrapper', async () => {
     mockUseVisualGraph.mockReturnValue({ data: undefined, isLoading: true, error: null })
 
-    const { findByTestId } = renderWithRouter('/projects/p1/departments/d1')
+    const { findByTestId } = await renderWithRouter('/projects/p1/departments/d1')
 
     const topbar = await findByTestId('visual-topbar')
     expect(topbar).toBeDefined()

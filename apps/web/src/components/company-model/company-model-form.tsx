@@ -130,10 +130,10 @@ export function CompanyModelForm({ model }: CompanyModelFormProps) {
       <div className="flex items-center gap-3">
         <Button type="submit" size="sm" disabled={!hasChanges || updateModel.isPending}>
           <Save className="mr-1.5 h-4 w-4" />
-          {updateModel.isPending ? 'Saving...' : 'Save'}
+          {updateModel.isPending ? 'Updating...' : 'Update'}
         </Button>
         {updateModel.isSuccess && (
-          <span className="text-sm text-emerald-600">Saved successfully</span>
+          <span className="text-sm text-emerald-600">Updated</span>
         )}
       </div>
     </form>

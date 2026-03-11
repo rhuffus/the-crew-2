@@ -27,7 +27,7 @@ vi.mock('@xyflow/react', async () => {
 
 describe('Workflow route', () => {
   it('should render workflow canvas page at /projects/p1/workflows/wf1', async () => {
-    const { findByTestId } = renderWithRouter('/projects/p1/workflows/wf1')
+    const { findByTestId } = await renderWithRouter('/projects/p1/workflows/wf1')
 
     const loading = await findByTestId('workflow-canvas-loading')
     expect(loading).toBeDefined()

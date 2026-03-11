@@ -10,5 +10,6 @@ import { PROJECT_REPOSITORY } from './domain/project-repository'
     ProjectService,
     { provide: PROJECT_REPOSITORY, useClass: InMemoryProjectRepository },
   ],
+  exports: [PROJECT_REPOSITORY],
 })
 export class ProjectsModule {}

@@ -1,24 +1,72 @@
-# TheCrew — Verticaler & Polish planning update
+# TheCrew
 
-Este paquete no toca código.
-Contiene documentación, backlog y comandos de Claude Code actualizados para dos objetivos:
+Plataforma visual-first para diseñar, gobernar y operar empresas autónomas versionadas.
 
-1. introducir una **empresa de referencia** llamada **Verticaler** que se cree automáticamente cuando TheCrew arranca vacío;
-2. abrir una fase de **polish / corrección / coherencia** del estado actual sin meter nuevas funcionalidades de producto, salvo la propia empresa de referencia.
+## Qué es
 
-## Archivos principales
+TheCrew permite modelar una empresa completa — departamentos, capacidades, roles, agentes, contratos, workflows, políticas y artefactos — y navegarla visualmente desde un canvas multinivel con inspector, filtros y vistas semánticas.
 
-- `docs/25-verticaler-reference-company-spec.md`
-- `docs/26-current-state-polish-review.md`
-- `docs/03-backlog-completo.md`
-- `docs/09-task-registry.md`
-- `CLAUDE.md`
-- `.claude/commands/tc-next.md`
-- `.claude/commands/tc-run.md`
+## Stack
 
-## Uso recomendado
+- **Monorepo**: pnpm workspaces + Turborepo
+- **Frontend**: Vite + React + TanStack Router + Tailwind + shadcn/ui + XYFlow
+- **Backend**: NestJS microservices (platform, company-design)
+- **Dominio**: DDD con domain-core compartido
+- **Testing**: Vitest + Playwright
+- **Infra local**: k3d + Tilt
 
-1. Copiar estos archivos sobre el repo actual.
-2. Abrir Claude Code en sesión nueva.
-3. Ejecutar `/tc-next`.
-4. Empezar por las tareas de la nueva fase **Verticaler + Polish**.
+## Estructura
+
+```
+apps/
+  web/              → UI visual-first (canvas, explorer, inspector)
+  api-gateway/      → BFF NestJS
+
+services/
+  platform/         → Gestión de proyectos
+  company-design/   → Modelo de empresa (DDD)
+
+packages/
+  domain-core/      → Primitivas DDD (Entity, ValueObject, AggregateRoot, etc.)
+  shared-types/     → Tipos compartidos, reglas de conexión, permisos
+  tsconfig/         → Configuración TS compartida
+  eslint-config/    → ESLint 9 flat config
+```
+
+## Requisitos
+
+- Node >= 22
+- pnpm >= 9
+
+## Desarrollo
+
+```bash
+pnpm install
+pnpm dev          # Arranca todos los servicios en paralelo
+pnpm typecheck    # Verifica tipos
+pnpm lint         # Linting
+pnpm test         # Tests unitarios
+pnpm test:e2e     # Tests e2e (requiere servicios levantados)
+```
+
+## Empresa de referencia: Verticaler
+
+TheCrew incluye **Verticaler**, una empresa SaaS B2B de gestión de ascensores que se crea automáticamente en instancias vacías. Verticaler sirve como demo, validación funcional y documentación ejecutable del producto.
+
+Spec completa: `docs/25-verticaler-reference-company-spec.md`
+
+## Fase actual
+
+**Verticaler + Polish** — consolidar el producto existente sin abrir funcionalidades nuevas. Ver `docs/09-task-registry.md`.
+
+## Documentación
+
+| Documento | Contenido |
+|---|---|
+| `docs/03-backlog-completo.md` | Backlog de producto |
+| `docs/09-task-registry.md` | Registry de tareas ejecutables |
+| `docs/18-canvas-editor-v2-spec.md` | Especificación del canvas editor |
+| `docs/25-verticaler-reference-company-spec.md` | Spec de Verticaler |
+| `docs/26-current-state-polish-review.md` | Revisión de estado actual y deuda técnica |
+| `docs/28-persistence-bootstrap-strategy.md` | Estrategia de bootstrap y persistencia |
+| `CLAUDE.md` | Instrucciones para Claude Code |

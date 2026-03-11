@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { describe, it, expect, vi } from 'vitest'
 import { OperationsController } from './operations.controller'
+import type { CompanyDesignClient } from './company-design.client'
 
 const mockClient = {
   getOperationsStatus: vi.fn().mockResolvedValue({ projectId: 'p1' }),
@@ -18,7 +19,7 @@ const mockClient = {
 }
 
 describe('OperationsController (gateway)', () => {
-  const ctrl = new OperationsController(mockClient as any)
+  const ctrl = new OperationsController(mockClient as unknown as CompanyDesignClient)
 
   it('forwards getStatus with scopeType and entityId', async () => {
     await ctrl.getStatus('p1', 'department', 'd1')

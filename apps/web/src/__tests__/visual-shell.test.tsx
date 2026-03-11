@@ -6,14 +6,14 @@ vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
 
 describe('visual shell', () => {
   it('should render visual shell at project org route', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('visual-shell')).toBeInTheDocument()
     })
   })
 
   it('should render topbar with breadcrumbs', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('visual-topbar')).toBeInTheDocument()
       const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' })
@@ -22,21 +22,21 @@ describe('visual shell', () => {
   })
 
   it('should render TheCrew link in topbar', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByText('TheCrew')).toBeInTheDocument()
     })
   })
 
   it('should render draft badge', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByText('Draft')).toBeInTheDocument()
     })
   })
 
   it('should render view mode toggle with Visual active and Admin link', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByText('Visual')).toBeInTheDocument()
       expect(screen.getByText('Admin')).toBeInTheDocument()
@@ -44,49 +44,49 @@ describe('visual shell', () => {
   })
 
   it('should render explorer panel', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('explorer')).toBeInTheDocument()
     })
   })
 
   it('should render canvas viewport', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('canvas-viewport')).toBeInTheDocument()
     })
   })
 
   it('should render canvas toolbar', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('canvas-toolbar')).toBeInTheDocument()
     })
   })
 
   it('should render inspector panel', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('inspector')).toBeInTheDocument()
     })
   })
 
   it('should render chat dock', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByTestId('chat-dock')).toBeInTheDocument()
     })
   })
 
   it('should show scope label in toolbar', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByText('Scope: Company Org')).toBeInTheDocument()
     })
   })
 
   it('should render zoom controls', async () => {
-    renderWithRouter('/projects/acme-corp/org')
+    await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Zoom in' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Zoom out' })).toBeInTheDocument()

@@ -34,7 +34,7 @@ function AuditPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-medium text-foreground">Audit</h3>
+        <h3 className="text-lg font-medium text-foreground">Audit Log</h3>
         <div className="flex items-center gap-2">
           <select
             value={entityType}
@@ -61,8 +61,8 @@ function AuditPage() {
         </div>
       </div>
 
-      {isLoading && <p className="text-muted-foreground">Loading audit trail...</p>}
-      {error && <p className="text-destructive">Failed to load audit trail.</p>}
+      {isLoading && <p className="text-muted-foreground">Loading audit log...</p>}
+      {error && <p className="text-destructive">Failed to load audit log.</p>}
       {data && <AuditList entries={data} />}
     </div>
   )

@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GraphProjectionService } from './graph-projection.service'
 import { NotFoundException, BadRequestException } from '@nestjs/common'
 import type { ReleaseSnapshotDto, ValidationIssue } from '@the-crew/shared-types'
+import type { SnapshotCollector } from '../../releases/application/snapshot-collector'
+import type { ValidationEngine } from '../../validations/application/validation-engine'
+import type { ReleaseRepository } from '../../releases/domain/release-repository'
 
 function createSnapshot(overrides: Partial<ReleaseSnapshotDto> = {}): ReleaseSnapshotDto {
   return {
@@ -50,9 +53,9 @@ describe('GraphProjectionService', () => {
     mockEngine = { validate: vi.fn() }
     mockReleaseRepo = { findById: vi.fn() }
     service = new GraphProjectionService(
-      mockCollector as any,
-      mockEngine as any,
-      mockReleaseRepo as any,
+      mockCollector as unknown as SnapshotCollector,
+      mockEngine as unknown as ValidationEngine,
+      mockReleaseRepo as unknown as ReleaseRepository,
     )
   })
 

@@ -69,16 +69,16 @@ describe('CompanyModelForm', () => {
     expect(inputs[0]!.value).toBe('Move fast')
   })
 
-  it('should disable save when no changes', () => {
+  it('should disable update button when no changes', () => {
     renderWithQuery(<CompanyModelForm model={filledModel} />)
-    const saveButton = screen.getByRole('button', { name: /save/i })
+    const saveButton = screen.getByRole('button', { name: /update/i })
     expect(saveButton).toBeDisabled()
   })
 
-  it('should enable save when changes are made', () => {
+  it('should enable update button when changes are made', () => {
     renderWithQuery(<CompanyModelForm model={filledModel} />)
     fireEvent.change(screen.getByLabelText(/purpose/i), { target: { value: 'New purpose' } })
-    const saveButton = screen.getByRole('button', { name: /save/i })
+    const saveButton = screen.getByRole('button', { name: /update/i })
     expect(saveButton).not.toBeDisabled()
   })
 })

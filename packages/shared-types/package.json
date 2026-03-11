@@ -4,18 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "main": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'No tests yet'",
+    "test": "vitest",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@the-crew/eslint-config": "workspace:*",
     "@the-crew/tsconfig": "workspace:*",
     "eslint": "^9.16.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   }
 }

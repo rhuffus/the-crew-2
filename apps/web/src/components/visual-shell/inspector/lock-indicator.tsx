@@ -18,6 +18,7 @@ export function LockIndicator({ projectId, entityId, nodeType }: LockIndicatorPr
   const canReleaseAny = usePermission('lock:release:any')
 
   const isLocked = !!lock
+  // TODO: replace 'current-user' with real user ID from auth context
   const isOwnLock = isLocked && lock.lockedBy === 'current-user'
   const canRelease = isLocked && (canReleaseAny || (canReleaseOwn && isOwnLock))
 
@@ -25,7 +26,7 @@ export function LockIndicator({ projectId, entityId, nodeType }: LockIndicatorPr
     acquireLock.mutate({
       entityId,
       nodeType,
-      lockedBy: 'current-user',
+      lockedBy: 'current-user', // TODO: real user from auth context
       lockedByName: 'You',
     })
   }

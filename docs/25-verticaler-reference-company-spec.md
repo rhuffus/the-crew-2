@@ -131,6 +131,10 @@ Ejemplos:
 - Product → Discovery, Product Ops, Delivery Planning
 - Compliance → Regulatory, Inspection Standards, Audit Readiness
 
+## 7.3 Teams / Unit Containers
+Los subdepartamentos del nivel 2 (Platform, Backend, QA, Dispatch, etc.) deben modelarse como **team/unit containers** según la paleta de nodos del canvas spec.
+Esto permite que el drilldown L2→L3 funcione con nodos tipados, no solo con agrupaciones visuales.
+
 ## 8. Entidades mínimas que Verticaler debe traer de serie
 
 ## 8.1 Company Model
@@ -280,6 +284,66 @@ Inspection Scheduled → Evidence Collection → Findings Review → Remediation
 - Billing Activation Record
 - Compliance Finding
 
+## 8.11 Relaciones tipadas mínimas
+Verticaler debe poblar ejemplos explícitos de cada tipo de relación definido en el canvas spec para garantizar cobertura visual completa.
+
+| Tipo de relación | Ejemplo concreto en Verticaler |
+|---|---|
+| reports_to | Head of Engineering → CEO |
+| owns | Engineering owns Software Implementation |
+| assigned_to | Frontend Builder Agent assigned_to Frontend Engineer role |
+| contributes_to | Design contributes_to Product Discovery |
+| has_skill | Backend Builder Agent has_skill Implement Feature |
+| compatible_with | Tech Lead compatible_with Review Code |
+| provides | Engineering provides candidate build (contract con QA) |
+| consumes | QA consumes candidate build |
+| bound_by | Product Delivery workflow bound_by release approval policy |
+| participates_in | Product Manager participates_in Product Delivery workflow |
+| hands_off_to | Design hands_off_to Engineering (design package) |
+| governs | compliance evidence retention policy governs Inspection/Compliance workflow |
+
+Cada relación debe ser editable desde el inspector y visible en la vista correspondiente.
+
+## 8.12 Workflow Stages explícitos
+Cada workflow debe tener stages como entidades formales, no solo descripciones textuales.
+
+### A. Product Delivery — stages
+1. PRD Draft
+2. Design Spec
+3. Tech Spec
+4. Sprint Planning
+5. Implementation
+6. Code Review
+7. QA Validation
+8. Release
+
+### B. Incident Management — stages
+1. Incident Intake
+2. Triage
+3. Dispatch
+4. Field Resolution
+5. Verification
+6. Customer Update
+7. Close
+
+### C. Maintenance Contract Lifecycle — stages
+1. Lead / Renewal
+2. Contract Setup
+3. Asset Linkage
+4. Schedule Maintenance
+5. Execute Service
+6. Invoice / Renew
+
+### D. Inspection / Compliance — stages
+1. Inspection Scheduled
+2. Evidence Collection
+3. Findings Review
+4. Remediation
+5. Sign-off
+6. Archive
+
+Cada stage debe tener: nombre, orden, participant owner, artifacts de entrada/salida y handoffs, según la especificación del inspector del canvas spec.
+
 ## 9. Requisitos visuales de Verticaler en el canvas
 
 Verticaler debe servir para probar visualmente todas las capacidades principales del editor.
@@ -406,7 +470,35 @@ La feature Verticaler se considera bien resuelta cuando:
 6. el inspector tiene contenido real en los elementos principales;
 7. este documento está sincronizado con el canvas spec y el backlog.
 
-## 15. Regla final
+## 15. Checklist de sincronización con canvas spec
+
+Cuando cambie `docs/18-canvas-editor-v2-spec.md`, validar en este documento:
+
+| Área del canvas spec | Sección de Verticaler | Qué validar |
+|---|---|---|
+| Nodos v2 mínimos | §8.1–8.10 | Cada tipo de nodo tiene al menos un ejemplo en Verticaler |
+| Relaciones v2 mínimas | §8.11 | Cada tipo de relación tiene un ejemplo concreto |
+| Presets / Vistas | §9.1–9.7 | Verticaler puebla datos suficientes para cada vista |
+| Navegación multinivel | §10 | Verticaler permite drilldown L1→L2→L3→L4 |
+| Inspector por tipo | §11 | Cada tab del inspector tiene contenido real en Verticaler |
+| Workflow stages | §8.12 | Stages formalizados con owner, artifacts y handoffs |
+| Capas y filtros | §9 | Las relaciones y nodos cubren las capas mínimas |
+| Chat contextual | §10 | Scopes company/department/workflow/node disponibles |
+| Diff / releases | §14 | Verticaler incluye release inicial para habilitar diff |
+
+Cuando cambie `docs/03-backlog-completo.md` o `docs/09-task-registry.md`, validar:
+- que los épicos y tareas de Verticaler siguen alineados con la fase actual;
+- que no hay tareas en conflicto con el contenido de esta especificación.
+
+## 16. Estado de baseline
+
+| Versión | Fecha | Estado | Notas |
+|---|---|---|---|
+| v1 | 2026-03-11 | **baseline aceptada** | Especificación canónica inicial. Validada contra canvas spec v2. Cubre todos los tipos de nodo, relaciones, vistas, navegación e inspector. |
+
+Próximo hito de revisión: al completar VRT-003 (implementación del bootstrap automático).
+
+## 17. Regla final
 
 Si hay conflicto entre “hacer una demo rápida” y “mantener Verticaler como referencia canónica sostenible”, gana lo segundo.
 Verticaler debe ser una empresa de ejemplo mantenible, no un parche visual para evitar la pantalla vacía.

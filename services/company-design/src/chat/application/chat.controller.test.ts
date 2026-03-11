@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { ChatController } from './chat.controller'
 import { ChatService } from './chat.service'
-import { InMemoryChatRepository } from '../infrastructure/in-memory-chat.repository'
+import { InMemoryChatRepository } from '../infra/in-memory-chat.repository'
 
 describe('ChatController', () => {
   let controller: ChatController

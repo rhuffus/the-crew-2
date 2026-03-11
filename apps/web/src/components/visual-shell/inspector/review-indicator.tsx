@@ -29,7 +29,7 @@ export function ReviewIndicator({ projectId, entityId, nodeType }: ReviewIndicat
         entityId,
         nodeType,
         status,
-        reviewerId: 'current-user',
+        reviewerId: 'current-user', // TODO: real user from auth context
         reviewerName: 'You',
       })
     }

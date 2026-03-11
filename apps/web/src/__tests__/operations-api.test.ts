@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { CreateWorkflowRunDto, CreateIncidentDto } from '@the-crew/shared-types'
 import { operationsApi } from '@/api/operations'
 
 vi.mock('@/lib/api-client', () => ({
@@ -48,7 +49,7 @@ describe('operationsApi', () => {
   it('createRun posts to correct endpoint', async () => {
     const dto = { workflowId: 'wf-1', name: 'Run 1' }
     mock.post!.mockResolvedValue({ id: 'run-1', ...dto })
-    await operationsApi.createRun('p1', dto as any)
+    await operationsApi.createRun('p1', dto as CreateWorkflowRunDto)
     expect(mock.post).toHaveBeenCalledWith('/projects/p1/operations/runs', dto)
   })
 
@@ -78,7 +79,7 @@ describe('operationsApi', () => {
   it('createIncident posts to correct endpoint', async () => {
     const dto = { entityType: 'department' as const, entityId: 'dept-1', title: 'Issue', severity: 'medium' as const, description: 'desc' }
     mock.post!.mockResolvedValue({ id: 'inc-1', ...dto })
-    await operationsApi.createIncident('p1', dto as any)
+    await operationsApi.createIncident('p1', dto as unknown as CreateIncidentDto)
     expect(mock.post).toHaveBeenCalledWith('/projects/p1/operations/incidents', dto)
   })
 

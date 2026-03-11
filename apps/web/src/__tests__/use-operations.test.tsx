@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import type { CreateWorkflowRunDto, CreateIncidentDto } from '@the-crew/shared-types'
 import {
   useOperationsStatus,
   useWorkflowRuns,
@@ -97,7 +98,7 @@ describe('useCreateWorkflowRun', () => {
     const { result } = renderHook(() => useCreateWorkflowRun('p1'), {
       wrapper: createWrapper(),
     })
-    result.current.mutate(dto as any)
+    result.current.mutate(dto as CreateWorkflowRunDto)
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(mock.createRun).toHaveBeenCalledWith('p1', dto)
   })
@@ -126,7 +127,7 @@ describe('useCreateIncident', () => {
     const { result } = renderHook(() => useCreateIncident('p1'), {
       wrapper: createWrapper(),
     })
-    result.current.mutate(dto as any)
+    result.current.mutate(dto as unknown as CreateIncidentDto)
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(mock.createIncident).toHaveBeenCalledWith('p1', dto)
   })
