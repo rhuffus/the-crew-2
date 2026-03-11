@@ -1,21 +1,24 @@
-# TheCrew — Canvas v2 Planning Update
+# TheCrew — Verticaler & Polish planning update
 
-Este paquete **no toca código**. Contiene únicamente documentación y configuración de Claude Code para reorientar el backlog hacia un editor **visual-first** mucho más completo.
+Este paquete no toca código.
+Contiene documentación, backlog y comandos de Claude Code actualizados para dos objetivos:
 
-## Qué incluye
-- `docs/17-canvas-editor-v2-gap-analysis.md`
-- `docs/18-canvas-editor-v2-spec.md`
-- `docs/19-canvas-editor-v2-acceptance-checklist.md`
-- `docs/03-backlog-completo.md` (versión actualizada)
-- `docs/09-task-registry.md` (versión actualizada)
-- `CLAUDE.md` (prioridades actualizadas)
+1. introducir una **empresa de referencia** llamada **Verticaler** que se cree automáticamente cuando TheCrew arranca vacío;
+2. abrir una fase de **polish / corrección / coherencia** del estado actual sin meter nuevas funcionalidades de producto, salvo la propia empresa de referencia.
+
+## Archivos principales
+
+- `docs/25-verticaler-reference-company-spec.md`
+- `docs/26-current-state-polish-review.md`
+- `docs/03-backlog-completo.md`
+- `docs/09-task-registry.md`
+- `CLAUDE.md`
 - `.claude/commands/tc-next.md`
 - `.claude/commands/tc-run.md`
 
-## Cómo usarlo
-Copia estos archivos sobre tu repo actual y deja que Claude Code trabaje a partir de:
-1. `/tc-next`
-2. `/tc-run <task-id>`
+## Uso recomendado
 
-## Intención de este update
-El canvas actual ya existe, pero todavía es un **grafo navegable con inspector**. El objetivo de esta actualización es convertirlo en un **editor operativo completo de la empresa**.
+1. Copiar estos archivos sobre el repo actual.
+2. Abrir Claude Code en sesión nueva.
+3. Ejecutar `/tc-next`.
+4. Empezar por las tareas de la nueva fase **Verticaler + Polish**.
