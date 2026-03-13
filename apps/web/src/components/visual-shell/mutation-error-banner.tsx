@@ -44,13 +44,13 @@ function ErrorToast({ error, onDismiss }: { error: MutationError; onDismiss: (id
   return (
     <div
       data-testid="mutation-error-toast"
-      className="flex items-center gap-2 rounded border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-800 shadow-md dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+      className="flex items-center gap-2 rounded border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive-foreground shadow-md"
     >
       <span className="flex-1">{error.message}</span>
       <button
         data-testid="mutation-error-dismiss"
         onClick={() => onDismiss(error.id)}
-        className="ml-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-100"
+        className="ml-2 text-destructive-foreground/70 hover:text-destructive-foreground"
         aria-label="Dismiss error"
       >
         &times;

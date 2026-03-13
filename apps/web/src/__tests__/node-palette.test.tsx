@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { NodePalette, NodePaletteButton } from '@/components/visual-shell/node-palette'
+import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
 describe('NodePalette', () => {
   const onSelect = vi.fn()
@@ -103,6 +104,10 @@ describe('NodePalette', () => {
 })
 
 describe('NodePaletteButton', () => {
+  beforeEach(() => {
+    useVisualWorkspaceStore.setState({ nodePaletteOpen: false })
+  })
+
   it('should render button when there are addable items', () => {
     render(<NodePaletteButton zoomLevel="L2" onAddEntity={vi.fn()} />)
     expect(screen.getByTestId('node-palette-button')).toBeInTheDocument()

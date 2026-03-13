@@ -1,7 +1,15 @@
 import { Controller, Get, Param, Query, BadRequestException } from '@nestjs/common'
-import type { VisualGraphDto, VisualGraphDiffDto, ZoomLevel, LayerId, ScopeType } from '@the-crew/shared-types'
-import { SCOPE_REGISTRY, scopeTypeFromZoomLevel } from '@the-crew/shared-types'
+import type { VisualGraphDto, VisualGraphDiffDto, LayerId, ScopeType } from '@the-crew/shared-types'
+import { SCOPE_REGISTRY } from '@the-crew/shared-types'
 import { GraphProjectionService } from './graph-projection.service'
+
+/** Legacy API mapping: level param → scope type (backend contract, pre-v3) */
+const LEGACY_ZOOM_TO_SCOPE: Record<string, ScopeType> = {
+  L1: 'company',
+  L2: 'department',
+  L3: 'workflow',
+  L4: 'workflow-stage',
+}
 
 @Controller('projects/:projectId/visual-graph')
 export class GraphProjectionController {
@@ -85,7 +93,7 @@ export class GraphProjectionController {
       return scope as ScopeType
     }
     if (level) {
-      return scopeTypeFromZoomLevel(level as ZoomLevel)
+      return LEGACY_ZOOM_TO_SCOPE[level] ?? 'company'
     }
     return 'company'
   }

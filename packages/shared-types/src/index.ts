@@ -1,4 +1,6 @@
-export { VERTICALER_PROJECT_ID, VERTICALER_PROJECT_NAME, VERTICALER_PROJECT_DESCRIPTION } from './verticaler'
+export { VERTICALER_PROJECT_ID, VERTICALER_PROJECT_NAME, VERTICALER_PROJECT_DESCRIPTION } from './verticaler.js'
+export * from './live-company-types.js'
+import type { OverlayId } from './live-company-types'
 
 export interface ProjectSummary {
   id: string
@@ -34,6 +36,7 @@ export interface ApiError {
 }
 
 // Company Model
+/** @deprecated Live Company Pivot: replaced by ProjectSeedDto + CompanyConstitutionDto (see live-company-types.ts) */
 
 export interface CompanyModelDto {
   projectId: string
@@ -44,6 +47,7 @@ export interface CompanyModelDto {
   updatedAt: string
 }
 
+/** @deprecated Live Company Pivot: replaced by UpdateProjectSeedDto + UpdateConstitutionDto */
 export interface UpdateCompanyModelDto {
   purpose?: string
   type?: string
@@ -52,6 +56,7 @@ export interface UpdateCompanyModelDto {
 }
 
 // Departments
+/** @deprecated Live Company Pivot: replaced by OrganizationalUnitDto with uoType: 'department' */
 
 export interface DepartmentDto {
   id: string
@@ -79,6 +84,7 @@ export interface UpdateDepartmentDto {
 }
 
 // Capabilities
+/** @deprecated Live Company Pivot: capabilities redistributed to OrganizationalUnit.functions + AgentSkillDto */
 
 export interface CapabilityDto {
   id: string
@@ -112,6 +118,7 @@ export interface UpdateCapabilityDto {
 
 export type ContractType = 'SLA' | 'DataContract' | 'InterfaceContract' | 'OperationalAgreement'
 export type ContractStatus = 'draft' | 'active' | 'deprecated'
+/** @deprecated Live Company Pivot: replaced by ContractPartyType and ArtifactPartyType */
 export type PartyType = 'department' | 'capability'
 
 export interface ContractDto {
@@ -156,6 +163,7 @@ export interface UpdateContractDto {
 // Workflows
 
 export type WorkflowStatus = 'draft' | 'active' | 'archived'
+/** @deprecated Live Company Pivot: replaced by LcpWorkflowParticipantType ('agent' | 'uo') */
 export type WorkflowParticipantType = 'role' | 'department'
 
 export interface WorkflowStageDto {
@@ -208,6 +216,7 @@ export interface UpdateWorkflowDto {
 
 // Policies
 
+/** @deprecated Live Company Pivot: replaced by LcpPolicyScope (7 values) */
 export type PolicyScope = 'global' | 'department'
 export type PolicyType = 'approval-gate' | 'constraint' | 'rule'
 export type PolicyEnforcement = 'mandatory' | 'advisory'
@@ -250,6 +259,7 @@ export interface UpdatePolicyDto {
 }
 
 // Agent Archetypes
+/** @deprecated Live Company Pivot: replaced by LcpAgentDto (unified coordinator/specialist model) */
 
 export interface AgentArchetypeConstraintsDto {
   maxConcurrency: number | null
@@ -288,6 +298,7 @@ export interface UpdateAgentArchetypeDto {
 }
 
 // Skills
+/** @deprecated Live Company Pivot: skills become AgentSkillDto embedded in LcpAgentDto */
 
 export interface SkillDto {
   id: string
@@ -318,6 +329,7 @@ export interface UpdateSkillDto {
 }
 
 // Agent Assignments
+/** @deprecated Live Company Pivot: merged into LcpAgentDto */
 
 export type AgentAssignmentStatus = 'active' | 'inactive'
 
@@ -342,6 +354,7 @@ export interface UpdateAgentAssignmentDto {
 }
 
 // Roles
+/** @deprecated Live Company Pivot: role becomes a string property of LcpAgentDto */
 
 export interface RoleDto {
   id: string
@@ -435,6 +448,7 @@ export interface ValidationIssue {
 }
 
 export interface ReleaseSnapshotDto {
+  // Preserved (old model — kept during bridge phase)
   companyModel: CompanyModelDto | null
   departments: DepartmentDto[]
   capabilities: CapabilityDto[]
@@ -446,6 +460,17 @@ export interface ReleaseSnapshotDto {
   workflows: WorkflowDto[]
   policies: PolicyDto[]
   artifacts: ArtifactDto[]
+
+  // Live Company Pivot — new entities (optional during bridge phase)
+  projectSeed?: import('./live-company-types').ProjectSeedDto | null
+  constitution?: import('./live-company-types').CompanyConstitutionDto | null
+  organizationalUnits?: import('./live-company-types').OrganizationalUnitDto[]
+  agents?: import('./live-company-types').LcpAgentDto[]
+  objectives?: import('./live-company-types').ObjectiveDto[]
+  eventTriggers?: import('./live-company-types').EventTriggerDto[]
+  externalSources?: import('./live-company-types').ExternalSourceDto[]
+  proposals?: import('./live-company-types').ProposalDto[]
+  decisions?: import('./live-company-types').DecisionDto[]
 }
 
 export interface ReleaseDto {
@@ -540,44 +565,90 @@ export interface AuditEntryDto {
 
 // --- Visual Grammar Types ---
 
+// NodeType — v3 (LCP-012). Old values kept for backend bridge phase.
 export type NodeType =
+  // Organizational (always visible)
   | 'company'
   | 'department'
+  | 'team'                   // v3 — UO type: team
+  | 'coordinator-agent'      // v3 — replaces agent-archetype + agent-assignment for coordinators
+  | 'specialist-agent'       // v3 — replaces agent-archetype + agent-assignment for specialists
+  // Triggers & context
+  | 'objective'              // v3 — strategic/operational goal
+  | 'event-trigger'          // v3 — signal that starts workflows
+  | 'external-source'        // v3 — external information source
+  // Workflow
+  | 'workflow'
+  | 'workflow-stage'
+  | 'handoff'                // v3 — explicit transfer point between stages
+  // Governance & support
+  | 'contract'
+  | 'policy'
+  | 'artifact'
+  | 'decision'               // v3 — traceable decision record
+  | 'proposal'               // v3 — organizational change proposal
+  // Legacy (kept for backend bridge — will be removed in Phase 4)
   | 'role'
   | 'agent-archetype'
   | 'agent-assignment'
   | 'capability'
   | 'skill'
-  | 'workflow'
-  | 'workflow-stage'
-  | 'contract'
-  | 'policy'
-  | 'artifact'
 
+// EdgeType — v3 (LCP-012). Old values kept for backend bridge phase.
 export type EdgeType =
-  | 'reports_to'
+  // Structural (always visible, neutral style)
+  | 'contains'               // v3 — UO→UO, UO→Agent (parent contains child)
+  | 'belongs_to'             // v3 — child→parent
+  | 'reports_to'             // preserved
+  // Responsibility
+  | 'led_by'                 // v3 — UO→Agent (coordinator)
+  | 'accountable_for'        // v3 — Agent→UO, Agent→Workflow
+  | 'supervises'             // v3 — coordinator→specialist
+  // Collaboration
+  | 'requests_from'          // v3
+  | 'delegates_to'           // v3
+  | 'reviews'                // v3
+  | 'approves'               // v3
+  | 'hands_off_to'           // preserved
+  | 'escalates_to'           // v3
+  // Flow
+  | 'produces'               // v3 — replaces produces_artifact
+  | 'consumes'               // preserved (new meaning: Agent/UO→Artifact)
+  | 'informs'                // v3
+  | 'triggers'               // v3 — EventTrigger→Workflow
+  // Governance
+  | 'governed_by'            // v3
+  | 'constrained_by'         // v3 — replaces bound_by
+  | 'proposed_by'            // v3
+  | 'approved_by'            // v3
+  // Legacy (kept for backend bridge — will be removed in Phase 4)
   | 'owns'
   | 'assigned_to'
   | 'contributes_to'
   | 'has_skill'
   | 'compatible_with'
   | 'provides'
-  | 'consumes'
   | 'bound_by'
   | 'participates_in'
-  | 'hands_off_to'
   | 'governs'
   | 'produces_artifact'
   | 'consumes_artifact'
 
+// EdgeCategory — v3 (LCP-012). Old values kept for backend bridge.
 export type EdgeCategory =
+  // v3 categories
+  | 'structural'
+  | 'responsibility'
+  | 'collaboration'
+  | 'flow'
+  | 'governance'
+  // Legacy categories (kept for backend bridge)
   | 'hierarchical'
   | 'ownership'
   | 'assignment'
   | 'capability'
   | 'contract'
   | 'workflow'
-  | 'governance'
   | 'artifact'
 
 export type LayerId =
@@ -591,11 +662,269 @@ export type LayerId =
 
 export type ZoomLevel = 'L1' | 'L2' | 'L3' | 'L4'
 
-// --- Generic Scope Model (CAV-011) ---
+// --- v3 Node Metadata (LCP-012) ---
+
+export type NodeCategory = 'organization' | 'agents' | 'triggers' | 'workflow' | 'support'
+
+export const NODE_CATEGORY_MAP: Record<string, NodeCategory> = {
+  'company':            'organization',
+  'department':         'organization',
+  'team':               'organization',
+  'coordinator-agent':  'agents',
+  'specialist-agent':   'agents',
+  'objective':          'triggers',
+  'event-trigger':      'triggers',
+  'external-source':    'triggers',
+  'workflow':           'workflow',
+  'workflow-stage':     'workflow',
+  'handoff':            'workflow',
+  'contract':           'support',
+  'policy':             'support',
+  'artifact':           'support',
+  'decision':           'support',
+  'proposal':           'support',
+  // Legacy mappings
+  'role':               'organization',
+  'agent-archetype':    'agents',
+  'agent-assignment':   'agents',
+  'capability':         'support',
+  'skill':              'support',
+}
+
+export const NODE_CATEGORY_LABELS: Record<NodeCategory, string> = {
+  organization: 'Organization',
+  agents:       'Agents',
+  triggers:     'Triggers & Context',
+  workflow:     'Workflow',
+  support:      'Support',
+}
+
+export const NODE_CATEGORY_ORDER: NodeCategory[] = [
+  'organization', 'agents', 'triggers', 'workflow', 'support',
+]
+
+export const NODE_TYPE_LABELS: Record<string, string> = {
+  'company':            'Company',
+  'department':         'Department',
+  'team':               'Team',
+  'coordinator-agent':  'Coordinator Agent',
+  'specialist-agent':   'Specialist Agent',
+  'objective':          'Objective',
+  'event-trigger':      'Event Trigger',
+  'external-source':    'External Source',
+  'workflow':           'Workflow',
+  'workflow-stage':     'Stage',
+  'handoff':            'Handoff',
+  'contract':           'Contract',
+  'policy':             'Policy',
+  'artifact':           'Artifact',
+  'decision':           'Decision',
+  'proposal':           'Proposal',
+  // Legacy
+  'role':               'Role',
+  'agent-archetype':    'Agent Archetype',
+  'agent-assignment':   'Agent Assignment',
+  'capability':         'Capability',
+  'skill':              'Skill',
+}
+
+/** Lucide icon name per node type (string reference, resolved in frontend) */
+export const NODE_TYPE_ICONS: Record<string, string> = {
+  'company':            'Building2',
+  'department':         'Users',
+  'team':               'UsersRound',
+  'coordinator-agent':  'BrainCircuit',
+  'specialist-agent':   'Bot',
+  'objective':          'Target',
+  'event-trigger':      'Zap',
+  'external-source':    'Globe',
+  'workflow':           'Workflow',
+  'workflow-stage':     'GitBranch',
+  'handoff':            'ArrowRightLeft',
+  'contract':           'FileText',
+  'policy':             'Shield',
+  'artifact':           'Package',
+  'decision':           'Gavel',
+  'proposal':           'MessageSquarePlus',
+  // Legacy
+  'role':               'UserCircle',
+  'agent-archetype':    'BrainCircuit',
+  'agent-assignment':   'Bot',
+  'capability':         'Puzzle',
+  'skill':              'Sparkles',
+}
+
+/** v3 node status colors (CSS class names) */
+export const NODE_STATUS_COLORS = {
+  normal:   'border-slate-300 bg-white',
+  active:   'border-green-500 bg-green-50',
+  warning:  'border-yellow-500 bg-yellow-50',
+  error:    'border-red-500 bg-red-50',
+  dimmed:   'border-slate-200 bg-slate-50 opacity-60',
+  proposed: 'border-blue-400 bg-blue-50 border-dashed',
+  retired:  'border-slate-300 bg-slate-100 opacity-40 line-through',
+} as const
+
+// --- v3 Edge Metadata (LCP-012) ---
+
+export const EDGE_TO_CATEGORY: Record<string, EdgeCategory> = {
+  'contains':        'structural',
+  'belongs_to':      'structural',
+  'reports_to':      'structural',
+  'led_by':          'responsibility',
+  'accountable_for': 'responsibility',
+  'supervises':      'responsibility',
+  'requests_from':   'collaboration',
+  'delegates_to':    'collaboration',
+  'reviews':         'collaboration',
+  'approves':        'collaboration',
+  'hands_off_to':    'collaboration',
+  'escalates_to':    'collaboration',
+  'produces':        'flow',
+  'consumes':        'flow',
+  'informs':         'flow',
+  'triggers':        'flow',
+  'governed_by':     'governance',
+  'constrained_by':  'governance',
+  'proposed_by':     'governance',
+  'approved_by':     'governance',
+  // Legacy mappings
+  'owns':              'ownership',
+  'assigned_to':       'assignment',
+  'contributes_to':    'capability',
+  'has_skill':         'capability',
+  'compatible_with':   'capability',
+  'provides':          'contract',
+  'bound_by':          'contract',
+  'participates_in':   'workflow',
+  'governs':           'governance',
+  'produces_artifact': 'artifact',
+  'consumes_artifact': 'artifact',
+}
+
+export const EDGE_TYPE_LABELS: Record<string, string> = {
+  'contains':        'Contains',
+  'belongs_to':      'Belongs to',
+  'reports_to':      'Reports to',
+  'led_by':          'Led by',
+  'accountable_for': 'Accountable for',
+  'supervises':      'Supervises',
+  'requests_from':   'Requests from',
+  'delegates_to':    'Delegates to',
+  'reviews':         'Reviews',
+  'approves':        'Approves',
+  'hands_off_to':    'Hands off to',
+  'escalates_to':    'Escalates to',
+  'produces':        'Produces',
+  'consumes':        'Consumes',
+  'informs':         'Informs',
+  'triggers':        'Triggers',
+  'governed_by':     'Governed by',
+  'constrained_by':  'Constrained by',
+  'proposed_by':     'Proposed by',
+  'approved_by':     'Approved by',
+  // Legacy
+  'owns':              'Owns',
+  'assigned_to':       'Assigned to',
+  'contributes_to':    'Contributes to',
+  'has_skill':         'Has skill',
+  'compatible_with':   'Compatible with',
+  'provides':          'Provides',
+  'bound_by':          'Bound by',
+  'participates_in':   'Participates in',
+  'governs':           'Governs',
+  'produces_artifact': 'Produces artifact',
+  'consumes_artifact': 'Consumes artifact',
+}
+
+export const EDGE_CATEGORY_LABELS: Record<string, string> = {
+  structural:     'Structural',
+  responsibility: 'Responsibility',
+  collaboration:  'Collaboration',
+  flow:           'Flow',
+  governance:     'Governance',
+  // Legacy
+  hierarchical: 'Hierarchical',
+  ownership:    'Ownership',
+  assignment:   'Assignment',
+  capability:   'Capability',
+  contract:     'Contract',
+  workflow:     'Workflow',
+  artifact:     'Artifact',
+}
+
+export interface EdgeStyleDef {
+  stroke: string
+  strokeWidth: number
+  strokeDasharray: string
+  animated: boolean
+  zIndex: number
+}
+
+export const EDGE_CATEGORY_STYLES: Record<string, EdgeStyleDef> = {
+  structural: {
+    stroke: 'slate-400',
+    strokeWidth: 2,
+    strokeDasharray: 'none',
+    animated: false,
+    zIndex: 0,
+  },
+  responsibility: {
+    stroke: 'blue-500',
+    strokeWidth: 1.5,
+    strokeDasharray: 'none',
+    animated: false,
+    zIndex: 1,
+  },
+  collaboration: {
+    stroke: 'amber-500',
+    strokeWidth: 1.5,
+    strokeDasharray: '8 4',
+    animated: false,
+    zIndex: 2,
+  },
+  flow: {
+    stroke: 'emerald-500',
+    strokeWidth: 1.5,
+    strokeDasharray: '4 2',
+    animated: false,
+    zIndex: 2,
+  },
+  governance: {
+    stroke: 'purple-400',
+    strokeWidth: 1,
+    strokeDasharray: '4 4',
+    animated: false,
+    zIndex: 1,
+  },
+}
+
+/** Edges that are auto-generated, not manually drawn */
+export const NON_CREATABLE_EDGES: readonly EdgeType[] = [
+  'contains',
+  'belongs_to',
+  'proposed_by',
+  'approved_by',
+]
+
+/** v3 container node types that can hold children */
+export const CONTAINER_NODE_TYPES: readonly NodeType[] = [
+  'company', 'department', 'team',
+]
+
+/** v3 node types that are drillable (double-click to navigate into) */
+export const DRILLABLE_NODE_TYPES: readonly NodeType[] = [
+  'company', 'department', 'team', 'coordinator-agent', 'specialist-agent',
+]
+
+// --- Generic Scope Model (CAV-011 + LCP-012 v3) ---
 
 export type ScopeType =
   | 'company'
   | 'department'
+  | 'team'              // v3 — drill into team
+  | 'agent-detail'      // v3 — drill into agent
+  // Legacy (kept for backend bridge)
   | 'workflow'
   | 'workflow-stage'
 
@@ -611,6 +940,7 @@ export interface ScopeDefinition {
   zoomLevel: ZoomLevel
   requiresEntityId: boolean
   defaultLayers: LayerId[]
+  defaultOverlays: OverlayId[]
   drillableChildScopes: ScopeType[]
   parentScopeTypes: ScopeType[]
   label: string
@@ -623,7 +953,8 @@ export const SCOPE_REGISTRY: Record<ScopeType, ScopeDefinition> = {
     zoomLevel: 'L1',
     requiresEntityId: false,
     defaultLayers: ['organization'],
-    drillableChildScopes: ['department', 'workflow'],
+    defaultOverlays: ['organization'],
+    drillableChildScopes: ['department'],
     parentScopeTypes: [],
     label: 'Organization',
   },
@@ -633,16 +964,41 @@ export const SCOPE_REGISTRY: Record<ScopeType, ScopeDefinition> = {
     zoomLevel: 'L2',
     requiresEntityId: true,
     defaultLayers: ['organization', 'capabilities'],
-    drillableChildScopes: ['department', 'workflow'],
+    defaultOverlays: ['organization', 'work'],
+    drillableChildScopes: ['department', 'team'],
     parentScopeTypes: ['company', 'department'],
     label: 'Department',
   },
+  team: {
+    scopeType: 'team',
+    rootNodeType: 'team',
+    zoomLevel: 'L3',
+    requiresEntityId: true,
+    defaultLayers: ['organization', 'workflows'],
+    defaultOverlays: ['organization', 'work'],
+    drillableChildScopes: ['agent-detail'],
+    parentScopeTypes: ['department'],
+    label: 'Team',
+  },
+  'agent-detail': {
+    scopeType: 'agent-detail',
+    rootNodeType: 'coordinator-agent',
+    zoomLevel: 'L4',
+    requiresEntityId: true,
+    defaultLayers: ['organization', 'workflows', 'artifacts'],
+    defaultOverlays: ['organization', 'work', 'deliverables'],
+    drillableChildScopes: [],
+    parentScopeTypes: ['team', 'department'],
+    label: 'Agent Detail',
+  },
+  // Legacy scopes (kept for backend bridge)
   workflow: {
     scopeType: 'workflow',
     rootNodeType: 'workflow',
     zoomLevel: 'L3',
     requiresEntityId: true,
     defaultLayers: ['workflows'],
+    defaultOverlays: ['organization', 'work'],
     drillableChildScopes: ['workflow-stage'],
     parentScopeTypes: ['department', 'company'],
     label: 'Workflow',
@@ -653,6 +1009,7 @@ export const SCOPE_REGISTRY: Record<ScopeType, ScopeDefinition> = {
     zoomLevel: 'L4',
     requiresEntityId: true,
     defaultLayers: ['workflows'],
+    defaultOverlays: ['organization', 'work', 'deliverables'],
     drillableChildScopes: [],
     parentScopeTypes: ['workflow'],
     label: 'Stage',
@@ -664,7 +1021,8 @@ export function getScopeDefinition(scopeType: ScopeType): ScopeDefinition {
 }
 
 export function isDrillableScopeType(nodeType: NodeType): boolean {
-  return Object.values(SCOPE_REGISTRY).some(def => def.rootNodeType === nodeType)
+  return (DRILLABLE_NODE_TYPES as readonly string[]).includes(nodeType)
+    || Object.values(SCOPE_REGISTRY).some(def => def.rootNodeType === nodeType)
 }
 
 export function getZoomLevelForScope(scopeType: ScopeType): ZoomLevel {
@@ -675,11 +1033,11 @@ export function scopeTypeFromZoomLevel(level: ZoomLevel): ScopeType {
   switch (level) {
     case 'L1': return 'company'
     case 'L2': return 'department'
-    case 'L3': return 'workflow'
-    case 'L4': return 'workflow-stage'
+    case 'L3': return 'team'
+    case 'L4': return 'agent-detail'
   }
 }
-export type NodeStatus = 'normal' | 'warning' | 'error' | 'dimmed'
+export type NodeStatus = 'normal' | 'warning' | 'error' | 'dimmed' | 'active' | 'proposed' | 'retired'
 export type EdgeStyle = 'solid' | 'dashed' | 'dotted'
 
 export interface CanvasPosition {
@@ -697,6 +1055,8 @@ export interface VisualNodeDto {
   collapsed: boolean
   status: NodeStatus
   layerIds: LayerId[]
+  /** v3 overlay assignment (LCP-012) — computed from nodeType */
+  overlayId?: OverlayId
   parentId: string | null
 }
 
@@ -708,6 +1068,8 @@ export interface VisualEdgeDto {
   label: string | null
   style: EdgeStyle
   layerIds: LayerId[]
+  /** v3 edge category (LCP-012) — computed from edgeType */
+  category?: EdgeCategory
 }
 
 export interface GraphScope {
@@ -749,6 +1111,7 @@ export interface LayerDefinition {
   edgeTypes: EdgeType[]
 }
 
+/** @deprecated Legacy connection rules — use CONNECTION_RULES_V3 for new code */
 export const CONNECTION_RULES: ConnectionRule[] = [
   { edgeType: 'reports_to', sourceTypes: ['department'], targetTypes: ['department'], category: 'hierarchical', style: 'solid' },
   { edgeType: 'owns', sourceTypes: ['department'], targetTypes: ['capability'], category: 'ownership', style: 'solid' },
@@ -765,6 +1128,35 @@ export const CONNECTION_RULES: ConnectionRule[] = [
   { edgeType: 'governs', sourceTypes: ['policy'], targetTypes: ['department', 'company'], category: 'governance', style: 'dashed' },
   { edgeType: 'produces_artifact', sourceTypes: ['department', 'capability'], targetTypes: ['artifact'], category: 'artifact', style: 'solid' },
   { edgeType: 'consumes_artifact', sourceTypes: ['department', 'capability'], targetTypes: ['artifact'], category: 'artifact', style: 'dashed' },
+]
+
+/** v3 connection rules (LCP-012) — UO + agents centered model */
+export const CONNECTION_RULES_V3: ConnectionRule[] = [
+  // Structural
+  { edgeType: 'contains',       sourceTypes: ['company', 'department', 'team'], targetTypes: ['department', 'team', 'coordinator-agent', 'specialist-agent'], category: 'structural', style: 'solid' },
+  { edgeType: 'belongs_to',     sourceTypes: ['department', 'team', 'coordinator-agent', 'specialist-agent'], targetTypes: ['company', 'department', 'team'], category: 'structural', style: 'solid' },
+  { edgeType: 'reports_to',     sourceTypes: ['department', 'team'], targetTypes: ['company', 'department'], category: 'structural', style: 'solid' },
+  // Responsibility
+  { edgeType: 'led_by',          sourceTypes: ['company', 'department', 'team'], targetTypes: ['coordinator-agent'], category: 'responsibility', style: 'solid' },
+  { edgeType: 'accountable_for', sourceTypes: ['coordinator-agent'], targetTypes: ['company', 'department', 'team', 'workflow'], category: 'responsibility', style: 'solid' },
+  { edgeType: 'supervises',      sourceTypes: ['coordinator-agent'], targetTypes: ['specialist-agent', 'coordinator-agent'], category: 'responsibility', style: 'solid' },
+  // Collaboration
+  { edgeType: 'requests_from',   sourceTypes: ['coordinator-agent', 'specialist-agent', 'company', 'department', 'team'], targetTypes: ['coordinator-agent', 'specialist-agent', 'company', 'department', 'team'], category: 'collaboration', style: 'dashed' },
+  { edgeType: 'delegates_to',    sourceTypes: ['coordinator-agent', 'specialist-agent'], targetTypes: ['coordinator-agent', 'specialist-agent'], category: 'collaboration', style: 'dashed' },
+  { edgeType: 'reviews',         sourceTypes: ['coordinator-agent', 'specialist-agent'], targetTypes: ['artifact', 'handoff'], category: 'collaboration', style: 'dashed' },
+  { edgeType: 'approves',        sourceTypes: ['coordinator-agent'], targetTypes: ['proposal', 'decision'], category: 'collaboration', style: 'dashed' },
+  { edgeType: 'hands_off_to',    sourceTypes: ['workflow-stage', 'coordinator-agent', 'specialist-agent'], targetTypes: ['workflow-stage', 'coordinator-agent', 'specialist-agent'], category: 'collaboration', style: 'dashed' },
+  { edgeType: 'escalates_to',    sourceTypes: ['coordinator-agent', 'specialist-agent'], targetTypes: ['coordinator-agent'], category: 'collaboration', style: 'dashed' },
+  // Flow
+  { edgeType: 'produces',  sourceTypes: ['coordinator-agent', 'specialist-agent', 'company', 'department', 'team', 'workflow-stage'], targetTypes: ['artifact'], category: 'flow', style: 'dotted' },
+  { edgeType: 'consumes',  sourceTypes: ['coordinator-agent', 'specialist-agent', 'company', 'department', 'team', 'workflow-stage'], targetTypes: ['artifact'], category: 'flow', style: 'dotted' },
+  { edgeType: 'informs',   sourceTypes: ['coordinator-agent', 'specialist-agent', 'external-source', 'event-trigger'], targetTypes: ['coordinator-agent', 'specialist-agent', 'company', 'department', 'team'], category: 'flow', style: 'dotted' },
+  { edgeType: 'triggers',  sourceTypes: ['event-trigger', 'objective', 'external-source'], targetTypes: ['workflow'], category: 'flow', style: 'dotted' },
+  // Governance
+  { edgeType: 'governed_by',    sourceTypes: ['company', 'department', 'team', 'coordinator-agent', 'specialist-agent', 'workflow', 'handoff', 'artifact'], targetTypes: ['policy'], category: 'governance', style: 'dashed' },
+  { edgeType: 'constrained_by', sourceTypes: ['company', 'department', 'team', 'coordinator-agent', 'specialist-agent', 'workflow', 'handoff'], targetTypes: ['policy', 'contract'], category: 'governance', style: 'dashed' },
+  { edgeType: 'proposed_by',    sourceTypes: ['proposal'], targetTypes: ['coordinator-agent', 'specialist-agent'], category: 'governance', style: 'dashed' },
+  { edgeType: 'approved_by',    sourceTypes: ['decision', 'proposal'], targetTypes: ['coordinator-agent'], category: 'governance', style: 'dashed' },
 ]
 
 export const LAYER_DEFINITIONS: LayerDefinition[] = [
@@ -858,6 +1250,145 @@ export const DEFAULT_LAYERS_PER_LEVEL: Record<ZoomLevel, LayerId[]> = {
   L4: ['workflows'],
 }
 
+// --- Overlay Model (LCP-010 + LCP-012 v3) ---
+// Overlays replace layers as the user-facing concept.
+// Organization is always active; the other 4 are toggleable perspectives.
+// OverlayId is defined in live-company-types.ts and re-exported above.
+
+export interface OverlayDefinition {
+  id: OverlayId
+  label: string
+  description: string
+  /** Constituent LayerIds — bridge to existing layer-based plumbing */
+  layerIds: LayerId[]
+  /** Whether this overlay is always active (cannot be toggled off) */
+  locked: boolean
+  /** v3: node types visible when this overlay is active */
+  nodeTypes: NodeType[]
+  /** v3: edge types visible when this overlay is active */
+  edgeTypes: EdgeType[]
+}
+
+export const OVERLAY_DEFINITIONS: OverlayDefinition[] = [
+  {
+    id: 'organization',
+    label: 'Organization',
+    description: 'Company structure: units, agents, hierarchy',
+    layerIds: ['organization'],
+    locked: true,
+    nodeTypes: ['company', 'department', 'team', 'coordinator-agent', 'specialist-agent'],
+    edgeTypes: ['contains', 'belongs_to', 'reports_to', 'led_by', 'accountable_for', 'supervises'],
+  },
+  {
+    id: 'work',
+    label: 'Work',
+    description: 'Workflows, collaboration, handoffs',
+    layerIds: ['workflows'],
+    locked: false,
+    nodeTypes: ['workflow', 'workflow-stage', 'handoff', 'objective', 'event-trigger', 'external-source'],
+    edgeTypes: ['requests_from', 'delegates_to', 'reviews', 'approves', 'hands_off_to', 'escalates_to', 'triggers', 'informs'],
+  },
+  {
+    id: 'deliverables',
+    label: 'Deliverables',
+    description: 'Artifacts, documents, outputs',
+    layerIds: ['artifacts'],
+    locked: false,
+    nodeTypes: ['artifact'],
+    edgeTypes: ['produces', 'consumes'],
+  },
+  {
+    id: 'rules',
+    label: 'Rules',
+    description: 'Contracts, policies, governance',
+    layerIds: ['contracts', 'governance'],
+    locked: false,
+    nodeTypes: ['contract', 'policy', 'proposal', 'decision'],
+    edgeTypes: ['governed_by', 'constrained_by', 'proposed_by', 'approved_by'],
+  },
+  {
+    id: 'live-status',
+    label: 'Live Status',
+    description: 'Runtime activity, errors, queue state',
+    layerIds: ['operations'],
+    locked: false,
+    nodeTypes: [],
+    edgeTypes: [],
+  },
+]
+
+export function overlayToLayers(overlayId: OverlayId): LayerId[] {
+  const def = OVERLAY_DEFINITIONS.find(d => d.id === overlayId)
+  return def ? def.layerIds : []
+}
+
+export function overlaysToLayers(overlayIds: OverlayId[]): LayerId[] {
+  const layers = new Set<LayerId>()
+  for (const oid of overlayIds) {
+    for (const lid of overlayToLayers(oid)) {
+      layers.add(lid)
+    }
+  }
+  return [...layers]
+}
+
+export function isOverlayActive(activeLayers: LayerId[], overlayId: OverlayId): boolean {
+  const requiredLayers = overlayToLayers(overlayId)
+  return requiredLayers.length > 0 && requiredLayers.every(l => activeLayers.includes(l))
+}
+
+export function layersToOverlays(activeLayers: LayerId[]): OverlayId[] {
+  return OVERLAY_DEFINITIONS
+    .filter(def => def.layerIds.every(l => activeLayers.includes(l)))
+    .map(def => def.id)
+}
+
+export const DEFAULT_OVERLAYS_PER_LEVEL: Record<ZoomLevel, OverlayId[]> = {
+  L1: ['organization'],
+  L2: ['organization', 'work'],
+  L3: ['organization', 'work'],
+  L4: ['organization', 'work', 'deliverables'],
+}
+
+/** Get the overlay a node type belongs to (v3) */
+export function getNodeOverlay(nodeType: NodeType): OverlayId | null {
+  for (const def of OVERLAY_DEFINITIONS) {
+    if ((def.nodeTypes as string[]).includes(nodeType)) return def.id
+  }
+  return null
+}
+
+/** Filter nodes by active overlays (v3) */
+export function filterNodesByOverlays(
+  nodes: VisualNodeDto[],
+  activeOverlays: OverlayId[],
+): VisualNodeDto[] {
+  const visibleTypes = new Set<string>()
+  for (const oid of activeOverlays) {
+    const def = OVERLAY_DEFINITIONS.find(d => d.id === oid)
+    if (def) for (const nt of def.nodeTypes) visibleTypes.add(nt)
+  }
+  return nodes.filter(n => visibleTypes.has(n.nodeType))
+}
+
+/** Filter edges by active overlays + visible nodes (v3) */
+export function filterEdgesByOverlays(
+  edges: VisualEdgeDto[],
+  visibleNodeIds: Set<string>,
+  activeOverlays: OverlayId[],
+): VisualEdgeDto[] {
+  const visibleEdgeTypes = new Set<string>()
+  for (const oid of activeOverlays) {
+    const def = OVERLAY_DEFINITIONS.find(d => d.id === oid)
+    if (def) for (const et of def.edgeTypes) visibleEdgeTypes.add(et)
+  }
+  return edges.filter(e =>
+    visibleNodeIds.has(e.sourceId)
+    && visibleNodeIds.has(e.targetId)
+    && visibleEdgeTypes.has(e.edgeType)
+  )
+}
+
 // --- Saved Views ---
 
 export interface ViewStateDto {
@@ -940,6 +1471,11 @@ export interface CreateChatMessageDto {
 
 export type ViewPresetId =
   | 'organization'
+  | 'work'
+  | 'deliverables'
+  | 'rules'
+  | 'live-status'
+  // Legacy presets (kept for backend bridge)
   | 'capabilities'
   | 'workflows'
   | 'contracts'
@@ -953,6 +1489,8 @@ export interface ViewPresetDefinition {
   description: string
   icon: string
   layers: LayerId[]
+  /** v3: overlay IDs to activate for this preset */
+  overlays?: OverlayId[]
   emphasisNodeTypes: NodeType[] | null
   emphasisEdgeTypes: EdgeType[] | null
   availableAtScopes: ScopeType[]
@@ -1052,16 +1590,63 @@ export function buildManifest(
 }
 
 export const VIEW_PRESET_REGISTRY: Record<ViewPresetId, ViewPresetDefinition> = {
+  // v3 presets (LCP-012)
   organization: {
     id: 'organization',
     label: 'Organization',
-    description: 'Company structure: departments, roles, agents',
+    description: 'Company structure: units, agents, hierarchy',
     icon: 'Building2',
     layers: ['organization'],
-    emphasisNodeTypes: ['company', 'department', 'role', 'agent-archetype', 'agent-assignment'],
-    emphasisEdgeTypes: ['reports_to', 'assigned_to'],
-    availableAtScopes: ['company', 'department'],
+    overlays: ['organization'],
+    emphasisNodeTypes: ['company', 'department', 'team', 'coordinator-agent', 'specialist-agent'],
+    emphasisEdgeTypes: ['contains', 'belongs_to', 'reports_to', 'led_by', 'supervises'],
+    availableAtScopes: ['company', 'department', 'team'],
   },
+  work: {
+    id: 'work',
+    label: 'Work',
+    description: 'Workflows, collaboration, handoffs',
+    icon: 'Workflow',
+    layers: ['organization', 'workflows'],
+    overlays: ['organization', 'work'],
+    emphasisNodeTypes: ['workflow', 'workflow-stage', 'handoff', 'objective', 'event-trigger'],
+    emphasisEdgeTypes: ['requests_from', 'delegates_to', 'hands_off_to', 'reviews', 'triggers'],
+    availableAtScopes: ['company', 'department', 'team'],
+  },
+  deliverables: {
+    id: 'deliverables',
+    label: 'Deliverables',
+    description: 'Artifacts, documents, outputs',
+    icon: 'Package',
+    layers: ['organization', 'artifacts'],
+    overlays: ['organization', 'deliverables'],
+    emphasisNodeTypes: ['artifact', 'coordinator-agent', 'specialist-agent'],
+    emphasisEdgeTypes: ['produces', 'consumes'],
+    availableAtScopes: ['company', 'department', 'team', 'agent-detail'],
+  },
+  rules: {
+    id: 'rules',
+    label: 'Rules',
+    description: 'Contracts, policies, governance',
+    icon: 'Shield',
+    layers: ['organization', 'contracts', 'governance'],
+    overlays: ['organization', 'rules'],
+    emphasisNodeTypes: ['contract', 'policy', 'proposal', 'decision'],
+    emphasisEdgeTypes: ['governed_by', 'constrained_by', 'approved_by'],
+    availableAtScopes: ['company', 'department', 'team'],
+  },
+  'live-status': {
+    id: 'live-status',
+    label: 'Live Status',
+    description: 'Runtime activity, errors, queue state',
+    icon: 'Activity',
+    layers: ['organization', 'workflows', 'operations'],
+    overlays: ['organization', 'live-status'],
+    emphasisNodeTypes: null,
+    emphasisEdgeTypes: null,
+    availableAtScopes: ['company', 'department', 'team'],
+  },
+  // Legacy presets (kept for backward compat)
   capabilities: {
     id: 'capabilities',
     label: 'Capabilities',

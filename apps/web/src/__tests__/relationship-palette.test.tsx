@@ -101,10 +101,10 @@ describe('RelationshipPalette', () => {
 describe('RelationshipPaletteButton', () => {
   beforeEach(() => {
     useVisualWorkspaceStore.setState({
-      canvasMode: 'select',
       isDiffMode: false,
       preselectedEdgeType: null,
       addEdgeSource: null,
+      relationshipPaletteOpen: false,
     })
   })
 
@@ -132,15 +132,13 @@ describe('RelationshipPaletteButton', () => {
 
     const state = useVisualWorkspaceStore.getState()
     expect(state.preselectedEdgeType).toBe('reports_to')
-    expect(state.canvasMode).toBe('add-edge')
   })
 
-  it('should switch to add-edge mode when relationship is selected', () => {
+  it('should set preselectedEdgeType when relationship is selected', () => {
     render(<RelationshipPaletteButton />)
     fireEvent.click(screen.getByTestId('rel-palette-button'))
     fireEvent.click(screen.getByTestId('rel-palette-item-owns'))
 
-    expect(useVisualWorkspaceStore.getState().canvasMode).toBe('add-edge')
     expect(useVisualWorkspaceStore.getState().preselectedEdgeType).toBe('owns')
   })
 })

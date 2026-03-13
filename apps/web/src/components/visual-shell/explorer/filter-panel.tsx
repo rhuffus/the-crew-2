@@ -4,6 +4,12 @@ import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 const NODE_TYPE_LABELS: Record<NodeType, string> = {
   'company': 'Company',
   'department': 'Department',
+  'team': 'Team',
+  'coordinator-agent': 'Coordinator Agent',
+  'specialist-agent': 'Specialist Agent',
+  'objective': 'Objective',
+  'event-trigger': 'Event Trigger',
+  'external-source': 'External Source',
   'role': 'Role',
   'agent-archetype': 'Agent Archetype',
   'agent-assignment': 'Agent Assignment',
@@ -11,9 +17,12 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   'skill': 'Skill',
   'workflow': 'Workflow',
   'workflow-stage': 'Workflow Stage',
+  'handoff': 'Handoff',
   'contract': 'Contract',
   'policy': 'Policy',
   'artifact': 'Artifact',
+  'decision': 'Decision',
+  'proposal': 'Proposal',
 }
 
 const STATUS_LABELS: Record<NodeStatus, string> = {
@@ -21,6 +30,9 @@ const STATUS_LABELS: Record<NodeStatus, string> = {
   warning: 'Warning',
   error: 'Error',
   dimmed: 'Dimmed',
+  active: 'Active',
+  proposed: 'Proposed',
+  retired: 'Retired',
 }
 
 const STATUS_COLORS: Record<NodeStatus, string> = {
@@ -28,6 +40,9 @@ const STATUS_COLORS: Record<NodeStatus, string> = {
   warning: 'bg-yellow-500',
   error: 'bg-red-500',
   dimmed: 'bg-slate-400',
+  active: 'bg-green-500',
+  proposed: 'bg-blue-400',
+  retired: 'bg-slate-400',
 }
 
 export function FilterPanel() {

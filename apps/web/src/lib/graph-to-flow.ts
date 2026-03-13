@@ -430,11 +430,76 @@ export function layoutWorkflowStageGraph(graph: VisualGraphDto): FlowGraph {
   return { nodes, edges }
 }
 
+export function layoutTeamGraph(graph: VisualGraphDto): FlowGraph {
+  const nodes: Node[] = []
+
+  // Find the team node
+  const teamNode = graph.nodes.find(
+    (n) => n.nodeType === 'team' && n.entityId === graph.scope.entityId,
+  )
+
+  if (!teamNode) {
+    // Fallback to department-style layout
+    return layoutDepartmentGraph(graph)
+  }
+
+  // Place team node at center top
+  nodes.push(visualNodeToFlowNode(teamNode, { x: 0, y: 0 }))
+  const placed = new Set<string>([teamNode.id])
+
+  // Find coordinator agent
+  const coordinators = graph.nodes.filter(
+    (n) => n.nodeType === 'coordinator-agent' && n.parentId === teamNode.id,
+  )
+  coordinators.forEach((coord, i) => {
+    const totalWidth = (coordinators.length - 1) * NODE_SPACING_X
+    nodes.push(visualNodeToFlowNode(coord, {
+      x: -totalWidth / 2 + i * NODE_SPACING_X,
+      y: NODE_SPACING_Y,
+    }))
+    placed.add(coord.id)
+  })
+
+  // Find specialist agents
+  const specialists = graph.nodes.filter(
+    (n) => n.nodeType === 'specialist-agent' && n.parentId === teamNode.id,
+  )
+  if (specialists.length > 0) {
+    const totalWidth = (specialists.length - 1) * NODE_SPACING_X
+    const startX = -totalWidth / 2
+    specialists.forEach((spec, i) => {
+      nodes.push(visualNodeToFlowNode(spec, {
+        x: startX + i * NODE_SPACING_X,
+        y: NODE_SPACING_Y * 2.5,
+      }))
+      placed.add(spec.id)
+    })
+  }
+
+  // Place remaining orphan nodes (proposals, etc.)
+  const orphans = graph.nodes.filter((n) => !placed.has(n.id))
+  if (orphans.length > 0) {
+    const totalWidth = (orphans.length - 1) * NODE_SPACING_X
+    const startX = -totalWidth / 2
+    orphans.forEach((n, i) => {
+      nodes.push(visualNodeToFlowNode(n, {
+        x: startX + i * NODE_SPACING_X,
+        y: NODE_SPACING_Y * 4,
+      }))
+    })
+  }
+
+  const edges = graph.edges.map(visualEdgeToFlowEdge)
+  return { nodes, edges }
+}
+
 type LayoutFn = (graph: VisualGraphDto) => FlowGraph
 
 const SCOPE_LAYOUTS: Record<ScopeType, LayoutFn> = {
   company: layoutOrgGraph,
   department: layoutDepartmentGraph,
+  team: layoutTeamGraph,
+  'agent-detail': layoutWorkflowStageGraph,
   workflow: layoutWorkflowGraph,
   'workflow-stage': layoutWorkflowStageGraph,
 }

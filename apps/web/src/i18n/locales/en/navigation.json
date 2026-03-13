@@ -1,0 +1,12 @@
+{
+  "breadcrumb": "Breadcrumb",
+  "platform": "Platform",
+  "allProjects": "All projects",
+  "projects": "Projects",
+  "newCompany": "New Company",
+  "goHome": "Go to platform home",
+  "pageNotFound": "Page not found",
+  "pageNotFoundDescription": "The page you are looking for does not exist.",
+  "loadingProjects": "Loading projects...",
+  "noProjectsYet": "No projects yet. Create your first project to get started."
+}

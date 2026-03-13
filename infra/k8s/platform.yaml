@@ -21,6 +21,10 @@ spec:
           env:
             - name: REDIS_URL
               value: redis://redis:6379
+            - name: DATABASE_URL
+              value: postgresql://thecrew:thecrew@postgres:5432/thecrew?search_path=platform
+            - name: PERSISTENCE_MODE
+              value: drizzle
           resources:
             requests:
               cpu: 100m

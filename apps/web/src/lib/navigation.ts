@@ -35,29 +35,29 @@ export const projectNavSections: NavSection[] = [
   {
     title: 'General',
     items: [
-      { label: 'Overview', to: '/projects/$projectId/admin/overview', icon: LayoutDashboard },
-      { label: 'Company Model', to: '/projects/$projectId/admin/company-model', icon: Building2 },
+      { label: 'Overview', to: '/projects/$projectSlug/admin/overview', icon: LayoutDashboard },
+      { label: 'Company Model', to: '/projects/$projectSlug/admin/company-model', icon: Building2 },
     ],
   },
   {
     title: 'Design Studio',
     items: [
-      { label: 'Departments', to: '/projects/$projectId/admin/departments', icon: Network },
-      { label: 'Capabilities', to: '/projects/$projectId/admin/capabilities', icon: Zap },
-      { label: 'Roles', to: '/projects/$projectId/admin/roles', icon: UserCog },
-      { label: 'Agents', to: '/projects/$projectId/admin/agents', icon: Bot },
-      { label: 'Skills', to: '/projects/$projectId/admin/skills', icon: Wrench },
-      { label: 'Contracts', to: '/projects/$projectId/admin/contracts', icon: FileText },
-      { label: 'Workflows', to: '/projects/$projectId/admin/workflows', icon: GitBranch },
-      { label: 'Policies', to: '/projects/$projectId/admin/policies', icon: Shield },
+      { label: 'Departments', to: '/projects/$projectSlug/admin/departments', icon: Network },
+      { label: 'Capabilities', to: '/projects/$projectSlug/admin/capabilities', icon: Zap },
+      { label: 'Roles', to: '/projects/$projectSlug/admin/roles', icon: UserCog },
+      { label: 'Agents', to: '/projects/$projectSlug/admin/agents', icon: Bot },
+      { label: 'Skills', to: '/projects/$projectSlug/admin/skills', icon: Wrench },
+      { label: 'Contracts', to: '/projects/$projectSlug/admin/contracts', icon: FileText },
+      { label: 'Workflows', to: '/projects/$projectSlug/admin/workflows', icon: GitBranch },
+      { label: 'Policies', to: '/projects/$projectSlug/admin/policies', icon: Shield },
     ],
   },
   {
     title: 'Governance',
     items: [
-      { label: 'Releases', to: '/projects/$projectId/admin/releases', icon: Tag },
-      { label: 'Validations', to: '/projects/$projectId/admin/validations', icon: ClipboardCheck },
-      { label: 'Audit', to: '/projects/$projectId/admin/audit', icon: History },
+      { label: 'Releases', to: '/projects/$projectSlug/admin/releases', icon: Tag },
+      { label: 'Validations', to: '/projects/$projectSlug/admin/validations', icon: ClipboardCheck },
+      { label: 'Audit', to: '/projects/$projectSlug/admin/audit', icon: History },
     ],
   },
 ]

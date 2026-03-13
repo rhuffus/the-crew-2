@@ -32,7 +32,7 @@ describe('useEntityDetail', () => {
   })
 
   it('should not fetch for non-editable node types', () => {
-    renderHook(() => useEntityDetail('p1', 'company', 'abc'), { wrapper })
+    renderHook(() => useEntityDetail('p1', 'workflow-stage', 'abc'), { wrapper })
     expect(mockFetch).not.toHaveBeenCalled()
   })
 

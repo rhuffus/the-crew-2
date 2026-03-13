@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { BootstrapService } from './bootstrap.service'
+import { LegacyBootstrapService } from './legacy-bootstrap.service'
 import { InMemoryCompanyModelRepository } from '../company-model/infra/in-memory-company-model.repository'
 import { InMemoryDepartmentRepository } from '../departments/infra/in-memory-department.repository'
 import { InMemoryCapabilityRepository } from '../capabilities/infra/in-memory-capability.repository'
@@ -15,8 +15,8 @@ import { CompanyModel } from '../company-model/domain/company-model'
 import { VERTICALER_PROJECT_ID } from '@the-crew/shared-types'
 import { DEPT, CAP, ROLE, SKILL, ARCH, ASGN, CONT, WKFL, PLCY, ARTF } from './verticaler-seed'
 
-describe('BootstrapService (company-design)', () => {
-  let service: BootstrapService
+describe('LegacyBootstrapService (company-design)', () => {
+  let service: LegacyBootstrapService
   let companyModelRepo: InMemoryCompanyModelRepository
   let departmentRepo: InMemoryDepartmentRepository
   let capabilityRepo: InMemoryCapabilityRepository
@@ -42,7 +42,7 @@ describe('BootstrapService (company-design)', () => {
     policyRepo = new InMemoryPolicyRepository()
     artifactRepo = new InMemoryArtifactRepository()
 
-    service = new BootstrapService(
+    service = new LegacyBootstrapService(
       companyModelRepo,
       departmentRepo,
       capabilityRepo,

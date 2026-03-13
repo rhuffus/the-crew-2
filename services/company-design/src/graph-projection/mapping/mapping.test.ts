@@ -303,6 +303,110 @@ describe('mapNodes', () => {
     expect(contract!.parentId).toBeNull()
   })
 
+  // ── v3 node mapping ─────────────────────────────────────────────
+
+  it('should create UO company node replacing legacy company node', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-co', uoType: 'company', name: 'LiveCo', mandate: 'Build things', parentUoId: null, status: 'active' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const companies = nodes.filter(n => n.nodeType === 'company')
+    expect(companies).toHaveLength(1)
+    expect(companies[0]!.label).toBe('LiveCo')
+    expect(companies[0]!.sublabel).toBe('Build things')
+    expect(companies[0]!.entityId).toBe('uo-co')
+  })
+
+  it('should create UO department node with correct parent', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-co', uoType: 'company', name: 'LiveCo', mandate: '', parentUoId: null, status: 'active' } as never,
+        { id: 'uo-d1', uoType: 'department', name: 'Engineering', mandate: 'Build', parentUoId: 'uo-co', status: 'active' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const dept = nodes.find(n => n.entityId === 'uo-d1')
+    expect(dept).toBeDefined()
+    expect(dept!.nodeType).toBe('department')
+    expect(dept!.parentId).toBe('company:uo-co')
+  })
+
+  it('should create UO team node', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-co', uoType: 'company', name: 'Co', mandate: '', parentUoId: null, status: 'active' } as never,
+        { id: 'uo-t1', uoType: 'team', name: 'Alpha', mandate: 'Ship fast', parentUoId: 'uo-co', status: 'active' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const team = nodes.find(n => n.entityId === 'uo-t1')
+    expect(team).toBeDefined()
+    expect(team!.nodeType).toBe('team')
+    expect(team!.id).toBe('team:uo-t1')
+  })
+
+  it('should create coordinator-agent node with UO as parent', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-t1', uoType: 'team', name: 'Alpha', mandate: '', parentUoId: null, status: 'active' } as never,
+      ],
+      agents: [
+        { id: 'ag1', agentType: 'coordinator', name: 'Team Lead', role: 'Coordinates work', uoId: 'uo-t1' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const agent = nodes.find(n => n.entityId === 'ag1')
+    expect(agent).toBeDefined()
+    expect(agent!.nodeType).toBe('coordinator-agent')
+    expect(agent!.id).toBe('coord:ag1')
+    expect(agent!.parentId).toBe('team:uo-t1')
+    expect(agent!.sublabel).toBe('Coordinates work')
+  })
+
+  it('should create specialist-agent node', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-t1', uoType: 'team', name: 'Alpha', mandate: '', parentUoId: null, status: 'active' } as never,
+      ],
+      agents: [
+        { id: 'ag2', agentType: 'specialist', name: 'Dev Agent', role: 'Writes code', uoId: 'uo-t1' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const agent = nodes.find(n => n.entityId === 'ag2')
+    expect(agent).toBeDefined()
+    expect(agent!.nodeType).toBe('specialist-agent')
+    expect(agent!.id).toBe('spec:ag2')
+  })
+
+  it('should create proposal node in governance layer', () => {
+    const snapshot = createSnapshot({
+      proposals: [
+        { id: 'prop1', title: 'Create Dept', proposalType: 'create-unit', status: 'proposed', motivation: 'We need one', expectedBenefit: 'Better org' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const proposal = nodes.find(n => n.entityId === 'prop1')
+    expect(proposal).toBeDefined()
+    expect(proposal!.nodeType).toBe('proposal')
+    expect(proposal!.id).toBe('proposal:prop1')
+    expect(proposal!.layerIds).toEqual(['governance'])
+    expect(proposal!.sublabel).toBe('create-unit · proposed')
+  })
+
+  it('should set error status for rejected proposals', () => {
+    const snapshot = createSnapshot({
+      proposals: [
+        { id: 'prop1', title: 'Bad Idea', proposalType: 'create-unit', status: 'rejected' } as never,
+      ],
+    })
+    const nodes = mapNodes(snapshot, PROJECT_ID)
+    const proposal = nodes.find(n => n.entityId === 'prop1')
+    expect(proposal!.status).toBe('error')
+  })
+
   it('should create policy node with type and enforcement sublabel', () => {
     const snapshot = createSnapshot({
       policies: [
@@ -559,6 +663,84 @@ describe('extractEdges', () => {
     expect(governs[0]!.targetId).toBe('company:p1')
     expect(governs[0]!.style).toBe('dashed')
     expect(governs[0]!.layerIds).toEqual(['governance'])
+  })
+
+  // ── v3 edges ──────────────────────────────────────────────────────
+
+  it('should extract contains edge for UO parent-child hierarchy', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-co', uoType: 'company', name: 'TestCo', mandate: '', parentUoId: null, status: 'active' } as never,
+        { id: 'uo-d1', uoType: 'department', name: 'Eng', mandate: '', parentUoId: 'uo-co', status: 'active' } as never,
+      ],
+    })
+    const edges = extractEdges(snapshot, PROJECT_ID)
+    const contains = edges.filter(e => e.edgeType === 'contains')
+    expect(contains).toHaveLength(1)
+    expect(contains[0]!.sourceId).toBe('company:uo-co')
+    expect(contains[0]!.targetId).toBe('dept:uo-d1')
+    expect(contains[0]!.layerIds).toEqual(['organization'])
+  })
+
+  it('should extract led_by edge for coordinator agent (UO -> agent)', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-t1', uoType: 'team', name: 'Alpha', mandate: '', parentUoId: null, status: 'active' } as never,
+      ],
+      agents: [
+        { id: 'ag1', agentType: 'coordinator', name: 'Lead', role: 'Leads team', uoId: 'uo-t1' } as never,
+      ],
+    })
+    const edges = extractEdges(snapshot, PROJECT_ID)
+    const ledBy = edges.filter(e => e.edgeType === 'led_by')
+    expect(ledBy).toHaveLength(1)
+    expect(ledBy[0]!.sourceId).toBe('team:uo-t1')
+    expect(ledBy[0]!.targetId).toBe('coord:ag1')
+  })
+
+  it('should extract belongs_to edge for specialist agent', () => {
+    const snapshot = createSnapshot({
+      organizationalUnits: [
+        { id: 'uo-t1', uoType: 'team', name: 'Alpha', mandate: '', parentUoId: null, status: 'active' } as never,
+      ],
+      agents: [
+        { id: 'ag2', agentType: 'specialist', name: 'Dev', role: 'Developer', uoId: 'uo-t1' } as never,
+      ],
+    })
+    const edges = extractEdges(snapshot, PROJECT_ID)
+    const belongsTo = edges.filter(e => e.edgeType === 'belongs_to')
+    expect(belongsTo).toHaveLength(1)
+    expect(belongsTo[0]!.sourceId).toBe('spec:ag2')
+    expect(belongsTo[0]!.targetId).toBe('team:uo-t1')
+    expect(belongsTo[0]!.style).toBe('dashed')
+  })
+
+  it('should extract proposed_by edge for proposal with agent', () => {
+    const snapshot = createSnapshot({
+      agents: [
+        { id: 'ag1', agentType: 'coordinator', name: 'CEO', role: 'CEO', uoId: 'uo1' } as never,
+      ],
+      proposals: [
+        { id: 'prop1', title: 'Create Dept', proposalType: 'create-unit', status: 'proposed', proposedByAgentId: 'ag1' } as never,
+      ],
+    })
+    const edges = extractEdges(snapshot, PROJECT_ID)
+    const proposedBy = edges.filter(e => e.edgeType === 'proposed_by')
+    expect(proposedBy).toHaveLength(1)
+    expect(proposedBy[0]!.sourceId).toBe('proposal:prop1')
+    expect(proposedBy[0]!.targetId).toBe('coord:ag1')
+    expect(proposedBy[0]!.layerIds).toEqual(['governance'])
+  })
+
+  it('should not extract proposed_by when agent is not found', () => {
+    const snapshot = createSnapshot({
+      proposals: [
+        { id: 'prop1', title: 'Create Dept', proposalType: 'create-unit', status: 'proposed', proposedByAgentId: 'nonexistent' } as never,
+      ],
+    })
+    const edges = extractEdges(snapshot, PROJECT_ID)
+    const proposedBy = edges.filter(e => e.edgeType === 'proposed_by')
+    expect(proposedBy).toHaveLength(0)
   })
 
   it('should extract governs edge from department-scoped policy to department', () => {

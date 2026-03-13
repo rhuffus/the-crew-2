@@ -4,16 +4,21 @@ description: Sincroniza el backlog actual de TheCrew y devuelve la siguiente tar
 argument-hint: ""
 ---
 
-Objetivo: decidir la siguiente tarea correcta para TheCrew en la fase actual.
+Objetivo: decidir la siguiente tarea correcta de la fase activa.
 
 Instrucciones:
 1. Leer `CLAUDE.md`.
-2. Leer `docs/03-backlog-completo.md`.
-3. Leer `docs/09-task-registry.md`.
-4. Leer `docs/25-verticaler-reference-company-spec.md`.
-5. Si la tarea afecta al canvas, leer también `docs/18-canvas-editor-v2-spec.md`.
-6. Identificar la siguiente tarea desbloqueada.
-7. Responder exactamente con este formato:
+2. Detectar la fase activa:
+   - si el proyecto está en **Live Company Pivot**, leer `docs/39-live-company-task-registry.md` y `docs/38-live-company-backlog-v5.md`
+   - si no, usar el registry/backlog activos anteriores
+3. Leer además, cuando aplique:
+   - `docs/31-live-company-pivot-decision.md`
+   - `docs/33-live-company-domain-model.md`
+   - `docs/34-live-company-canvas-v3-spec.md`
+   - `docs/35-live-company-growth-protocol.md`
+   - `docs/36-live-company-runtime-live-mode-spec.md`
+4. Identificar la siguiente tarea desbloqueada.
+5. Responder exactamente con este formato:
    - `next-task:` task-id
    - `why-now:` explicación corta
    - `depends-on:` dependencias satisfechas o faltantes
@@ -23,5 +28,5 @@ Instrucciones:
    - `run-now:` `/tc-run <task-id>`
    - `restart-with:` `.claude/bin/tc-plan` | `.claude/bin/tc-edit` | `not-needed`
    - `notes:` riesgos, foco y sincronización documental requerida
-8. No pedir prompt adicional.
-9. No empezar a implementar nada.
+6. No pedir prompt adicional.
+7. No empezar a implementar nada.

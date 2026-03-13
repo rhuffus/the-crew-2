@@ -55,8 +55,6 @@ vi.mock('@/stores/visual-workspace-store', () => {
     setActivePreset: vi.fn(),
     clearActivePreset: vi.fn(),
     currentScope: { scopeType: 'workflow', entityId: 'wf1', zoomLevel: 'L3' },
-    canvasMode: 'select',
-    setCanvasMode: vi.fn(),
     isDiffMode: false,
     preselectedEdgeType: null,
     toggleKeyboardHelp: vi.fn(),

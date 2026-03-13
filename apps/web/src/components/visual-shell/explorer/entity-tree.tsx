@@ -17,6 +17,13 @@ import {
   Plus,
   Minus,
   PenLine,
+  UsersRound,
+  BrainCircuit,
+  Target,
+  Zap,
+  Globe,
+  Gavel,
+  MessageSquarePlus,
 } from 'lucide-react'
 import type { NodeType, VisualNodeDto, VisualDiffStatus } from '@the-crew/shared-types'
 import { cn } from '@/lib/utils'
@@ -25,6 +32,12 @@ import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 const NODE_TYPE_CONFIG: Record<NodeType, { label: string; icon: typeof Building2 }> = {
   company: { label: 'Companies', icon: Building2 },
   department: { label: 'Departments', icon: Users },
+  team: { label: 'Team', icon: UsersRound },
+  'coordinator-agent': { label: 'Coordinator Agent', icon: BrainCircuit },
+  'specialist-agent': { label: 'Specialist Agent', icon: Bot },
+  objective: { label: 'Objective', icon: Target },
+  'event-trigger': { label: 'Event Trigger', icon: Zap },
+  'external-source': { label: 'External Source', icon: Globe },
   role: { label: 'Roles', icon: UserCog },
   'agent-archetype': { label: 'Agent Archetypes', icon: Bot },
   'agent-assignment': { label: 'Agent Assignments', icon: UserMinus },
@@ -32,14 +45,23 @@ const NODE_TYPE_CONFIG: Record<NodeType, { label: string; icon: typeof Building2
   skill: { label: 'Skills', icon: Sparkles },
   workflow: { label: 'Workflows', icon: GitBranch },
   'workflow-stage': { label: 'Workflow Stages', icon: ArrowRightLeft },
+  handoff: { label: 'Handoff', icon: ArrowRightLeft },
   contract: { label: 'Contracts', icon: FileText },
   policy: { label: 'Policies', icon: Shield },
   artifact: { label: 'Artifact', icon: FileBox },
+  decision: { label: 'Decision', icon: Gavel },
+  proposal: { label: 'Proposal', icon: MessageSquarePlus },
 }
 
 const NODE_TYPE_ORDER: NodeType[] = [
   'company',
   'department',
+  'team',
+  'coordinator-agent',
+  'specialist-agent',
+  'objective',
+  'event-trigger',
+  'external-source',
   'role',
   'agent-archetype',
   'agent-assignment',
@@ -47,8 +69,12 @@ const NODE_TYPE_ORDER: NodeType[] = [
   'skill',
   'workflow',
   'workflow-stage',
+  'handoff',
   'contract',
   'policy',
+  'artifact',
+  'decision',
+  'proposal',
 ]
 
 const DIFF_BADGE_CONFIG: Record<VisualDiffStatus, { icon: typeof Plus; colorClass: string; label: string } | null> = {
@@ -79,7 +105,9 @@ function getGroupDiffSummary(nodes: VisualNodeDto[]): string | null {
 }
 
 export function EntityTree() {
-  const { graphNodes, selectedNodeIds, isDiffMode, selectNodes, focusNode } = useVisualWorkspaceStore()
+  const graphNodes = useVisualWorkspaceStore((s) => s.graphNodes)
+  const selectedNodeIds = useVisualWorkspaceStore((s) => s.selectedNodeIds)
+  const isDiffMode = useVisualWorkspaceStore((s) => s.isDiffMode)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<NodeType>>(new Set())
 
   const groupedNodes = NODE_TYPE_ORDER.reduce<[NodeType, VisualNodeDto[]][]>((acc, nodeType) => {
@@ -108,8 +136,9 @@ export function EntityTree() {
   }
 
   const handleNodeClick = (nodeId: string) => {
-    selectNodes([nodeId])
-    focusNode(nodeId)
+    const state = useVisualWorkspaceStore.getState()
+    state.selectNodes([nodeId])
+    state.focusNode(nodeId)
   }
 
   return (

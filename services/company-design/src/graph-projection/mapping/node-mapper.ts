@@ -219,5 +219,107 @@ export function mapNodes(snapshot: ReleaseSnapshotDto, projectId: string): Visua
     })
   }
 
+  // ── Live Company Pivot: v3 entities ────────────────────────────────
+
+  const hasUos = (snapshot.organizationalUnits ?? []).length > 0
+
+  // Organizational Unit nodes (company / department / team)
+  for (const uo of snapshot.organizationalUnits ?? []) {
+    const uoNodeType = uo.uoType === 'company' ? 'company'
+      : uo.uoType === 'department' ? 'department'
+      : 'team'
+
+    // If UOs exist and there's a company UO, skip the legacy company node
+    if (uo.uoType === 'company') {
+      // Replace the legacy company node if it exists
+      const legacyIdx = nodes.findIndex(n => n.nodeType === 'company')
+      const companyNode: VisualNodeDto = {
+        id: visualNodeId('company', uo.id),
+        nodeType: 'company',
+        entityId: uo.id,
+        label: uo.name,
+        sublabel: truncate(uo.mandate, 50),
+        position: null,
+        collapsed: false,
+        status: uo.status === 'active' ? 'normal' : uo.status === 'proposed' ? 'proposed' as never : 'normal',
+        layerIds: ['organization'],
+        parentId: null,
+      }
+      if (legacyIdx >= 0) {
+        nodes[legacyIdx] = companyNode
+      } else {
+        nodes.push(companyNode)
+      }
+      continue
+    }
+
+    const parentId = uo.parentUoId
+      ? visualNodeId(
+          (snapshot.organizationalUnits ?? []).find(p => p.id === uo.parentUoId)?.uoType === 'company'
+            ? 'company'
+            : (snapshot.organizationalUnits ?? []).find(p => p.id === uo.parentUoId)?.uoType === 'team'
+              ? 'team'
+              : 'department',
+          uo.parentUoId,
+        )
+      : hasUos
+        ? visualNodeId('company', (snapshot.organizationalUnits ?? []).find(c => c.uoType === 'company')?.id ?? projectId)
+        : null
+
+    nodes.push({
+      id: visualNodeId(uoNodeType, uo.id),
+      nodeType: uoNodeType,
+      entityId: uo.id,
+      label: uo.name,
+      sublabel: truncate(uo.mandate, 50),
+      position: null,
+      collapsed: false,
+      status: 'normal',
+      layerIds: ['organization'],
+      parentId,
+    })
+  }
+
+  // LCP Agent nodes (coordinator / specialist)
+  for (const agent of snapshot.agents ?? []) {
+    const agentNodeType = agent.agentType === 'coordinator' ? 'coordinator-agent' : 'specialist-agent'
+    const parentUo = (snapshot.organizationalUnits ?? []).find(u => u.id === agent.uoId)
+    const parentNodeType = parentUo?.uoType === 'company' ? 'company'
+      : parentUo?.uoType === 'team' ? 'team'
+      : 'department'
+    const parentId = parentUo
+      ? visualNodeId(parentNodeType, parentUo.id)
+      : null
+
+    nodes.push({
+      id: visualNodeId(agentNodeType, agent.id),
+      nodeType: agentNodeType,
+      entityId: agent.id,
+      label: agent.name,
+      sublabel: truncate(agent.role, 50),
+      position: null,
+      collapsed: false,
+      status: 'normal',
+      layerIds: ['organization'],
+      parentId,
+    })
+  }
+
+  // Proposal nodes
+  for (const proposal of snapshot.proposals ?? []) {
+    nodes.push({
+      id: visualNodeId('proposal', proposal.id),
+      nodeType: 'proposal',
+      entityId: proposal.id,
+      label: proposal.title,
+      sublabel: `${proposal.proposalType} · ${proposal.status}`,
+      position: null,
+      collapsed: false,
+      status: proposal.status === 'rejected' ? 'error' : 'normal',
+      layerIds: ['governance'],
+      parentId: null,
+    })
+  }
+
   return nodes
 }

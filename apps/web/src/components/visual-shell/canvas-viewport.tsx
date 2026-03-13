@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
+  applyNodeChanges,
   type ReactFlowInstance,
   type Node,
   type Edge,
+  type NodeChange,
   type Connection,
   type OnSelectionChangeParams,
   type NodeMouseHandler,
@@ -15,7 +17,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import type { EdgeType, NodeType, VisualEdgeDto } from '@the-crew/shared-types'
 import { CONNECTION_RULES } from '@the-crew/shared-types'
-import { useVisualWorkspaceStore, type CanvasMode } from '@/stores/visual-workspace-store'
+import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import {
   validateConnection,
   getValidTargetTypes,
@@ -23,7 +25,6 @@ import {
   isAmbiguousConnection,
 } from '@/lib/connection-validator'
 import { requiresMetadata, NON_CREATABLE_EDGE_TYPES } from '@/lib/relationship-mutations'
-import { getNodePaletteItems } from '@/lib/palette-data'
 import { usePermission } from '@/hooks/use-permissions'
 import { visualNodeTypes } from './nodes'
 import { CanvasToolbar } from './canvas-toolbar'
@@ -33,6 +34,13 @@ import { EdgeDeleteConfirm } from './edge-delete-confirm'
 import { TransitionWrapper } from './transition-wrapper'
 import { KeyboardShortcutsHelp } from './keyboard-shortcuts-help'
 import { CanvasContextMenu } from './context-menu'
+
+// Stable object references — avoid recreating on every render
+const EMPTY_NODES: Node[] = []
+const EMPTY_EDGES: Edge[] = []
+const CONNECTION_LINE_STYLE = { stroke: '#3b82f6', strokeWidth: 2 }
+const PRO_OPTIONS = { hideAttribution: true }
+const FIT_VIEW_OPTIONS = { maxZoom: 1, padding: 0.2 }
 
 export interface CanvasViewportProps {
   nodes?: Node[]
@@ -58,18 +66,9 @@ function arraysEqual(a: string[], b: string[]): boolean {
   return true
 }
 
-// Mode-driven cursor classes for the ReactFlow pane
-const CURSOR_CLASSES: Record<CanvasMode, string> = {
-  select: '',
-  pan: '[&_.react-flow__pane]:cursor-grab',
-  connect: '[&_.react-flow__pane]:cursor-crosshair',
-  'add-node': '[&_.react-flow__pane]:cursor-cell',
-  'add-edge': '[&_.react-flow__pane]:cursor-crosshair',
-}
-
 export function CanvasViewport({
-  nodes: externalNodes = [],
-  edges: externalEdges = [],
+  nodes: externalNodes = EMPTY_NODES,
+  edges: externalEdges = EMPTY_EDGES,
   isLoading = false,
   error = null,
   onNodeDoubleClick,
@@ -84,15 +83,18 @@ export function CanvasViewport({
 }: CanvasViewportProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rfInstance = useRef<ReactFlowInstance<any, any> | null>(null)
-  const {
-    selectedNodeIds, selectedEdgeIds, focusNodeId, clearFocus,
-    selectNodes, selectEdges, clearSelection,
-    pendingConnection, edgeTypePicker, metadataInput, deleteConfirm,
-    transitionDirection, clearTransition,
-    canvasMode, addEdgeSource, setAddEdgeSource, isDiffMode, zoomLevel,
-    preselectedEdgeType,
-    showContextMenu, dismissContextMenu,
-  } = useVisualWorkspaceStore()
+  // ── Reactive state — individual selectors prevent cross-slice re-renders ──
+  const selectedNodeIds = useVisualWorkspaceStore((s) => s.selectedNodeIds)
+  const selectedEdgeIds = useVisualWorkspaceStore((s) => s.selectedEdgeIds)
+  const focusNodeId = useVisualWorkspaceStore((s) => s.focusNodeId)
+  const pendingConnection = useVisualWorkspaceStore((s) => s.pendingConnection)
+  const addEdgeSource = useVisualWorkspaceStore((s) => s.addEdgeSource)
+  const preselectedEdgeType = useVisualWorkspaceStore((s) => s.preselectedEdgeType)
+  const transitionDirection = useVisualWorkspaceStore((s) => s.transitionDirection)
+  const edgeTypePicker = useVisualWorkspaceStore((s) => s.edgeTypePicker)
+  const metadataInput = useVisualWorkspaceStore((s) => s.metadataInput)
+  const deleteConfirm = useVisualWorkspaceStore((s) => s.deleteConfirm)
+  // Actions accessed via getState() inside callbacks — no subscription overhead
 
   // Permission checks (CAV-020)
   const canMoveNodes = usePermission('canvas:node:move')
@@ -101,22 +103,15 @@ export function CanvasViewport({
   const canCreateNodes = usePermission('canvas:node:create')
   const canDeleteNodes = usePermission('canvas:node:delete')
 
-  // Add-node floating menu state
-  const [addNodeMenu, setAddNodeMenu] = useState<{ x: number; y: number } | null>(null)
-  const addNodeMenuRef = useRef<HTMLDivElement>(null)
-
-  // Effective mode: diff mode locks to select
-  const effectiveMode = isDiffMode ? 'select' : canvasMode
-
-  // Mode-driven ReactFlow props (gated by permissions)
-  const nodesDraggable = canMoveNodes && (effectiveMode === 'select' || effectiveMode === 'add-node')
-  const nodesConnectable = canCreateEdges && (effectiveMode === 'select' || effectiveMode === 'connect')
-  const panOnDrag = effectiveMode !== 'add-edge'
+  // Unified interaction: always allow (gated only by permissions)
+  const nodesDraggable = canMoveNodes
+  const nodesConnectable = canCreateEdges
+  const panOnDrag = true
 
   // Compute effective pending connection for dimming/highlighting (memoized)
   const effectivePendingConnection = useMemo(() => {
     if (pendingConnection) return pendingConnection
-    if (effectiveMode !== 'add-edge' || !addEdgeSource) return null
+    if (!addEdgeSource) return null
     const graphNodes = useVisualWorkspaceStore.getState().graphNodes
     const sourceNode = graphNodes.find((n) => n.id === addEdgeSource)
     if (!sourceNode) return null
@@ -136,11 +131,37 @@ export function CanvasViewport({
       sourceNodeType: sourceNode.nodeType,
       validTargetTypes: validTargets,
     }
-  }, [pendingConnection, effectiveMode, addEdgeSource, preselectedEdgeType])
+  }, [pendingConnection, addEdgeSource, preselectedEdgeType])
 
-  // Apply selection + connection/mode feedback to nodes (memoized)
-  const nodesWithState = useMemo(() => externalNodes.map((n) => {
-    const isAddEdgeSourceNode = effectiveMode === 'add-edge' && addEdgeSource === n.id
+  // ── Local node state for ReactFlow controlled mode ──
+  // ReactFlow REQUIRES onNodesChange to visually move nodes during drag.
+  // localNodes = externalNodes + drag position overrides.
+  const [localNodes, setLocalNodes] = useState<Node[]>(externalNodes)
+
+  // Sync from external data at render time (no useEffect — avoids extra mount render
+  // that triggers ReactFlow's updateNodeInternals loop).
+  const prevExternalRef = useRef(externalNodes)
+  if (prevExternalRef.current !== externalNodes) {
+    prevExternalRef.current = externalNodes
+    setLocalNodes(externalNodes)
+  }
+
+  // Handle ReactFlow node changes — ONLY apply active-drag position changes.
+  // ReactFlow's updateNodeInternals fires dimension/position changes internally;
+  // filtering to `dragging === true` prevents the infinite re-render loop.
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    const dragChanges = changes.filter(
+      (c): c is NodeChange & { type: 'position'; dragging: true } =>
+        c.type === 'position' && 'dragging' in c && (c as { dragging?: boolean }).dragging === true,
+    )
+    if (dragChanges.length > 0) {
+      setLocalNodes((nds) => applyNodeChanges(dragChanges, nds))
+    }
+  }, [])
+
+  // Apply selection + connection feedback to nodes (memoized).
+  const renderNodes = useMemo(() => localNodes.map((n) => {
+    const isAddEdgeSourceNode = addEdgeSource === n.id
     const selected = selectedNodeIds.includes(n.id) || isAddEdgeSourceNode
     let connectionDimmed = false
     let connectionHighlight = false
@@ -159,16 +180,19 @@ export function CanvasViewport({
       }
     }
 
+    // Only create new data object if overlay values actually changed — preserves
+    // reference identity so React.memo on VisualNode can skip re-renders.
+    const prevData = n.data as Record<string, unknown>
+    const data = (prevData.connectionDimmed !== connectionDimmed || prevData.connectionHighlight !== connectionHighlight)
+      ? { ...n.data, connectionDimmed, connectionHighlight }
+      : n.data
+
     return {
       ...n,
       selected,
-      data: {
-        ...n.data,
-        connectionDimmed,
-        connectionHighlight,
-      },
+      data,
     }
-  }), [externalNodes, selectedNodeIds, effectivePendingConnection, effectiveMode, addEdgeSource])
+  }), [localNodes, selectedNodeIds, effectivePendingConnection, addEdgeSource])
 
   const edgesWithSelection = useMemo(() => externalEdges.map((e) => ({
     ...e,
@@ -188,8 +212,8 @@ export function CanvasViewport({
         })
       }
     }
-    clearFocus()
-  }, [focusNodeId, clearFocus])
+    useVisualWorkspaceStore.getState().clearFocus()
+  }, [focusNodeId])
 
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes, edges: selectedEdges }: OnSelectionChangeParams) => {
@@ -202,14 +226,14 @@ export function CanvasViewport({
       }
 
       if (selectedNodes.length > 0) {
-        selectNodes(newNodeIds)
+        state.selectNodes(newNodeIds)
       } else if (selectedEdges.length > 0) {
-        selectEdges(newEdgeIds)
+        state.selectEdges(newEdgeIds)
       } else {
-        clearSelection()
+        state.clearSelection()
       }
     },
-    [selectNodes, selectEdges, clearSelection],
+    [],
   )
 
   // Keyboard handler for F (fit view) and Delete/Backspace (edge deletion)
@@ -222,7 +246,7 @@ export function CanvasViewport({
       // F key: fit view (no modifiers)
       if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
         e.preventDefault()
-        rfInstance.current?.fitView({ duration: 300 })
+        rfInstance.current?.fitView({ duration: 300, ...FIT_VIEW_OPTIONS })
         return
       }
 
@@ -284,36 +308,6 @@ export function CanvasViewport({
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
-  // Close add-node menu on click outside
-  useEffect(() => {
-    if (!addNodeMenu) return
-    const handler = (e: MouseEvent) => {
-      if (addNodeMenuRef.current && !addNodeMenuRef.current.contains(e.target as globalThis.Node)) {
-        setAddNodeMenu(null)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [addNodeMenu])
-
-  // Close add-node menu on Escape
-  useEffect(() => {
-    if (!addNodeMenu) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        setAddNodeMenu(null)
-      }
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [addNodeMenu])
-
-  // Close add-node menu on mode change
-  useEffect(() => {
-    setAddNodeMenu(null)
-  }, [canvasMode])
-
   // Context menu handlers (CAV-008)
   const handleNodeContextMenu = useCallback(
     (event: React.MouseEvent, node: Node) => {
@@ -322,134 +316,140 @@ export function CanvasViewport({
       const menuType = state.selectedNodeIds.length > 1 && state.selectedNodeIds.includes(node.id)
         ? 'multi-select' as const
         : 'node' as const
-      showContextMenu(event.clientX, event.clientY, menuType, node.id)
+      state.showContextMenu(event.clientX, event.clientY, menuType, node.id)
     },
-    [showContextMenu],
+    [],
   )
 
   const handleEdgeContextMenu = useCallback(
     (event: React.MouseEvent, edge: Edge) => {
       event.preventDefault()
-      showContextMenu(event.clientX, event.clientY, 'edge', edge.id)
+      useVisualWorkspaceStore.getState().showContextMenu(event.clientX, event.clientY, 'edge', edge.id)
     },
-    [showContextMenu],
+    [],
   )
 
   const handlePaneContextMenu = useCallback(
     (event: MouseEvent | React.MouseEvent) => {
       event.preventDefault()
-      showContextMenu(event.clientX, event.clientY, 'pane')
+      useVisualWorkspaceStore.getState().showContextMenu(event.clientX, event.clientY, 'pane')
     },
-    [showContextMenu],
+    [],
   )
 
-  // Pane click handler for add-node mode
+  // Pane click handler
   const handlePaneClick = useCallback(
-    (event: React.MouseEvent) => {
-      // Dismiss context menu on left click
-      if (useVisualWorkspaceStore.getState().contextMenu) {
-        dismissContextMenu()
+    (_event: React.MouseEvent) => {
+      const state = useVisualWorkspaceStore.getState()
+      if (state.contextMenu) {
+        state.dismissContextMenu()
         return
       }
-      if (effectiveMode === 'add-node' && onAddEntity && canCreateNodes) {
-        const items = getNodePaletteItems(useVisualWorkspaceStore.getState().zoomLevel)
-        if (items.length > 0) {
-          setAddNodeMenu({ x: event.clientX, y: event.clientY })
-        }
-        return
-      }
-      // Cancel add-edge source on pane click
-      if (effectiveMode === 'add-edge' && addEdgeSource) {
-        setAddEdgeSource(null)
+      if (state.addEdgeSource) {
+        state.setAddEdgeSource(null)
       }
     },
-    [effectiveMode, onAddEntity, canCreateNodes, addEdgeSource, setAddEdgeSource, dismissContextMenu],
+    [],
   )
 
-  // Node click handler for add-edge mode
+  // Node click handler: select node in normal mode, or handle edge creation
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
-      if (effectiveMode !== 'add-edge') return
+      const state = useVisualWorkspaceStore.getState()
+
+      // Normal mode: explicitly select this node for inspector
+      if (!state.addEdgeSource && !state.preselectedEdgeType) {
+        state.selectNodes([node.id])
+        return
+      }
       if (!canCreateEdges) return
 
-      if (!addEdgeSource) {
-        setAddEdgeSource(node.id)
+      if (!state.addEdgeSource) {
+        // preselectedEdgeType is set but no source yet — set this as source
+        state.setAddEdgeSource(node.id)
         return
       }
 
       // Same node → cancel
-      if (addEdgeSource === node.id) {
-        setAddEdgeSource(null)
+      if (state.addEdgeSource === node.id) {
+        state.setAddEdgeSource(null)
         return
       }
 
       // Validate and create edge
-      const { graphNodes, showEdgeTypePicker, showMetadataInput, preselectedEdgeType: preselected } = useVisualWorkspaceStore.getState()
-      const sourceNode = graphNodes.find((n) => n.id === addEdgeSource)
-      const targetNode = graphNodes.find((n) => n.id === node.id)
+      const sourceNode = state.graphNodes.find((n) => n.id === state.addEdgeSource)
+      const targetNode = state.graphNodes.find((n) => n.id === node.id)
       if (!sourceNode || !targetNode) {
-        setAddEdgeSource(null)
+        state.setAddEdgeSource(null)
         return
       }
 
       if (isSelfLoop(sourceNode.entityId, targetNode.entityId)) {
-        setAddEdgeSource(null)
+        state.setAddEdgeSource(null)
         return
       }
 
       // When a preselected edge type is set from the relationship palette,
       // check if it's valid for this source→target pair and use it directly
-      if (preselected) {
+      if (state.preselectedEdgeType) {
         const rule = CONNECTION_RULES.find(
           (r) =>
-            r.edgeType === preselected &&
+            r.edgeType === state.preselectedEdgeType &&
             r.sourceTypes.includes(sourceNode.nodeType) &&
             r.targetTypes.includes(targetNode.nodeType),
         )
         if (!rule) {
-          setAddEdgeSource(null)
+          state.setAddEdgeSource(null)
           return
         }
-        if (requiresMetadata(preselected)) {
-          showMetadataInput(preselected, addEdgeSource, node.id)
-          setAddEdgeSource(null)
+        if (requiresMetadata(state.preselectedEdgeType)) {
+          state.showMetadataInput(state.preselectedEdgeType, state.addEdgeSource, node.id)
+          state.setAddEdgeSource(null)
           return
         }
-        onEdgeCreate?.(preselected, addEdgeSource, node.id)
-        setAddEdgeSource(null)
+        onEdgeCreate?.(state.preselectedEdgeType, state.addEdgeSource, node.id)
+        state.setAddEdgeSource(null)
+        state.setPreselectedEdgeType(null)
         return
       }
 
       const validation = validateConnection(sourceNode.nodeType, targetNode.nodeType, CONNECTION_RULES)
       if (!validation.valid) {
-        setAddEdgeSource(null)
+        state.setAddEdgeSource(null)
         return
       }
 
       if (isAmbiguousConnection(validation)) {
-        showEdgeTypePicker(validation.possibleEdgeTypes, addEdgeSource, node.id)
-        setAddEdgeSource(null)
+        state.showEdgeTypePicker(validation.possibleEdgeTypes, state.addEdgeSource, node.id)
+        state.setAddEdgeSource(null)
         return
       }
 
       const edgeType = validation.possibleEdgeTypes[0]!
 
       if (requiresMetadata(edgeType)) {
-        showMetadataInput(edgeType, addEdgeSource, node.id)
-        setAddEdgeSource(null)
+        state.showMetadataInput(edgeType, state.addEdgeSource, node.id)
+        state.setAddEdgeSource(null)
         return
       }
 
-      onEdgeCreate?.(edgeType, addEdgeSource, node.id)
-      setAddEdgeSource(null)
+      onEdgeCreate?.(edgeType, state.addEdgeSource, node.id)
+      state.setAddEdgeSource(null)
     },
-    [effectiveMode, canCreateEdges, addEdgeSource, setAddEdgeSource, onEdgeCreate],
+    [canCreateEdges, onEdgeCreate],
+  )
+
+  // Edge click handler: explicitly select edge for inspector
+  const handleEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      useVisualWorkspaceStore.getState().selectEdges([edge.id])
+    },
+    [],
   )
 
   // Connection start: compute valid targets and set pending state
   const handleConnectStart = useCallback(
     (_event: MouseEvent | TouchEvent, params: { nodeId: string | null }) => {
-      if (effectiveMode !== 'select' && effectiveMode !== 'connect') return
       if (!canCreateEdges) return
       if (!params.nodeId) return
       const { graphNodes, startConnection } = useVisualWorkspaceStore.getState()
@@ -459,7 +459,7 @@ export function CanvasViewport({
       const validTargets = getValidTargetTypes(sourceNode.nodeType, CONNECTION_RULES)
       startConnection(params.nodeId, sourceNode.nodeType, validTargets)
     },
-    [effectiveMode, canCreateEdges],
+    [canCreateEdges],
   )
 
   // Validate connection during drag
@@ -488,7 +488,7 @@ export function CanvasViewport({
       const { source, target } = connection
       if (!source || !target) return
 
-      const { graphNodes, showEdgeTypePicker, showMetadataInput, cancelConnection } =
+      const { graphNodes, showEdgeTypePicker, showMetadataInput, cancelConnection, preselectedEdgeType: preselected } =
         useVisualWorkspaceStore.getState()
       const sourceNode = graphNodes.find((n) => n.id === source)
       const targetNode = graphNodes.find((n) => n.id === target)
@@ -499,6 +499,28 @@ export function CanvasViewport({
 
       if (isSelfLoop(sourceNode.entityId, targetNode.entityId)) {
         cancelConnection()
+        return
+      }
+
+      // If a preselected edge type is active, use it directly
+      if (preselected) {
+        const rule = CONNECTION_RULES.find(
+          (r) =>
+            r.edgeType === preselected &&
+            r.sourceTypes.includes(sourceNode.nodeType) &&
+            r.targetTypes.includes(targetNode.nodeType),
+        )
+        if (!rule) {
+          cancelConnection()
+          return
+        }
+        if (requiresMetadata(preselected)) {
+          showMetadataInput(preselected, source, target)
+          return
+        }
+        onEdgeCreate?.(preselected, source, target)
+        cancelConnection()
+        useVisualWorkspaceStore.getState().setPreselectedEdgeType(null)
         return
       }
 
@@ -589,20 +611,29 @@ export function CanvasViewport({
     useVisualWorkspaceStore.getState().dismissDeleteConfirm()
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleInit = useCallback((instance: any) => {
+    rfInstance.current = instance as ReactFlowInstance
+  }, [])
+
+  const handleTransitionEnd = useCallback(() => {
+    useVisualWorkspaceStore.getState().clearTransition()
+  }, [])
+
   const handleZoomIn = useCallback(() => rfInstance.current?.zoomIn(), [])
   const handleZoomOut = useCallback(() => rfInstance.current?.zoomOut(), [])
-  const handleFitView = useCallback(() => rfInstance.current?.fitView(), [])
+  const handleFitView = useCallback(() => rfInstance.current?.fitView(FIT_VIEW_OPTIONS), [])
   const handleAutoLayout = useCallback(() => {
     if (onAutoLayout) {
       onAutoLayout()
       // Defer fitView to allow React to re-render with fresh layout positions
-      setTimeout(() => rfInstance.current?.fitView({ duration: 300 }), 50)
+      setTimeout(() => rfInstance.current?.fitView({ duration: 300, ...FIT_VIEW_OPTIONS }), 50)
     } else {
-      rfInstance.current?.fitView({ duration: 300 })
+      rfInstance.current?.fitView({ duration: 300, ...FIT_VIEW_OPTIONS })
     }
   }, [onAutoLayout])
 
-  // Handle node drag stop — persist positions
+  // Handle node drag stop — persist final positions
   const handleNodeDragStop = useCallback(
     (_event: React.MouseEvent, _node: Node, draggedNodes: Node[]) => {
       if (!onNodeDragStop) return
@@ -612,14 +643,6 @@ export function CanvasViewport({
     },
     [onNodeDragStop],
   )
-
-  // Suppress double-click navigation in add-edge mode
-  const effectiveOnNodeDoubleClick = effectiveMode === 'add-edge' ? undefined : onNodeDoubleClick
-
-  const cursorClass = CURSOR_CLASSES[effectiveMode]
-
-  // Palette items for the floating menu
-  const paletteItems = getNodePaletteItems(zoomLevel)
 
   if (isLoading) {
     return (
@@ -653,18 +676,18 @@ export function CanvasViewport({
         onAddEntity={onAddEntity}
         isPending={isPending}
       />
-      <TransitionWrapper direction={transitionDirection} onTransitionEnd={clearTransition}>
-        <div className={`h-full w-full ${cursorClass}`} data-testid="canvas-flow-wrapper">
+      <TransitionWrapper direction={transitionDirection} onTransitionEnd={handleTransitionEnd}>
+        <div className="h-full w-full" data-testid="canvas-flow-wrapper">
           <ReactFlow
-            nodes={nodesWithState}
+            nodes={renderNodes}
             edges={edgesWithSelection}
             nodeTypes={visualNodeTypes}
-            onInit={(instance) => {
-              rfInstance.current = instance
-            }}
+            onNodesChange={handleNodesChange}
+            onInit={handleInit}
             onSelectionChange={onSelectionChange}
-            onNodeDoubleClick={effectiveOnNodeDoubleClick}
+            onNodeDoubleClick={onNodeDoubleClick}
             onNodeClick={handleNodeClick}
+            onEdgeClick={handleEdgeClick}
             onPaneClick={handlePaneClick}
             onNodeContextMenu={handleNodeContextMenu}
             onEdgeContextMenu={handleEdgeContextMenu}
@@ -678,11 +701,12 @@ export function CanvasViewport({
             nodesDraggable={nodesDraggable}
             nodesConnectable={nodesConnectable}
             panOnDrag={panOnDrag}
-            connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
+            connectionLineStyle={CONNECTION_LINE_STYLE}
             fitView
+            fitViewOptions={FIT_VIEW_OPTIONS}
             minZoom={0.1}
             maxZoom={4}
-            proOptions={{ hideAttribution: true }}
+            proOptions={PRO_OPTIONS}
           >
             <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
             <Controls showInteractive={false} />
@@ -722,32 +746,6 @@ export function CanvasViewport({
         onFitView={handleFitView}
         onAutoLayout={handleAutoLayout}
       />
-      {addNodeMenu && effectiveMode === 'add-node' && onAddEntity && canCreateNodes && paletteItems.length > 0 && (
-        <div
-          ref={addNodeMenuRef}
-          data-testid="add-node-menu"
-          className="fixed z-50 min-w-56 rounded-lg border border-border bg-popover p-1 shadow-lg"
-          style={{ left: addNodeMenu.x, top: addNodeMenu.y }}
-        >
-          {paletteItems.map((item) => (
-            <button
-              key={item.nodeType}
-              type="button"
-              data-testid={`add-node-option-${item.nodeType}`}
-              onClick={() => {
-                onAddEntity(item.nodeType)
-                setAddNodeMenu(null)
-              }}
-              className="flex w-full items-start gap-2 rounded px-3 py-1.5 text-left hover:bg-accent"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-popover-foreground">{item.label}</div>
-                <div className="text-xs text-muted-foreground">{item.description}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

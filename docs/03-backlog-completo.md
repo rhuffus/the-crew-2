@@ -1,5 +1,9 @@
 # Backlog completo de TheCrew (v4 — Verticaler + Polish)
 
+> **SUPERSEDED** — Esta fase está completada. El backlog activo es ahora
+> **`docs/38-live-company-backlog-v5.md`** (Live Company Pivot).
+> Este archivo se conserva como referencia histórica.
+
 ## Contexto
 Canvas Editor v2 ya existe y debe considerarse la base del producto actual.
 La siguiente fase no consiste en abrir nuevas funcionalidades grandes, sino en:

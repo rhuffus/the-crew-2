@@ -1,5 +1,11 @@
 # Persistence & Bootstrap Strategy — Audit + Plan
 
+> **SUPERSEDED** — PostgreSQL persistence via Drizzle ORM has been implemented.
+> All 30 repositories now have `Drizzle*Repository` implementations alongside in-memory ones.
+> The `PERSISTENCE_MODE` env var (`drizzle` | `in-memory`) controls which backend is active.
+> In-memory repos remain for unit tests. k3d runs with real PostgreSQL.
+> This document is preserved as historical reference of the original audit.
+
 ## 1. Purpose
 
 This document captures the honest audit of TheCrew's persistence state and defines the bootstrap strategy for Verticaler. It is the deliverable of task VRT-002.

@@ -14,7 +14,6 @@ beforeEach(() => {
     showOperationsOverlay: false,
     operationsStatus: null,
     collapsedNodeIds: [],
-    canvasMode: 'select',
     isDiffMode: false,
     preselectedEdgeType: null,
     activePreset: null,

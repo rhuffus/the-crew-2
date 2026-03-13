@@ -1,7 +1,8 @@
-import { ZoomIn, ZoomOut, Maximize, LayoutGrid, RotateCcw, ShieldCheck, Minimize2, Maximize2, Loader2, MousePointer2, Hand, Spline, Plus, Cable, Undo2, Redo2, Keyboard, Activity, Clock } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize, LayoutGrid, RotateCcw, ShieldCheck, Minimize2, Maximize2, Loader2, Undo2, Redo2, Keyboard, Activity, Clock, Radio, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { NodeType } from '@the-crew/shared-types'
-import { LAYER_DEFINITIONS } from '@the-crew/shared-types'
-import { useVisualWorkspaceStore, type CanvasMode } from '@/stores/visual-workspace-store'
+import { OVERLAY_DEFINITIONS, isOverlayActive } from '@the-crew/shared-types'
+import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { useUndoRedoStore } from '@/stores/undo-redo-store'
 import { usePermission } from '@/hooks/use-permissions'
 import { EDGE_TYPE_LABELS } from '@/lib/palette-data'
@@ -19,50 +20,51 @@ export interface CanvasToolbarProps {
   isPending?: boolean
 }
 
-export const CANVAS_MODES: { mode: CanvasMode; icon: typeof ZoomIn; label: string; shortcut: string }[] = [
-  { mode: 'select', icon: MousePointer2, label: 'Select', shortcut: 'V' },
-  { mode: 'pan', icon: Hand, label: 'Pan', shortcut: 'H' },
-  { mode: 'connect', icon: Spline, label: 'Connect', shortcut: 'C' },
-  { mode: 'add-node', icon: Plus, label: 'Add Node', shortcut: 'N' },
-  { mode: 'add-edge', icon: Cable, label: 'Add Edge', shortcut: 'E' },
-]
-
-const MODE_LABELS: Record<CanvasMode, string> = {
-  select: 'Select',
-  pan: 'Pan',
-  connect: 'Connect',
-  'add-node': 'Add Node',
-  'add-edge': 'Add Edge',
-}
-
 export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, onAddEntity, isPending = false }: CanvasToolbarProps) {
-  const { currentView, activeLayers, zoomLevel, nodeTypeFilter, statusFilter, resetToDefaults, clearFilters, showValidationOverlay, toggleValidationOverlay, showOperationsOverlay, toggleOperationsOverlay, operationsStatus, collapsedNodeIds, expandAll, collapseAll, canvasMode, setCanvasMode, isDiffMode, preselectedEdgeType, activePreset, setActivePreset, clearActivePreset, currentScope } =
-    useVisualWorkspaceStore()
+  const currentView = useVisualWorkspaceStore((s) => s.currentView)
+  const activeLayers = useVisualWorkspaceStore((s) => s.activeLayers)
+  const zoomLevel = useVisualWorkspaceStore((s) => s.zoomLevel)
+  const nodeTypeFilter = useVisualWorkspaceStore((s) => s.nodeTypeFilter)
+  const statusFilter = useVisualWorkspaceStore((s) => s.statusFilter)
+  const showValidationOverlay = useVisualWorkspaceStore((s) => s.showValidationOverlay)
+  const toggleValidationOverlay = useVisualWorkspaceStore((s) => s.toggleValidationOverlay)
+  const showOperationsOverlay = useVisualWorkspaceStore((s) => s.showOperationsOverlay)
+  const toggleOperationsOverlay = useVisualWorkspaceStore((s) => s.toggleOperationsOverlay)
+  const operationsStatus = useVisualWorkspaceStore((s) => s.operationsStatus)
+  const collapsedNodeIds = useVisualWorkspaceStore((s) => s.collapsedNodeIds)
+  const expandAll = useVisualWorkspaceStore((s) => s.expandAll)
+  const collapseAll = useVisualWorkspaceStore((s) => s.collapseAll)
+  const isDiffMode = useVisualWorkspaceStore((s) => s.isDiffMode)
+  const preselectedEdgeType = useVisualWorkspaceStore((s) => s.preselectedEdgeType)
+  const setPreselectedEdgeType = useVisualWorkspaceStore((s) => s.setPreselectedEdgeType)
+  const activePreset = useVisualWorkspaceStore((s) => s.activePreset)
+  const setActivePreset = useVisualWorkspaceStore((s) => s.setActivePreset)
+  const clearActivePreset = useVisualWorkspaceStore((s) => s.clearActivePreset)
+  const currentScope = useVisualWorkspaceStore((s) => s.currentScope)
+  const designMode = useVisualWorkspaceStore((s) => s.designMode)
+  const setDesignMode = useVisualWorkspaceStore((s) => s.setDesignMode)
+  const resetToDefaults = useVisualWorkspaceStore((s) => s.resetToDefaults)
+  const clearFilters = useVisualWorkspaceStore((s) => s.clearFilters)
+
+  const { t } = useTranslation('canvas')
+  const { t: tCommon } = useTranslation('common')
 
   // Permission checks (CAV-020)
-  const canEdit = usePermission('canvas:node:edit')
   const canCreateNodes = usePermission('canvas:node:create')
   const canAutoLayout = usePermission('canvas:layout:auto')
 
-  const effectiveMode = isDiffMode ? 'select' : canvasMode
-
   const scopeLabel =
     currentView === 'org'
-      ? 'Company Org'
+      ? t('scope.companyOrg')
       : currentView === 'department'
-        ? 'Department'
-        : 'Workflow'
+        ? t('scope.department')
+        : t('scope.workflow')
 
-  const activeLayerLabels = LAYER_DEFINITIONS
-    .filter((l) => activeLayers.includes(l.id))
-    .map((l) => l.label)
+  const activeOverlayLabels = OVERLAY_DEFINITIONS
+    .filter((o) => !o.locked && isOverlayActive(activeLayers, o.id))
+    .map((o) => o.label)
 
   const hasFilters = nodeTypeFilter !== null || statusFilter !== null
-
-  // Build mode label, including preselected edge type hint
-  const modeLabel = effectiveMode === 'add-edge' && preselectedEdgeType
-    ? `Add Edge: ${EDGE_TYPE_LABELS[preselectedEdgeType]}`
-    : MODE_LABELS[effectiveMode]
 
   return (
     <div
@@ -70,41 +72,12 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
       className="flex h-10 items-center justify-between border-b border-border bg-card px-3"
     >
       <div className="flex items-center gap-1">
-        {/* Mode selector group */}
-        <div className="flex items-center gap-0.5 rounded-md border border-border bg-background p-0.5" data-testid="mode-group">
-          {CANVAS_MODES.map(({ mode, icon: Icon, label, shortcut }) => {
-            // Gate editing modes by permissions (CAV-020)
-            const modeRequiresEdit = mode === 'connect' || mode === 'add-node' || mode === 'add-edge'
-            const modeDisabled = (isDiffMode && mode !== 'select') || (modeRequiresEdit && !canEdit)
-            return (
-              <button
-                key={mode}
-                type="button"
-                aria-label={`${label} (${shortcut})`}
-                title={`${label} (${shortcut})`}
-                data-testid={`mode-${mode}`}
-                onClick={() => !modeDisabled && setCanvasMode(mode)}
-                disabled={modeDisabled}
-                className={`rounded p-1.5 ${
-                  effectiveMode === mode
-                    ? 'bg-primary/10 text-primary'
-                    : modeDisabled
-                      ? 'text-muted-foreground/40 cursor-not-allowed'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-              </button>
-            )
-          })}
-        </div>
-        <div className="mx-2 h-4 w-px bg-border" />
         {/* View tools */}
-        <ToolbarButton icon={ZoomOut} label="Zoom out" onClick={onZoomOut} />
-        <ToolbarButton icon={ZoomIn} label="Zoom in" onClick={onZoomIn} />
-        <ToolbarButton icon={Maximize} label="Fit view" onClick={onFitView} />
+        <ToolbarButton icon={ZoomOut} label={t('toolbar.zoomOut')} onClick={onZoomOut} />
+        <ToolbarButton icon={ZoomIn} label={t('toolbar.zoomIn')} onClick={onZoomIn} />
+        <ToolbarButton icon={Maximize} label={t('toolbar.fitView')} onClick={onFitView} />
         <div className="mx-2 h-4 w-px bg-border" />
-        {canAutoLayout && <ToolbarButton icon={LayoutGrid} label="Auto layout" onClick={onAutoLayout} />}
+        {canAutoLayout && <ToolbarButton icon={LayoutGrid} label={t('toolbar.autoLayout')} onClick={onAutoLayout} />}
         <div className="mx-2 h-4 w-px bg-border" />
         {/* Undo/Redo (CAV-009) */}
         <UndoRedoButtons />
@@ -112,13 +85,13 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
         {/* Editing tools */}
         <ToolbarToggleButton
           icon={ShieldCheck}
-          label="Validation overlay"
+          label={t('toolbar.validationOverlay')}
           active={showValidationOverlay}
           onClick={toggleValidationOverlay}
         />
         <ToolbarToggleButton
           icon={Activity}
-          label="Operations overlay"
+          label={t('toolbar.operationsOverlay')}
           active={showOperationsOverlay}
           onClick={toggleOperationsOverlay}
           disabled={isDiffMode}
@@ -127,6 +100,19 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
           <span className="text-xs text-muted-foreground flex items-center" title={`Last updated: ${operationsStatus.fetchedAt}`}>
             <Clock className="mr-1 inline h-3 w-3" />
             {formatRelativeTime(operationsStatus.fetchedAt)}
+          </span>
+        )}
+        <div className="mx-2 h-4 w-px bg-border" />
+        <ToolbarToggleButton
+          icon={Radio}
+          label={t('toolbar.liveMode')}
+          active={designMode === 'live'}
+          onClick={() => setDesignMode(designMode === 'live' ? 'design' : 'live')}
+          disabled={isDiffMode}
+        />
+        {designMode === 'live' && (
+          <span className="text-[10px] font-medium text-green-600" data-testid="live-mode-indicator">
+            {tCommon('live')}
           </span>
         )}
         {!isDiffMode && (
@@ -143,8 +129,8 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
         {zoomLevel !== 'L1' && (
           <>
             <div className="mx-2 h-4 w-px bg-border" />
-            <ToolbarButton icon={Minimize2} label="Collapse all" onClick={collapseAll} />
-            <ToolbarButton icon={Maximize2} label="Expand all" onClick={expandAll} />
+            <ToolbarButton icon={Minimize2} label={t('toolbar.collapseAll')} onClick={collapseAll} />
+            <ToolbarButton icon={Maximize2} label={t('toolbar.expandAll')} onClick={expandAll} />
             {collapsedNodeIds.length > 0 && (
               <span className="text-[10px] text-muted-foreground" data-testid="collapsed-count">
                 {collapsedNodeIds.length}
@@ -157,7 +143,7 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
             <div className="mx-2 h-4 w-px bg-border" />
             <ToolbarButton
               icon={RotateCcw}
-              label="Reset filters"
+              label={t('toolbar.resetFilters')}
               onClick={() => {
                 resetToDefaults(zoomLevel)
                 clearFilters()
@@ -178,17 +164,33 @@ export function CanvasToolbar({ onZoomIn, onZoomOut, onFitView, onAutoLayout, on
         {isPending && (
           <span className="flex items-center gap-1 text-xs text-primary" data-testid="saving-indicator" aria-live="polite">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Applying...
+            {tCommon('saving')}
           </span>
         )}
-        <span className="text-xs font-medium text-primary" data-testid="mode-label">
-          {modeLabel}
-        </span>
-        <span className="text-xs text-muted-foreground" data-testid="active-layers-label">
-          {activeLayerLabels.join(', ')}
+        {preselectedEdgeType && (
+          <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary" data-testid="preselected-edge-pill">
+            {EDGE_TYPE_LABELS[preselectedEdgeType]}
+            <button
+              type="button"
+              aria-label={t('toolbar.clearPreselectedEdge')}
+              data-testid="preselected-edge-dismiss"
+              onClick={() => setPreselectedEdgeType(null)}
+              className="rounded-full p-0.5 hover:bg-primary/20"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        )}
+        <span className="text-xs text-muted-foreground" data-testid="active-overlays-label">
+          {activeOverlayLabels.length > 0
+            ? `${t('overlays.label')} ${activeOverlayLabels.join(', ')}`
+            : t('overlays.none')}
         </span>
         <span className="text-xs text-muted-foreground">
-          Scope: {scopeLabel}
+          {t('scope.label')} {scopeLabel}
+        </span>
+        <span className={`text-xs font-medium ${designMode === 'live' ? 'text-green-600' : 'text-muted-foreground'}`} data-testid="design-mode-label">
+          {designMode === 'live' ? tCommon('live') : tCommon('design')}
         </span>
         <KeyboardHelpButton />
       </div>
@@ -220,6 +222,7 @@ function ToolbarButton({
 
 function UndoRedoButtons() {
   const { undoStack, redoStack } = useUndoRedoStore()
+  const { t } = useTranslation('canvas')
   const canUndo = undoStack.length > 0
   const canRedo = redoStack.length > 0
 
@@ -227,8 +230,8 @@ function UndoRedoButtons() {
     <>
       <button
         type="button"
-        aria-label="Undo (Ctrl+Z)"
-        title="Undo (Ctrl+Z)"
+        aria-label={t('toolbar.undo')}
+        title={t('toolbar.undo')}
         data-testid="toolbar-undo"
         onClick={() => useUndoRedoStore.getState().undo()}
         disabled={!canUndo}
@@ -242,8 +245,8 @@ function UndoRedoButtons() {
       </button>
       <button
         type="button"
-        aria-label="Redo (Ctrl+Shift+Z)"
-        title="Redo (Ctrl+Shift+Z)"
+        aria-label={t('toolbar.redo')}
+        title={t('toolbar.redo')}
         data-testid="toolbar-redo"
         onClick={() => useUndoRedoStore.getState().redo()}
         disabled={!canRedo}
@@ -261,12 +264,13 @@ function UndoRedoButtons() {
 
 function KeyboardHelpButton() {
   const toggleKeyboardHelp = useVisualWorkspaceStore((s) => s.toggleKeyboardHelp)
+  const { t } = useTranslation('canvas')
 
   return (
     <button
       type="button"
-      aria-label="Keyboard shortcuts (?)"
-      title="Keyboard shortcuts (?)"
+      aria-label={t('toolbar.keyboardShortcuts')}
+      title={t('toolbar.keyboardShortcuts')}
       data-testid="toolbar-keyboard-help"
       onClick={toggleKeyboardHelp}
       className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"

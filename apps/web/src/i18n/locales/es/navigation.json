@@ -1,0 +1,12 @@
+{
+  "breadcrumb": "Navegación",
+  "platform": "Plataforma",
+  "allProjects": "Todos los proyectos",
+  "projects": "Proyectos",
+  "newCompany": "Nueva Empresa",
+  "goHome": "Ir al inicio de la plataforma",
+  "pageNotFound": "Página no encontrada",
+  "pageNotFoundDescription": "La página que buscas no existe.",
+  "loadingProjects": "Cargando proyectos...",
+  "noProjectsYet": "Aún no hay proyectos. Crea tu primer proyecto para comenzar."
+}

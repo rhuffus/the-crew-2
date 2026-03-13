@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Optional } from '@nestjs/common'
 import type { ReleaseSnapshotDto } from '@the-crew/shared-types'
 import {
   COMPANY_MODEL_REPOSITORY,
@@ -44,6 +44,18 @@ import {
   ARTIFACT_REPOSITORY,
   type ArtifactRepository,
 } from '../../artifacts/domain/artifact-repository'
+import {
+  ORGANIZATIONAL_UNIT_REPOSITORY,
+  type OrganizationalUnitRepository,
+} from '../../organizational-units/domain/organizational-unit-repository'
+import {
+  LCP_AGENT_REPOSITORY,
+  type LcpAgentRepository,
+} from '../../lcp-agents/domain/lcp-agent-repository'
+import {
+  PROPOSAL_REPOSITORY,
+  type ProposalRepository,
+} from '../../proposals/domain/proposal-repository'
 import { CompanyModelMapper } from '../../company-model/application/company-model.mapper'
 import { DepartmentMapper } from '../../departments/application/department.mapper'
 import { CapabilityMapper } from '../../capabilities/application/capability.mapper'
@@ -55,6 +67,9 @@ import { AgentAssignmentMapper } from '../../agent-assignments/application/agent
 import { SkillMapper } from '../../skills/application/skill.mapper'
 import { PolicyMapper } from '../../policies/application/policy.mapper'
 import { ArtifactMapper } from '../../artifacts/application/artifact.mapper'
+import { OrganizationalUnitMapper } from '../../organizational-units/application/organizational-unit.mapper'
+import { LcpAgentMapper } from '../../lcp-agents/application/lcp-agent.mapper'
+import { toProposalDto } from '../../proposals/application/proposal.mapper'
 
 @Injectable()
 export class SnapshotCollector {
@@ -70,10 +85,13 @@ export class SnapshotCollector {
     @Inject(WORKFLOW_REPOSITORY) private readonly workflowRepo: WorkflowRepository,
     @Inject(POLICY_REPOSITORY) private readonly policyRepo: PolicyRepository,
     @Inject(ARTIFACT_REPOSITORY) private readonly artifactRepo: ArtifactRepository,
+    @Optional() @Inject(ORGANIZATIONAL_UNIT_REPOSITORY) private readonly ouRepo?: OrganizationalUnitRepository,
+    @Optional() @Inject(LCP_AGENT_REPOSITORY) private readonly agentRepo?: LcpAgentRepository,
+    @Optional() @Inject(PROPOSAL_REPOSITORY) private readonly proposalRepo?: ProposalRepository,
   ) {}
 
   async collect(projectId: string): Promise<ReleaseSnapshotDto> {
-    const [companyModel, departments, capabilities, roles, agentArchetypes, agentAssignments, skills, contracts, workflows, policies, artifacts] =
+    const [companyModel, departments, capabilities, roles, agentArchetypes, agentAssignments, skills, contracts, workflows, policies, artifacts, organizationalUnits, agents, proposals] =
       await Promise.all([
         this.companyModelRepo.findByProjectId(projectId),
         this.departmentRepo.findByProjectId(projectId),
@@ -86,6 +104,9 @@ export class SnapshotCollector {
         this.workflowRepo.findByProjectId(projectId),
         this.policyRepo.findByProjectId(projectId),
         this.artifactRepo.findByProjectId(projectId),
+        this.ouRepo?.findByProjectId(projectId) ?? Promise.resolve([]),
+        this.agentRepo?.findByProjectId(projectId) ?? Promise.resolve([]),
+        this.proposalRepo?.findByProjectId(projectId) ?? Promise.resolve([]),
       ])
 
     return {
@@ -100,6 +121,9 @@ export class SnapshotCollector {
       workflows: workflows.map(WorkflowMapper.toDto),
       policies: policies.map(PolicyMapper.toDto),
       artifacts: artifacts.map(ArtifactMapper.toDto),
+      organizationalUnits: organizationalUnits.map(OrganizationalUnitMapper.toDto),
+      agents: agents.map(LcpAgentMapper.toDto),
+      proposals: proposals.map(toProposalDto),
     }
   }
 }

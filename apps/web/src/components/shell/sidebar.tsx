@@ -5,7 +5,7 @@ import { platformNavItems, projectNavSections, type NavItem } from '@/lib/naviga
 
 export function Sidebar() {
   const params = useParams({ strict: false })
-  const projectId = 'projectId' in params ? (params.projectId as string) : undefined
+  const projectSlug = 'projectSlug' in params ? (params.projectSlug as string) : undefined
 
   return (
     <aside data-testid="sidebar" className="flex w-60 flex-col border-r border-border bg-card">
@@ -15,7 +15,7 @@ export function Sidebar() {
         </Link>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        {projectId ? <ProjectNav projectId={projectId} /> : <PlatformNav />}
+        {projectSlug ? <ProjectNav projectSlug={projectSlug} /> : <PlatformNav />}
       </nav>
     </aside>
   )
@@ -31,7 +31,7 @@ function PlatformNav() {
   )
 }
 
-function ProjectNav({ projectId }: { projectId: string }) {
+function ProjectNav({ projectSlug }: { projectSlug: string }) {
   return (
     <div className="space-y-6">
       <Link
@@ -48,7 +48,7 @@ function ProjectNav({ projectId }: { projectId: string }) {
           </h3>
           <ul className="space-y-1">
             {section.items.map((item) => (
-              <NavLink key={item.label} item={item} params={{ projectId }} />
+              <NavLink key={item.label} item={item} params={{ projectSlug }} />
             ))}
           </ul>
         </div>

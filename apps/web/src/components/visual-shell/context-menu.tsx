@@ -36,32 +36,20 @@ export function CanvasContextMenu({
   const permissions = { canEdit: canEditNodes, canDelete: canDeleteNodes && canDeleteEdges, canCreateEdges }
 
   const menuRef = useRef<HTMLDivElement>(null)
-  const {
-    contextMenu,
-    dismissContextMenu,
-    graphNodes,
-    graphEdges,
-    collapsedNodeIds,
-    isDiffMode,
-    currentScope,
-    selectedNodeIds,
-    selectNodes,
-    selectEdges,
-    clearSelection,
-    focusNode,
-    toggleCollapse,
-    setCanvasMode,
-    setAddEdgeSource,
-    showDeleteConfirm,
-    showEntityForm,
-  } = useVisualWorkspaceStore()
+  const contextMenu = useVisualWorkspaceStore((s) => s.contextMenu)
+  const graphNodes = useVisualWorkspaceStore((s) => s.graphNodes)
+  const graphEdges = useVisualWorkspaceStore((s) => s.graphEdges)
+  const collapsedNodeIds = useVisualWorkspaceStore((s) => s.collapsedNodeIds)
+  const isDiffMode = useVisualWorkspaceStore((s) => s.isDiffMode)
+  const currentScope = useVisualWorkspaceStore((s) => s.currentScope)
+  const selectedNodeIds = useVisualWorkspaceStore((s) => s.selectedNodeIds)
 
   // Close on click outside
   useEffect(() => {
     if (!contextMenu) return
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as globalThis.Node)) {
-        dismissContextMenu()
+        useVisualWorkspaceStore.getState().dismissContextMenu()
       }
     }
     // Use a timeout so the contextmenu event itself doesn't trigger close
@@ -72,7 +60,7 @@ export function CanvasContextMenu({
       clearTimeout(timer)
       document.removeEventListener('mousedown', handler)
     }
-  }, [contextMenu, dismissContextMenu])
+  }, [contextMenu])
 
   // Close on Escape
   useEffect(() => {
@@ -81,20 +69,20 @@ export function CanvasContextMenu({
       if (e.key === 'Escape') {
         e.preventDefault()
         e.stopPropagation()
-        dismissContextMenu()
+        useVisualWorkspaceStore.getState().dismissContextMenu()
       }
     }
     document.addEventListener('keydown', handler, true)
     return () => document.removeEventListener('keydown', handler, true)
-  }, [contextMenu, dismissContextMenu])
+  }, [contextMenu])
 
   // Close on scroll
   useEffect(() => {
     if (!contextMenu) return
-    const handler = () => dismissContextMenu()
+    const handler = () => useVisualWorkspaceStore.getState().dismissContextMenu()
     window.addEventListener('scroll', handler, true)
     return () => window.removeEventListener('scroll', handler, true)
-  }, [contextMenu, dismissContextMenu])
+  }, [contextMenu])
 
   // Arrow key navigation within menu
   useEffect(() => {
@@ -134,18 +122,19 @@ export function CanvasContextMenu({
 
   const handleAction = useCallback(
     (actionId: ContextMenuActionId, nodeType?: NodeType) => {
-      if (!contextMenu) return
-      const { targetId } = contextMenu
+      const state = useVisualWorkspaceStore.getState()
+      if (!state.contextMenu) return
+      const { targetId } = state.contextMenu
 
-      dismissContextMenu()
+      state.dismissContextMenu()
 
       switch (actionId) {
         case 'inspect': {
-          if (targetId) selectNodes([targetId])
+          if (targetId) state.selectNodes([targetId])
           break
         }
         case 'edit': {
-          if (targetId) selectNodes([targetId])
+          if (targetId) state.selectNodes([targetId])
           break
         }
         case 'drill-in': {
@@ -154,52 +143,51 @@ export function CanvasContextMenu({
         }
         case 'create-relationship': {
           if (targetId) {
-            setCanvasMode('add-edge')
-            setAddEdgeSource(targetId)
+            state.setAddEdgeSource(targetId)
           }
           break
         }
         case 'collapse':
         case 'expand': {
-          if (targetId) toggleCollapse(targetId)
+          if (targetId) state.toggleCollapse(targetId)
           break
         }
         case 'delete-node': {
           if (targetId) {
-            const node = graphNodes.find((n) => n.id === targetId)
+            const node = state.graphNodes.find((n) => n.id === targetId)
             if (node) onNodeDelete?.(node.nodeType, node.entityId)
           }
           break
         }
         case 'inspect-edge': {
-          if (targetId) selectEdges([targetId])
+          if (targetId) state.selectEdges([targetId])
           break
         }
         case 'delete-edge': {
           if (targetId) {
-            const resolved = resolveEdgeForDeletion(targetId, graphEdges)
+            const resolved = resolveEdgeForDeletion(targetId, state.graphEdges)
             if (resolved) {
-              showDeleteConfirm(resolved.edgeType, resolved.sourceId, resolved.targetId)
+              state.showDeleteConfirm(resolved.edgeType, resolved.sourceId, resolved.targetId)
             }
           }
           break
         }
         case 'focus-source': {
           if (targetId) {
-            const edge = graphEdges.find((e) => e.id === targetId)
+            const edge = state.graphEdges.find((e) => e.id === targetId)
             if (edge) {
-              selectNodes([edge.sourceId])
-              focusNode(edge.sourceId)
+              state.selectNodes([edge.sourceId])
+              state.focusNode(edge.sourceId)
             }
           }
           break
         }
         case 'focus-target': {
           if (targetId) {
-            const edge = graphEdges.find((e) => e.id === targetId)
+            const edge = state.graphEdges.find((e) => e.id === targetId)
             if (edge) {
-              selectNodes([edge.targetId])
-              focusNode(edge.targetId)
+              state.selectNodes([edge.targetId])
+              state.focusNode(edge.targetId)
             }
           }
           break
@@ -209,7 +197,7 @@ export function CanvasContextMenu({
             if (onAddEntity) {
               onAddEntity(nodeType)
             } else {
-              showEntityForm(nodeType)
+              state.showEntityForm(nodeType)
             }
           }
           break
@@ -223,44 +211,24 @@ export function CanvasContextMenu({
           break
         }
         case 'select-all': {
-          const allIds = graphNodes.map((n) => n.id)
-          if (allIds.length > 0) selectNodes(allIds)
+          const allIds = state.graphNodes.map((n) => n.id)
+          if (allIds.length > 0) state.selectNodes(allIds)
           break
         }
         case 'delete-selected': {
-          for (const nodeId of selectedNodeIds) {
-            const node = graphNodes.find((n) => n.id === nodeId)
+          for (const nodeId of state.selectedNodeIds) {
+            const node = state.graphNodes.find((n) => n.id === nodeId)
             if (node) onNodeDelete?.(node.nodeType, node.entityId)
           }
           break
         }
         case 'deselect-all': {
-          clearSelection()
+          state.clearSelection()
           break
         }
       }
     },
-    [
-      contextMenu,
-      dismissContextMenu,
-      graphNodes,
-      graphEdges,
-      selectedNodeIds,
-      selectNodes,
-      selectEdges,
-      clearSelection,
-      focusNode,
-      toggleCollapse,
-      setCanvasMode,
-      setAddEdgeSource,
-      showDeleteConfirm,
-      showEntityForm,
-      onAddEntity,
-      onDrillIn,
-      onNodeDelete,
-      onFitView,
-      onAutoLayout,
-    ],
+    [onAddEntity, onDrillIn, onNodeDelete, onFitView, onAutoLayout],
   )
 
   if (!contextMenu) return null

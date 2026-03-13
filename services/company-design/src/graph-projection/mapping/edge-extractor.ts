@@ -272,5 +272,100 @@ export function extractEdges(snapshot: ReleaseSnapshotDto, projectId: string): V
     }
   }
 
+  // ── Live Company Pivot: v3 edges ───────────────────────────────────
+
+  const uos = snapshot.organizationalUnits ?? []
+  const agents = snapshot.agents ?? []
+  const proposals = snapshot.proposals ?? []
+
+  // contains: UO parent -> UO child
+  for (const uo of uos) {
+    if (uo.parentUoId) {
+      const parentUo = uos.find(u => u.id === uo.parentUoId)
+      if (parentUo) {
+        const parentType = parentUo.uoType === 'company' ? 'company'
+          : parentUo.uoType === 'team' ? 'team' : 'department'
+        const childType = uo.uoType === 'company' ? 'company'
+          : uo.uoType === 'team' ? 'team' : 'department'
+        const src = visualNodeId(parentType, parentUo.id)
+        const tgt = visualNodeId(childType, uo.id)
+        edges.push({
+          id: visualEdgeId('contains', src, tgt),
+          edgeType: 'contains',
+          sourceId: src,
+          targetId: tgt,
+          label: null,
+          style: 'solid',
+          layerIds: ['organization'],
+        })
+      }
+    }
+  }
+
+  // led_by: UO -> coordinator-agent
+  for (const agent of agents) {
+    if (agent.agentType === 'coordinator') {
+      const uo = uos.find(u => u.id === agent.uoId)
+      if (uo) {
+        const uoNodeType = uo.uoType === 'company' ? 'company'
+          : uo.uoType === 'team' ? 'team' : 'department'
+        const src = visualNodeId(uoNodeType, uo.id)
+        const tgt = visualNodeId('coordinator-agent', agent.id)
+        edges.push({
+          id: visualEdgeId('led_by', src, tgt),
+          edgeType: 'led_by',
+          sourceId: src,
+          targetId: tgt,
+          label: null,
+          style: 'solid',
+          layerIds: ['organization'],
+        })
+      }
+    }
+  }
+
+  // belongs_to: specialist-agent -> UO
+  for (const agent of agents) {
+    if (agent.agentType === 'specialist') {
+      const uo = uos.find(u => u.id === agent.uoId)
+      if (uo) {
+        const uoNodeType = uo.uoType === 'company' ? 'company'
+          : uo.uoType === 'team' ? 'team' : 'department'
+        const src = visualNodeId('specialist-agent', agent.id)
+        const tgt = visualNodeId(uoNodeType, uo.id)
+        edges.push({
+          id: visualEdgeId('belongs_to', src, tgt),
+          edgeType: 'belongs_to',
+          sourceId: src,
+          targetId: tgt,
+          label: null,
+          style: 'dashed',
+          layerIds: ['organization'],
+        })
+      }
+    }
+  }
+
+  // proposed-by: proposal -> agent
+  for (const proposal of proposals) {
+    if (proposal.proposedByAgentId) {
+      const agent = agents.find(a => a.id === proposal.proposedByAgentId)
+      if (agent) {
+        const agentType = agent.agentType === 'coordinator' ? 'coordinator-agent' : 'specialist-agent'
+        const src = visualNodeId('proposal', proposal.id)
+        const tgt = visualNodeId(agentType, agent.id)
+        edges.push({
+          id: visualEdgeId('proposed_by', src, tgt),
+          edgeType: 'proposed_by',
+          sourceId: src,
+          targetId: tgt,
+          label: null,
+          style: 'dotted',
+          layerIds: ['governance'],
+        })
+      }
+    }
+  }
+
   return edges
 }

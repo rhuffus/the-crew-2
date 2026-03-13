@@ -21,11 +21,26 @@ import { ArtifactsController } from './artifacts.controller'
 import { CommentsController } from './comments.controller'
 import { CollaborationController } from './collaboration.controller'
 import { OperationsController } from './operations.controller'
+import { RuntimeProxyController } from './runtime.controller'
+import { BootstrapProxyController } from './bootstrap.controller'
+import { ProposalsProxyController } from './proposals.controller'
+import { GrowthEngineProxyController } from './growth-engine.controller'
+import { OrganizationalUnitsProxyController } from './organizational-units.controller'
+import { LcpAgentsProxyController } from './lcp-agents.controller'
 import { CompanyDesignClient } from './company-design.client'
 
 @Module({
   imports: [HttpModule],
-  controllers: [CompanyModelController, DepartmentsController, CapabilitiesController, RolesController, AgentArchetypesController, AgentAssignmentsController, SkillsController, ContractsController, WorkflowsController, PoliciesController, ReleasesController, ValidationsController, AuditController, VisualGraphController, SavedViewsController, ChatController, PermissionsController, ArtifactsController, CommentsController, CollaborationController, OperationsController],
+  controllers: [
+    CompanyModelController, DepartmentsController, CapabilitiesController, RolesController,
+    AgentArchetypesController, AgentAssignmentsController, SkillsController, ContractsController,
+    WorkflowsController, PoliciesController, ReleasesController, ValidationsController,
+    AuditController, VisualGraphController, SavedViewsController, ChatController,
+    PermissionsController, ArtifactsController, CommentsController, CollaborationController,
+    OperationsController, RuntimeProxyController,
+    BootstrapProxyController, ProposalsProxyController, GrowthEngineProxyController,
+    OrganizationalUnitsProxyController, LcpAgentsProxyController,
+  ],
   providers: [CompanyDesignClient],
 })
 export class CompanyModelModule {}

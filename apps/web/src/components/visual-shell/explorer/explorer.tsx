@@ -1,31 +1,42 @@
-import { PanelLeft, TreesIcon, Layers, ShieldCheck, Filter, Bookmark, MessageSquare, Activity } from 'lucide-react'
+import { PanelLeft, TreesIcon, Layers, ShieldCheck, Filter, Bookmark, MessageSquare, Activity, Clock, MessageSquarePlus } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { EntityTree } from './entity-tree'
-import { LayersPanel } from './layers-panel'
+import { OverlaysPanel } from './overlays-panel'
 import { ValidationSummary } from './validation-summary'
 import { FilterPanel } from './filter-panel'
 import { SavedViewsPanel } from './saved-views-panel'
 import { ChatThreadsPanel } from './chat-threads-panel'
 import { OperationsPanel } from './operations-panel'
+import { TimelinePanel } from './timeline-panel'
+import { ProposalsPanel } from './proposals-panel'
 
-type ExplorerTab = 'tree' | 'layers' | 'filters' | 'views' | 'validation' | 'chat' | 'operations'
+type ExplorerTab = 'tree' | 'overlays' | 'filters' | 'views' | 'validation' | 'chat' | 'operations' | 'timeline' | 'proposals'
 
-const tabs: { id: ExplorerTab; icon: typeof TreesIcon; label: string }[] = [
-  { id: 'tree', icon: TreesIcon, label: 'Entity Tree' },
-  { id: 'layers', icon: Layers, label: 'Layers' },
-  { id: 'filters', icon: Filter, label: 'Filters' },
-  { id: 'views', icon: Bookmark, label: 'Saved Views' },
-  { id: 'validation', icon: ShieldCheck, label: 'Validation' },
-  { id: 'chat', icon: MessageSquare, label: 'Chat' },
-  { id: 'operations', icon: Activity, label: 'Operations' },
+const tabConfig: { id: ExplorerTab; icon: typeof TreesIcon; labelKey: string }[] = [
+  { id: 'tree', icon: TreesIcon, labelKey: 'tab.tree' },
+  { id: 'overlays', icon: Layers, labelKey: 'tab.overlays' },
+  { id: 'filters', icon: Filter, labelKey: 'tab.filters' },
+  { id: 'views', icon: Bookmark, labelKey: 'tab.views' },
+  { id: 'validation', icon: ShieldCheck, labelKey: 'tab.validation' },
+  { id: 'chat', icon: MessageSquare, labelKey: 'tab.chat' },
+  { id: 'operations', icon: Activity, labelKey: 'tab.operations' },
+  { id: 'timeline', icon: Clock, labelKey: 'tab.timeline' },
+  { id: 'proposals', icon: MessageSquarePlus, labelKey: 'tab.proposals' },
 ]
 
 export function Explorer() {
   const [activeTab, setActiveTab] = useState<ExplorerTab>('tree')
-  const { explorerCollapsed, toggleExplorer, validationIssues, projectId, showOperationsOverlay, operationsStatus, focusNode } =
-    useVisualWorkspaceStore()
+  const explorerCollapsed = useVisualWorkspaceStore((s) => s.explorerCollapsed)
+  const toggleExplorer = useVisualWorkspaceStore((s) => s.toggleExplorer)
+  const validationIssues = useVisualWorkspaceStore((s) => s.validationIssues)
+  const projectId = useVisualWorkspaceStore((s) => s.projectId)
+  const showOperationsOverlay = useVisualWorkspaceStore((s) => s.showOperationsOverlay)
+  const operationsStatus = useVisualWorkspaceStore((s) => s.operationsStatus)
+  const focusNode = useVisualWorkspaceStore((s) => s.focusNode)
+  const { t } = useTranslation('explorer')
 
   const errorCount = validationIssues.filter((i) => i.severity === 'error').length
   const warningCount = validationIssues.filter((i) => i.severity === 'warning').length
@@ -38,18 +49,18 @@ export function Explorer() {
       >
         <button
           type="button"
-          aria-label="Expand explorer"
+          aria-label={t('expand')}
           onClick={toggleExplorer}
           className="rounded p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <PanelLeft className="h-4 w-4" />
         </button>
-        {tabs.map((tab) => (
+        {tabConfig.map((tab) => (
           <button
             key={tab.id}
             type="button"
-            aria-label={tab.label}
-            title={tab.label}
+            aria-label={t(tab.labelKey)}
+            title={t(tab.labelKey)}
             onClick={() => {
               setActiveTab(tab.id)
               toggleExplorer()
@@ -70,11 +81,11 @@ export function Explorer() {
     <div data-testid="explorer" className="flex h-full w-full min-w-0 flex-col overflow-hidden border-r border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Explorer
+          {t('title')}
         </span>
         <button
           type="button"
-          aria-label="Collapse explorer"
+          aria-label={t('collapse')}
           onClick={toggleExplorer}
           className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
@@ -82,7 +93,7 @@ export function Explorer() {
         </button>
       </div>
       <div className="flex border-b border-border" role="tablist" aria-label="Explorer tabs">
-        {tabs.map((tab) => (
+        {tabConfig.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -90,8 +101,8 @@ export function Explorer() {
             aria-selected={activeTab === tab.id}
             aria-controls={`explorer-tabpanel-${tab.id}`}
             id={`explorer-tab-${tab.id}`}
-            aria-label={tab.label}
-            title={tab.label}
+            aria-label={t(tab.labelKey)}
+            title={t(tab.labelKey)}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'flex-1 p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground',
@@ -109,7 +120,7 @@ export function Explorer() {
         aria-labelledby={`explorer-tab-${activeTab}`}
       >
         {activeTab === 'tree' && <EntityTree />}
-        {activeTab === 'layers' && <LayersPanel />}
+        {activeTab === 'overlays' && <OverlaysPanel />}
         {activeTab === 'filters' && <FilterPanel />}
         {activeTab === 'views' && <SavedViewsPanel />}
         {activeTab === 'validation' && (
@@ -127,6 +138,8 @@ export function Explorer() {
             onFocusNode={focusNode}
           />
         )}
+        {activeTab === 'timeline' && <TimelinePanel />}
+        {activeTab === 'proposals' && <ProposalsPanel />}
       </div>
     </div>
   )

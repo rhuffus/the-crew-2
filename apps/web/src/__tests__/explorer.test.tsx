@@ -8,7 +8,7 @@ import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
 
 vi.mock('@tanstack/react-router', () => ({
-  useParams: () => ({ projectId: 'test-project' }),
+  useParams: () => ({ projectSlug: 'test-project' }),
 }))
 
 function renderExplorer() {
@@ -52,11 +52,11 @@ describe('Explorer', () => {
     expect(screen.getByTestId('entity-tree')).toBeInTheDocument()
   })
 
-  it('should switch to layers tab', async () => {
+  it('should switch to overlays tab', async () => {
     renderExplorer()
-    const layersBtn = screen.getByRole('tab', { name: 'Layers' })
-    await userEvent.click(layersBtn)
-    expect(screen.getByTestId('layers-panel')).toBeInTheDocument()
+    const overlaysBtn = screen.getByRole('tab', { name: 'Overlays' })
+    await userEvent.click(overlaysBtn)
+    expect(screen.getByTestId('overlays-panel')).toBeInTheDocument()
   })
 
   it('should switch to validation tab', async () => {

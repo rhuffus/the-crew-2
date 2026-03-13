@@ -11,6 +11,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/eslint-config/package.json packages/eslint-config/
 COPY packages/domain-core/package.json packages/domain-core/
+COPY packages/drizzle-db/package.json packages/drizzle-db/
 COPY packages/shared-types/package.json packages/shared-types/
 COPY apps/api-gateway/package.json apps/api-gateway/
 COPY apps/web/package.json apps/web/
@@ -35,6 +36,11 @@ RUN cd packages/shared-types \
     && sed -i '/"type": "module"/d' package.json
 
 RUN cd packages/domain-core \
+    && npx tsc -p tsconfig.build.json --module commonjs --moduleResolution node --skipLibCheck \
+    && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json \
+    && sed -i '/"type": "module"/d' package.json
+
+RUN cd packages/drizzle-db \
     && npx tsc -p tsconfig.build.json --module commonjs --moduleResolution node --skipLibCheck \
     && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json \
     && sed -i '/"type": "module"/d' package.json

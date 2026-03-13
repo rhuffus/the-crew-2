@@ -1,6 +1,6 @@
 import type { NodeType } from '@the-crew/shared-types'
 
-const NODE_TYPE_PREFIX: Record<NodeType, string> = {
+const NODE_TYPE_PREFIX: Record<string, string> = {
   company: 'company',
   department: 'dept',
   role: 'role',
@@ -13,6 +13,16 @@ const NODE_TYPE_PREFIX: Record<NodeType, string> = {
   contract: 'contract',
   policy: 'policy',
   artifact: 'artifact',
+  // v3 node types (LCP-012)
+  team: 'team',
+  'coordinator-agent': 'coord',
+  'specialist-agent': 'spec',
+  objective: 'obj',
+  'event-trigger': 'evt',
+  'external-source': 'ext',
+  handoff: 'handoff',
+  decision: 'decision',
+  proposal: 'proposal',
 }
 
 export function visualNodeId(nodeType: NodeType, entityId: string): string {

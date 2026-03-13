@@ -1,0 +1,170 @@
+{
+  "title": "Inspector",
+  "collapse": "Close inspector",
+  "expand": "Expand inspector",
+  "noSelection": "No selection",
+  "tab": {
+    "overview": "Overview",
+    "edit": "Edit",
+    "properties": "Properties",
+    "relations": "Relations",
+    "validation": "Validation",
+    "changes": "Changes",
+    "comments": "Comments",
+    "operations": "Ops",
+    "runtime": "Runtime"
+  },
+  "overview": {
+    "companyPhase": "Company Phase",
+    "capabilities": "Capabilities:",
+    "orgHealth": "Organization Health",
+    "nodes": "Nodes",
+    "noNodes": "No nodes in view.",
+    "edges": "Edges",
+    "noEdges": "No edges in view.",
+    "validation": "Validation",
+    "error": "{{count}} error",
+    "error_other": "{{count}} errors",
+    "warning": "{{count}} warning",
+    "warning_other": "{{count}} warnings",
+    "pendingProposal": "{{count}} pending proposal",
+    "pendingProposal_other": "{{count}} pending proposals"
+  },
+  "properties": {
+    "title": "Properties Tab",
+    "visualId": "Visual ID",
+    "entityId": "Entity ID",
+    "nodeType": "Node Type",
+    "collapsed": "Collapsed",
+    "layers": "Layers",
+    "position": "Position",
+    "autoLayout": "Auto-layout",
+    "parentId": "Parent ID"
+  },
+  "relations": {
+    "title": "Relations Tab",
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
+    "noRelations": "No relations found.",
+    "addRelationship": "Add Relationship",
+    "remove": "Remove"
+  },
+  "validation": {
+    "title": "Validation Tab",
+    "noIssues": "No validation issues"
+  },
+  "comments": {
+    "title": "Comments Tab",
+    "noComments": "No comments yet.",
+    "loadingComments": "Loading comments...",
+    "replyingTo": "Replying to comment",
+    "cancelReply": "cancel",
+    "replyPlaceholder": "Write a reply...",
+    "addPlaceholder": "Add a comment...",
+    "comment": "{{count}} comment",
+    "comment_other": "{{count}} comments"
+  },
+  "operations": {
+    "title": "Operations Tab",
+    "enableOverlay": "Enable operations overlay to see runtime state",
+    "status": "Status",
+    "activeRuns": "Active runs",
+    "incidents": "Incidents",
+    "queueDepth": "Queue depth",
+    "compliance": "Compliance",
+    "badges": "Badges"
+  },
+  "runtime": {
+    "title": "Runtime Tab",
+    "switchToLive": "Switch to Live mode to see runtime state",
+    "runtimeState": "Runtime State",
+    "indicators": "Indicators",
+    "activeExecutions": "Active Executions",
+    "cost": "Cost",
+    "recentEvents": "Recent Events",
+    "lastActivity": "Last activity:"
+  },
+  "changes": {
+    "title": "Changes Tab",
+    "newEntity": "New entity",
+    "deletedEntity": "Deleted entity",
+    "modifiedEntity": "Modified entity",
+    "unchanged": "Unchanged",
+    "allFieldsAdded": "All fields are additions for",
+    "allFieldsRemoved": "All fields were removed for",
+    "noChanges": "No changes detected.",
+    "noVisualChanges": "Entity was modified but no visual field changes detected.",
+    "changeField": "Change field"
+  },
+  "diff": {
+    "title": "Diff Summary",
+    "nodes": "Nodes",
+    "edges": "Edges",
+    "added": "added",
+    "removed": "removed",
+    "modified": "modified",
+    "unchanged": "unchanged"
+  },
+  "edit": {
+    "notEditable": "This entity type is not editable.",
+    "loadingData": "Loading entity data...",
+    "loadFailed": "Unable to load entity data.",
+    "noOptions": "No options available"
+  },
+  "edge": {
+    "edgeType": "Edge Type",
+    "deleteRelationship": "Delete relationship",
+    "style": "Style",
+    "source": "Source",
+    "target": "Target",
+    "responsibility": "Responsibility",
+    "noResponsibility": "No responsibility set",
+    "label": "Label",
+    "layers": "Layers"
+  },
+  "multiSelect": {
+    "itemsSelected": "{{count}} items selected",
+    "edges": "Edges",
+    "bulkActions": "Bulk Actions",
+    "deleteConfirm": "Delete {{count}} selected node?",
+    "deleteConfirm_other": "Delete {{count}} selected nodes?",
+    "confirmDelete": "Confirm Delete",
+    "cancel": "Cancel",
+    "deleteSelected": "Delete Selected"
+  },
+  "lock": {
+    "lockedBy": "Locked by",
+    "release": "Release",
+    "lockForEditing": "Lock for editing"
+  },
+  "review": {
+    "approve": "Approve",
+    "needsChanges": "Needs Changes",
+    "requestReview": "Request Review",
+    "pendingReview": "Pending Review"
+  },
+  "uo": {
+    "mandate": "Mandate",
+    "functions": "Functions",
+    "coordinator": "Coordinator",
+    "status": "Status"
+  },
+  "agent": {
+    "skills": "Skills",
+    "responsibilities": "Responsibilities",
+    "inputs": "Inputs",
+    "outputs": "Outputs",
+    "budget": "Budget",
+    "maxMonthlyTokens": "Max monthly tokens:",
+    "maxConcurrentTasks": "Max concurrent tasks:",
+    "costLimit": "Cost limit: $"
+  },
+  "proposal": {
+    "motivation": "Motivation",
+    "expectedBenefit": "Expected Benefit",
+    "estimatedCost": "Estimated Cost",
+    "proposedBy": "Proposed By",
+    "rejectionReason": "Rejection Reason",
+    "confirm": "Confirm"
+  }
+}

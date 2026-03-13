@@ -29,7 +29,7 @@ describe('navigation config', () => {
 
   it('should use parameterized project paths', () => {
     for (const item of projectNavItems) {
-      expect(item.to).toContain('/projects/$projectId/')
+      expect(item.to).toContain('/projects/$projectSlug/')
     }
   })
 

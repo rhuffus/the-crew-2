@@ -23,6 +23,23 @@ const EDGE_TYPE_LABELS: Record<EdgeType, string> = {
   governs: 'Governs',
   produces_artifact: 'Produces',
   consumes_artifact: 'Consumes',
+  contains: 'Contains',
+  belongs_to: 'Belongs to',
+  led_by: 'Led by',
+  accountable_for: 'Accountable for',
+  supervises: 'Supervises',
+  requests_from: 'Requests from',
+  delegates_to: 'Delegates to',
+  reviews: 'Reviews',
+  approves: 'Approves',
+  escalates_to: 'Escalates to',
+  produces: 'Produces',
+  informs: 'Informs',
+  triggers: 'Triggers',
+  governed_by: 'Governed by',
+  constrained_by: 'Constrained by',
+  proposed_by: 'Proposed by',
+  approved_by: 'Approved by',
 }
 
 const CATEGORY_COLORS: Record<EdgeCategory, string> = {
@@ -34,6 +51,10 @@ const CATEGORY_COLORS: Record<EdgeCategory, string> = {
   workflow: 'bg-orange-100 text-orange-700',
   governance: 'bg-rose-100 text-rose-700',
   artifact: 'bg-indigo-100 text-indigo-700',
+  structural: 'bg-slate-100 text-slate-700',
+  responsibility: 'bg-violet-100 text-violet-700',
+  collaboration: 'bg-teal-100 text-teal-700',
+  flow: 'bg-yellow-100 text-yellow-700',
 }
 
 function getEdgeInfo(edgeType: EdgeType): { category: EdgeCategory; style: EdgeStyle } | null {

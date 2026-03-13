@@ -9,25 +9,25 @@ interface ActionButtonProps {
 
 export function ActionButton({ action }: ActionButtonProps) {
   const navigate = useNavigate()
-  const { focusNode, showEntityForm } = useVisualWorkspaceStore()
 
   const handleClick = () => {
+    const state = useVisualWorkspaceStore.getState()
     switch (action.type) {
       case 'navigate':
         if (action.payload.route) {
           navigate({ to: action.payload.route })
         } else if (action.payload.entityId) {
-          focusNode(action.payload.entityId)
+          state.focusNode(action.payload.entityId)
         }
         break
       case 'create-entity':
         if (action.payload.nodeType) {
-          showEntityForm(action.payload.nodeType as Parameters<typeof showEntityForm>[0])
+          state.showEntityForm(action.payload.nodeType as Parameters<typeof state.showEntityForm>[0])
         }
         break
       case 'edit-entity':
         if (action.payload.entityId) {
-          focusNode(action.payload.entityId)
+          state.focusNode(action.payload.entityId)
         }
         break
       default:

@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/session_start_context.py"
+            "command": "python3 /Users/rhuffus/CodeHome/Personal/the-crew-2/.claude/hooks/session_start_context.py"
           }
         ]
       }
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/pre_bash_guard.py"
+            "command": "python3 /Users/rhuffus/CodeHome/Personal/the-crew-2/.claude/hooks/pre_bash_guard.py"
           }
         ]
       }
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/post_write_reminder.py"
+            "command": "python3 /Users/rhuffus/CodeHome/Personal/the-crew-2/.claude/hooks/post_write_reminder.py"
           }
         ]
       }

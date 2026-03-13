@@ -1,0 +1,11 @@
+{
+  "addNode": "Añadir nodo",
+  "deleteNode": "Eliminar",
+  "editNode": "Editar",
+  "drillIn": "Profundizar",
+  "viewDetails": "Ver detalles",
+  "copyId": "Copiar ID",
+  "lockNode": "Bloquear para editar",
+  "unlockNode": "Liberar bloqueo",
+  "requestReview": "Solicitar revisión"
+}

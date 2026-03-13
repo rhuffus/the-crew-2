@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet, Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 export const Route = createRootRoute({
@@ -15,13 +16,14 @@ function RootComponent() {
 }
 
 function NotFoundComponent() {
+  const { t } = useTranslation('navigation')
   return (
     <div className="flex h-screen items-center justify-center bg-background">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-muted-foreground">The page you are looking for does not exist.</p>
+        <h2 className="text-2xl font-semibold text-foreground">{t('pageNotFound')}</h2>
+        <p className="mt-2 text-muted-foreground">{t('pageNotFoundDescription')}</p>
         <Link to="/" className="mt-4 inline-block text-sm text-primary hover:underline">
-          Go to platform home
+          {t('goHome')}
         </Link>
       </div>
     </div>

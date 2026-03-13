@@ -1,0 +1,91 @@
+{
+  "title": "Explorador",
+  "collapse": "Colapsar explorador",
+  "expand": "Expandir explorador",
+  "tab": {
+    "tree": "Árbol de Entidades",
+    "overlays": "Capas",
+    "filters": "Filtros",
+    "views": "Vistas Guardadas",
+    "validation": "Validación",
+    "chat": "Chat",
+    "operations": "Operaciones",
+    "timeline": "Línea de Tiempo",
+    "proposals": "Propuestas"
+  },
+  "tree": {
+    "noEntities": "No hay entidades en la vista actual."
+  },
+  "overlays": {
+    "title": "Capas"
+  },
+  "filters": {
+    "title": "Filtros",
+    "clearAll": "Limpiar todo",
+    "nodeType": "Tipo de Nodo",
+    "status": "Estado",
+    "noGraph": "No hay grafo cargado"
+  },
+  "views": {
+    "title": "Vistas Guardadas",
+    "namePlaceholder": "Nombre de la vista...",
+    "save": "Guardar",
+    "loading": "Cargando vistas...",
+    "noViews": "Aún no hay vistas guardadas",
+    "deleteView": "Eliminar vista"
+  },
+  "validation": {
+    "title": "Validación",
+    "noIssues": "Sin problemas",
+    "noValidationIssues": "Sin problemas de validación",
+    "validationIssues": "Problemas de Validación",
+    "error": "{{count}} error",
+    "error_other": "{{count}} errores",
+    "warning": "{{count}} advertencia",
+    "warning_other": "{{count}} advertencias"
+  },
+  "chat": {
+    "noThreads": "Aún no hay hilos de chat. Abre el panel de chat para iniciar una conversación.",
+    "loadingThreads": "Cargando hilos...",
+    "messages": "mensajes"
+  },
+  "operations": {
+    "title": "Operaciones",
+    "activeRuns": "Ejecuciones Activas",
+    "blocked": "Bloqueado",
+    "failed": "Fallido",
+    "incidents": "Incidentes",
+    "complianceViolations": "Violaciones de Cumplimiento",
+    "noActiveRuns": "Sin ejecuciones activas",
+    "noIncidents": "Sin incidentes abiertos",
+    "noComplianceData": "Sin datos de cumplimiento",
+    "compliance": "Cumplimiento",
+    "compliant": "Conforme",
+    "atRisk": "En Riesgo",
+    "violated": "Violado",
+    "incident": "{{count}} incidente",
+    "incident_other": "{{count}} incidentes"
+  },
+  "timeline": {
+    "title": "Línea de Tiempo",
+    "switchToLive": "Cambia al modo en vivo para ver la línea de tiempo",
+    "connected": "Conectado",
+    "connecting": "Conectando...",
+    "noEvents": "Aún no hay eventos",
+    "event": "{{count}} evento",
+    "event_other": "{{count}} eventos"
+  },
+  "proposals": {
+    "title": "Propuestas",
+    "pending": "Pendientes",
+    "pendingCount": "Pendientes ({{count}})",
+    "approvedCount": "Aprobadas ({{count}})",
+    "rejectedCount": "Rechazadas ({{count}})",
+    "draftsCount": "Borradores ({{count}})",
+    "loadingProposals": "Cargando propuestas...",
+    "noProposals": "Aún no hay propuestas. El CEO propondrá cambios estructurales a medida que la empresa crezca.",
+    "noPending": "No hay propuestas pendientes. El CEO está analizando la organización...",
+    "recentlyApproved": "Aprobadas Recientemente",
+    "rejectionReason": "Razón del rechazo..."
+  }
+}

@@ -1,11 +1,11 @@
 import { create } from 'zustand'
-import type { LayerId, ZoomLevel, VisualNodeDto, VisualEdgeDto, NodeType, NodeStatus, ValidationIssue, BreadcrumbEntry, EdgeType, VisualDiffStatus, ScopeType, ScopeDescriptor, ViewPresetId, OperationsStatusDto } from '@the-crew/shared-types'
-import { SCOPE_REGISTRY, VIEW_PRESET_REGISTRY } from '@the-crew/shared-types'
+import type { LayerId, ZoomLevel, VisualNodeDto, VisualEdgeDto, NodeType, NodeStatus, ValidationIssue, BreadcrumbEntry, EdgeType, VisualDiffStatus, ScopeType, ScopeDescriptor, ViewPresetId, OperationsStatusDto, OverlayId } from '@the-crew/shared-types'
+import { SCOPE_REGISTRY, VIEW_PRESET_REGISTRY, OVERLAY_DEFINITIONS, overlaysToLayers, DEFAULT_OVERLAYS_PER_LEVEL } from '@the-crew/shared-types'
+
+export type DesignMode = 'design' | 'live'
 
 /** @deprecated Use ScopeType instead */
 export type CanvasView = 'org' | 'department' | 'workflow'
-
-export type CanvasMode = 'select' | 'pan' | 'connect' | 'add-node' | 'add-edge'
 
 export interface NavigationEntry {
   scope: ScopeDescriptor
@@ -62,8 +62,7 @@ export interface VisualWorkspaceState {
 
   projectId: string | null
 
-  // Canvas interaction mode (CAV-005)
-  canvasMode: CanvasMode
+  // Canvas interaction
   addEdgeSource: string | null
   preselectedEdgeType: EdgeType | null
 
@@ -132,8 +131,17 @@ export interface VisualWorkspaceState {
   showOperationsOverlay: boolean
   operationsStatus: OperationsStatusDto | null
 
-  // Canvas interaction mode (CAV-005)
-  setCanvasMode(mode: CanvasMode): void
+  // v3 overlays as primary state (LCP-012)
+  activeOverlays: OverlayId[]
+
+  // Palette toggles (for keyboard shortcuts N/E)
+  nodePaletteOpen: boolean
+  relationshipPaletteOpen: boolean
+
+  // Design / Live mode (LCP-012)
+  designMode: DesignMode
+
+  // Canvas interaction
   setAddEdgeSource(nodeId: string | null): void
   setPreselectedEdgeType(edgeType: EdgeType | null): void
 
@@ -157,6 +165,9 @@ export interface VisualWorkspaceState {
   toggleChatDock(): void
   toggleLayer(layer: LayerId): void
   setActiveLayers(layers: LayerId[]): void
+  // Overlay-aware methods (LCP-010)
+  toggleOverlay(overlayId: OverlayId): void
+  setActiveOverlays(overlays: OverlayId[]): void
   resetToDefaults(level: ZoomLevel): void
   setNodeTypeFilter(types: NodeType[] | null): void
   setStatusFilter(statuses: NodeStatus[] | null): void
@@ -210,6 +221,13 @@ export interface VisualWorkspaceState {
   toggleOperationsOverlay(): void
   setOperationsStatus(status: OperationsStatusDto | null): void
 
+  // Palette toggles
+  toggleNodePalette(): void
+  toggleRelationshipPalette(): void
+
+  // Design / Live mode (LCP-012)
+  setDesignMode(mode: DesignMode): void
+
   // Diff mode (VIS-015f)
   enterDiffMode(baseReleaseId: string, compareReleaseId: string): void
   exitDiffMode(): void
@@ -229,6 +247,8 @@ function scopeTypeToView(scopeType: ScopeType): CanvasView {
   switch (scopeType) {
     case 'company': return 'org'
     case 'department': return 'department'
+    case 'team': return 'department'
+    case 'agent-detail': return 'department'
     case 'workflow': return 'workflow'
     case 'workflow-stage': return 'workflow'
   }
@@ -255,7 +275,6 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   scopeEntityId: null,
   projectId: null,
 
-  canvasMode: 'select',
   addEdgeSource: null,
   preselectedEdgeType: null,
 
@@ -310,16 +329,17 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   showOperationsOverlay: false,
   operationsStatus: null,
 
-  setCanvasMode(mode) {
-    set({ canvasMode: mode, addEdgeSource: null, preselectedEdgeType: mode !== 'add-edge' ? null : get().preselectedEdgeType })
-  },
+  activeOverlays: DEFAULT_OVERLAYS_PER_LEVEL.L1,
+  nodePaletteOpen: false,
+  relationshipPaletteOpen: false,
+  designMode: 'design',
 
   setAddEdgeSource(nodeId) {
     set({ addEdgeSource: nodeId })
   },
 
   setPreselectedEdgeType(edgeType) {
-    set({ preselectedEdgeType: edgeType, canvasMode: 'add-edge', addEdgeSource: null })
+    set({ preselectedEdgeType: edgeType, addEdgeSource: null })
   },
 
   setProjectId(projectId) {
@@ -344,6 +364,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
       graphEdges: [],
       focusNodeId: null,
       activeLayers: def.defaultLayers,
+      activeOverlays: def.defaultOverlays,
       nodeTypeFilter: null,
       statusFilter: null,
       pendingConnection: null,
@@ -352,7 +373,6 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
       deleteConfirm: null,
       collapsedNodeIds: [],
       breadcrumb: [],
-      canvasMode: 'select',
       addEdgeSource: null,
       preselectedEdgeType: null,
       activePreset: null,
@@ -366,14 +386,20 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   },
 
   selectNodes(ids) {
+    const current = get().selectedNodeIds
+    if (ids.length === current.length && ids.every((id, i) => id === current[i])) return
     set({ selectedNodeIds: ids, selectedEdgeIds: [] })
   },
 
   selectEdges(ids) {
+    const current = get().selectedEdgeIds
+    if (ids.length === current.length && ids.every((id, i) => id === current[i])) return
     set({ selectedEdgeIds: ids, selectedNodeIds: [] })
   },
 
   clearSelection() {
+    const { selectedNodeIds, selectedEdgeIds } = get()
+    if (selectedNodeIds.length === 0 && selectedEdgeIds.length === 0) return
     set({ selectedNodeIds: [], selectedEdgeIds: [] })
   },
 
@@ -421,10 +447,29 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
     set({ activeLayers: layers, activePreset: null })
   },
 
+  toggleOverlay(overlayId) {
+    const overlay = OVERLAY_DEFINITIONS.find(d => d.id === overlayId)
+    if (!overlay || overlay.locked) return
+    set((s) => {
+      const isActive = s.activeOverlays.includes(overlayId)
+      const nextOverlays = isActive
+        ? s.activeOverlays.filter(o => o !== overlayId)
+        : [...s.activeOverlays, overlayId]
+      // Keep activeLayers in sync (bridge)
+      const bridgeLayers = overlaysToLayers(nextOverlays)
+      return { activeOverlays: nextOverlays, activeLayers: bridgeLayers, activePreset: null }
+    })
+  },
+
+  setActiveOverlays(overlays) {
+    const allOverlays: OverlayId[] = overlays.includes('organization') ? overlays : ['organization' as OverlayId, ...overlays]
+    set({ activeOverlays: allOverlays, activeLayers: overlaysToLayers(allOverlays), activePreset: null })
+  },
+
   resetToDefaults(_level) {
     const state = get()
     const def = SCOPE_REGISTRY[state.currentScope.scopeType]
-    set({ activeLayers: def.defaultLayers })
+    set({ activeLayers: def.defaultLayers, activeOverlays: def.defaultOverlays })
   },
 
   setNodeTypeFilter(types) {
@@ -542,9 +587,11 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
     const preset = VIEW_PRESET_REGISTRY[presetId]
     if (!preset) return
     if (!preset.availableAtScopes.includes(state.currentScope.scopeType)) return
+    const overlays = preset.overlays ?? state.activeOverlays
     set({
       activePreset: presetId,
       activeLayers: preset.layers,
+      activeOverlays: overlays,
       nodeTypeFilter: preset.emphasisNodeTypes,
     })
   },
@@ -555,6 +602,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
     set({
       activePreset: null,
       activeLayers: def.defaultLayers,
+      activeOverlays: def.defaultOverlays,
       nodeTypeFilter: null,
     })
   },
@@ -573,6 +621,27 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
 
   setOperationsStatus(status) {
     set({ operationsStatus: status })
+  },
+
+  toggleNodePalette() {
+    set((s) => ({ nodePaletteOpen: !s.nodePaletteOpen, relationshipPaletteOpen: false }))
+  },
+
+  toggleRelationshipPalette() {
+    set((s) => ({ relationshipPaletteOpen: !s.relationshipPaletteOpen, nodePaletteOpen: false }))
+  },
+
+  setDesignMode(mode) {
+    set((s) => {
+      const nextOverlays = mode === 'live'
+        ? [...new Set([...s.activeOverlays, 'live-status' as OverlayId])]
+        : s.activeOverlays.filter(o => o !== 'live-status')
+      return {
+        designMode: mode,
+        activeOverlays: nextOverlays,
+        activeLayers: overlaysToLayers(nextOverlays),
+      }
+    })
   },
 
   enterDiffMode(baseReleaseId, compareReleaseId) {

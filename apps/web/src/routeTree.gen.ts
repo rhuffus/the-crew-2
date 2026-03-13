@@ -10,304 +10,319 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projectId'
-import { Route as ProjectsProjectIdIndexRouteImport } from './routes/projects/$projectId/index'
-import { Route as ProjectsProjectIdOrgRouteImport } from './routes/projects/$projectId/org'
-import { Route as ProjectsProjectIdDiffRouteImport } from './routes/projects/$projectId/diff'
-import { Route as ProjectsProjectIdAdminRouteImport } from './routes/projects/$projectId/admin'
-import { Route as ProjectsProjectIdWorkflowsWorkflowIdRouteImport } from './routes/projects/$projectId/workflows.$workflowId'
-import { Route as ProjectsProjectIdDepartmentsDepartmentIdRouteImport } from './routes/projects/$projectId/departments.$departmentId'
-import { Route as ProjectsProjectIdAdminWorkflowsRouteImport } from './routes/projects/$projectId/admin/workflows'
-import { Route as ProjectsProjectIdAdminValidationsRouteImport } from './routes/projects/$projectId/admin/validations'
-import { Route as ProjectsProjectIdAdminSkillsRouteImport } from './routes/projects/$projectId/admin/skills'
-import { Route as ProjectsProjectIdAdminRolesRouteImport } from './routes/projects/$projectId/admin/roles'
-import { Route as ProjectsProjectIdAdminReleasesRouteImport } from './routes/projects/$projectId/admin/releases'
-import { Route as ProjectsProjectIdAdminPoliciesRouteImport } from './routes/projects/$projectId/admin/policies'
-import { Route as ProjectsProjectIdAdminOverviewRouteImport } from './routes/projects/$projectId/admin/overview'
-import { Route as ProjectsProjectIdAdminDepartmentsRouteImport } from './routes/projects/$projectId/admin/departments'
-import { Route as ProjectsProjectIdAdminContractsRouteImport } from './routes/projects/$projectId/admin/contracts'
-import { Route as ProjectsProjectIdAdminCompanyModelRouteImport } from './routes/projects/$projectId/admin/company-model'
-import { Route as ProjectsProjectIdAdminCapabilitiesRouteImport } from './routes/projects/$projectId/admin/capabilities'
-import { Route as ProjectsProjectIdAdminAuditRouteImport } from './routes/projects/$projectId/admin/audit'
-import { Route as ProjectsProjectIdAdminAgentsRouteImport } from './routes/projects/$projectId/admin/agents'
-import { Route as ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRouteImport } from './routes/projects/$projectId/workflows.$workflowId.stages.$stageId'
+import { Route as ProjectsNewRouteImport } from './routes/projects/new'
+import { Route as ProjectsProjectSlugRouteImport } from './routes/projects/$projectSlug'
+import { Route as ProjectsProjectSlugIndexRouteImport } from './routes/projects/$projectSlug/index'
+import { Route as ProjectsProjectSlugOrgRouteImport } from './routes/projects/$projectSlug/org'
+import { Route as ProjectsProjectSlugDiffRouteImport } from './routes/projects/$projectSlug/diff'
+import { Route as ProjectsProjectSlugAdminRouteImport } from './routes/projects/$projectSlug/admin'
+import { Route as ProjectsProjectSlugWorkflowsWorkflowIdRouteImport } from './routes/projects/$projectSlug/workflows.$workflowId'
+import { Route as ProjectsProjectSlugDepartmentsDepartmentIdRouteImport } from './routes/projects/$projectSlug/departments.$departmentId'
+import { Route as ProjectsProjectSlugAdminWorkflowsRouteImport } from './routes/projects/$projectSlug/admin/workflows'
+import { Route as ProjectsProjectSlugAdminValidationsRouteImport } from './routes/projects/$projectSlug/admin/validations'
+import { Route as ProjectsProjectSlugAdminSkillsRouteImport } from './routes/projects/$projectSlug/admin/skills'
+import { Route as ProjectsProjectSlugAdminRolesRouteImport } from './routes/projects/$projectSlug/admin/roles'
+import { Route as ProjectsProjectSlugAdminReleasesRouteImport } from './routes/projects/$projectSlug/admin/releases'
+import { Route as ProjectsProjectSlugAdminPoliciesRouteImport } from './routes/projects/$projectSlug/admin/policies'
+import { Route as ProjectsProjectSlugAdminOverviewRouteImport } from './routes/projects/$projectSlug/admin/overview'
+import { Route as ProjectsProjectSlugAdminDepartmentsRouteImport } from './routes/projects/$projectSlug/admin/departments'
+import { Route as ProjectsProjectSlugAdminContractsRouteImport } from './routes/projects/$projectSlug/admin/contracts'
+import { Route as ProjectsProjectSlugAdminCompanyModelRouteImport } from './routes/projects/$projectSlug/admin/company-model'
+import { Route as ProjectsProjectSlugAdminCapabilitiesRouteImport } from './routes/projects/$projectSlug/admin/capabilities'
+import { Route as ProjectsProjectSlugAdminAuditRouteImport } from './routes/projects/$projectSlug/admin/audit'
+import { Route as ProjectsProjectSlugAdminAgentsRouteImport } from './routes/projects/$projectSlug/admin/agents'
+import { Route as ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRouteImport } from './routes/projects/$projectSlug/workflows.$workflowId.stages.$stageId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: '/projects/$projectId',
-  path: '/projects/$projectId',
+const ProjectsNewRoute = ProjectsNewRouteImport.update({
+  id: '/projects/new',
+  path: '/projects/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdIndexRoute = ProjectsProjectIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProjectsProjectIdRoute,
+const ProjectsProjectSlugRoute = ProjectsProjectSlugRouteImport.update({
+  id: '/projects/$projectSlug',
+  path: '/projects/$projectSlug',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdOrgRoute = ProjectsProjectIdOrgRouteImport.update({
+const ProjectsProjectSlugIndexRoute =
+  ProjectsProjectSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProjectsProjectSlugRoute,
+  } as any)
+const ProjectsProjectSlugOrgRoute = ProjectsProjectSlugOrgRouteImport.update({
   id: '/org',
   path: '/org',
-  getParentRoute: () => ProjectsProjectIdRoute,
+  getParentRoute: () => ProjectsProjectSlugRoute,
 } as any)
-const ProjectsProjectIdDiffRoute = ProjectsProjectIdDiffRouteImport.update({
+const ProjectsProjectSlugDiffRoute = ProjectsProjectSlugDiffRouteImport.update({
   id: '/diff',
   path: '/diff',
-  getParentRoute: () => ProjectsProjectIdRoute,
+  getParentRoute: () => ProjectsProjectSlugRoute,
 } as any)
-const ProjectsProjectIdAdminRoute = ProjectsProjectIdAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => ProjectsProjectIdRoute,
-} as any)
-const ProjectsProjectIdWorkflowsWorkflowIdRoute =
-  ProjectsProjectIdWorkflowsWorkflowIdRouteImport.update({
+const ProjectsProjectSlugAdminRoute =
+  ProjectsProjectSlugAdminRouteImport.update({
+    id: '/admin',
+    path: '/admin',
+    getParentRoute: () => ProjectsProjectSlugRoute,
+  } as any)
+const ProjectsProjectSlugWorkflowsWorkflowIdRoute =
+  ProjectsProjectSlugWorkflowsWorkflowIdRouteImport.update({
     id: '/workflows/$workflowId',
     path: '/workflows/$workflowId',
-    getParentRoute: () => ProjectsProjectIdRoute,
+    getParentRoute: () => ProjectsProjectSlugRoute,
   } as any)
-const ProjectsProjectIdDepartmentsDepartmentIdRoute =
-  ProjectsProjectIdDepartmentsDepartmentIdRouteImport.update({
+const ProjectsProjectSlugDepartmentsDepartmentIdRoute =
+  ProjectsProjectSlugDepartmentsDepartmentIdRouteImport.update({
     id: '/departments/$departmentId',
     path: '/departments/$departmentId',
-    getParentRoute: () => ProjectsProjectIdRoute,
+    getParentRoute: () => ProjectsProjectSlugRoute,
   } as any)
-const ProjectsProjectIdAdminWorkflowsRoute =
-  ProjectsProjectIdAdminWorkflowsRouteImport.update({
+const ProjectsProjectSlugAdminWorkflowsRoute =
+  ProjectsProjectSlugAdminWorkflowsRouteImport.update({
     id: '/workflows',
     path: '/workflows',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminValidationsRoute =
-  ProjectsProjectIdAdminValidationsRouteImport.update({
+const ProjectsProjectSlugAdminValidationsRoute =
+  ProjectsProjectSlugAdminValidationsRouteImport.update({
     id: '/validations',
     path: '/validations',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminSkillsRoute =
-  ProjectsProjectIdAdminSkillsRouteImport.update({
+const ProjectsProjectSlugAdminSkillsRoute =
+  ProjectsProjectSlugAdminSkillsRouteImport.update({
     id: '/skills',
     path: '/skills',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminRolesRoute =
-  ProjectsProjectIdAdminRolesRouteImport.update({
+const ProjectsProjectSlugAdminRolesRoute =
+  ProjectsProjectSlugAdminRolesRouteImport.update({
     id: '/roles',
     path: '/roles',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminReleasesRoute =
-  ProjectsProjectIdAdminReleasesRouteImport.update({
+const ProjectsProjectSlugAdminReleasesRoute =
+  ProjectsProjectSlugAdminReleasesRouteImport.update({
     id: '/releases',
     path: '/releases',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminPoliciesRoute =
-  ProjectsProjectIdAdminPoliciesRouteImport.update({
+const ProjectsProjectSlugAdminPoliciesRoute =
+  ProjectsProjectSlugAdminPoliciesRouteImport.update({
     id: '/policies',
     path: '/policies',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminOverviewRoute =
-  ProjectsProjectIdAdminOverviewRouteImport.update({
+const ProjectsProjectSlugAdminOverviewRoute =
+  ProjectsProjectSlugAdminOverviewRouteImport.update({
     id: '/overview',
     path: '/overview',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminDepartmentsRoute =
-  ProjectsProjectIdAdminDepartmentsRouteImport.update({
+const ProjectsProjectSlugAdminDepartmentsRoute =
+  ProjectsProjectSlugAdminDepartmentsRouteImport.update({
     id: '/departments',
     path: '/departments',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminContractsRoute =
-  ProjectsProjectIdAdminContractsRouteImport.update({
+const ProjectsProjectSlugAdminContractsRoute =
+  ProjectsProjectSlugAdminContractsRouteImport.update({
     id: '/contracts',
     path: '/contracts',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminCompanyModelRoute =
-  ProjectsProjectIdAdminCompanyModelRouteImport.update({
+const ProjectsProjectSlugAdminCompanyModelRoute =
+  ProjectsProjectSlugAdminCompanyModelRouteImport.update({
     id: '/company-model',
     path: '/company-model',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminCapabilitiesRoute =
-  ProjectsProjectIdAdminCapabilitiesRouteImport.update({
+const ProjectsProjectSlugAdminCapabilitiesRoute =
+  ProjectsProjectSlugAdminCapabilitiesRouteImport.update({
     id: '/capabilities',
     path: '/capabilities',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminAuditRoute =
-  ProjectsProjectIdAdminAuditRouteImport.update({
+const ProjectsProjectSlugAdminAuditRoute =
+  ProjectsProjectSlugAdminAuditRouteImport.update({
     id: '/audit',
     path: '/audit',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdAdminAgentsRoute =
-  ProjectsProjectIdAdminAgentsRouteImport.update({
+const ProjectsProjectSlugAdminAgentsRoute =
+  ProjectsProjectSlugAdminAgentsRouteImport.update({
     id: '/agents',
     path: '/agents',
-    getParentRoute: () => ProjectsProjectIdAdminRoute,
+    getParentRoute: () => ProjectsProjectSlugAdminRoute,
   } as any)
-const ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute =
-  ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRouteImport.update({
+const ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute =
+  ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRouteImport.update({
     id: '/stages/$stageId',
     path: '/stages/$stageId',
-    getParentRoute: () => ProjectsProjectIdWorkflowsWorkflowIdRoute,
+    getParentRoute: () => ProjectsProjectSlugWorkflowsWorkflowIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
-  '/projects/$projectId/admin': typeof ProjectsProjectIdAdminRouteWithChildren
-  '/projects/$projectId/diff': typeof ProjectsProjectIdDiffRoute
-  '/projects/$projectId/org': typeof ProjectsProjectIdOrgRoute
-  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
-  '/projects/$projectId/admin/agents': typeof ProjectsProjectIdAdminAgentsRoute
-  '/projects/$projectId/admin/audit': typeof ProjectsProjectIdAdminAuditRoute
-  '/projects/$projectId/admin/capabilities': typeof ProjectsProjectIdAdminCapabilitiesRoute
-  '/projects/$projectId/admin/company-model': typeof ProjectsProjectIdAdminCompanyModelRoute
-  '/projects/$projectId/admin/contracts': typeof ProjectsProjectIdAdminContractsRoute
-  '/projects/$projectId/admin/departments': typeof ProjectsProjectIdAdminDepartmentsRoute
-  '/projects/$projectId/admin/overview': typeof ProjectsProjectIdAdminOverviewRoute
-  '/projects/$projectId/admin/policies': typeof ProjectsProjectIdAdminPoliciesRoute
-  '/projects/$projectId/admin/releases': typeof ProjectsProjectIdAdminReleasesRoute
-  '/projects/$projectId/admin/roles': typeof ProjectsProjectIdAdminRolesRoute
-  '/projects/$projectId/admin/skills': typeof ProjectsProjectIdAdminSkillsRoute
-  '/projects/$projectId/admin/validations': typeof ProjectsProjectIdAdminValidationsRoute
-  '/projects/$projectId/admin/workflows': typeof ProjectsProjectIdAdminWorkflowsRoute
-  '/projects/$projectId/departments/$departmentId': typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
-  '/projects/$projectId/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
+  '/projects/$projectSlug': typeof ProjectsProjectSlugRouteWithChildren
+  '/projects/new': typeof ProjectsNewRoute
+  '/projects/$projectSlug/admin': typeof ProjectsProjectSlugAdminRouteWithChildren
+  '/projects/$projectSlug/diff': typeof ProjectsProjectSlugDiffRoute
+  '/projects/$projectSlug/org': typeof ProjectsProjectSlugOrgRoute
+  '/projects/$projectSlug/': typeof ProjectsProjectSlugIndexRoute
+  '/projects/$projectSlug/admin/agents': typeof ProjectsProjectSlugAdminAgentsRoute
+  '/projects/$projectSlug/admin/audit': typeof ProjectsProjectSlugAdminAuditRoute
+  '/projects/$projectSlug/admin/capabilities': typeof ProjectsProjectSlugAdminCapabilitiesRoute
+  '/projects/$projectSlug/admin/company-model': typeof ProjectsProjectSlugAdminCompanyModelRoute
+  '/projects/$projectSlug/admin/contracts': typeof ProjectsProjectSlugAdminContractsRoute
+  '/projects/$projectSlug/admin/departments': typeof ProjectsProjectSlugAdminDepartmentsRoute
+  '/projects/$projectSlug/admin/overview': typeof ProjectsProjectSlugAdminOverviewRoute
+  '/projects/$projectSlug/admin/policies': typeof ProjectsProjectSlugAdminPoliciesRoute
+  '/projects/$projectSlug/admin/releases': typeof ProjectsProjectSlugAdminReleasesRoute
+  '/projects/$projectSlug/admin/roles': typeof ProjectsProjectSlugAdminRolesRoute
+  '/projects/$projectSlug/admin/skills': typeof ProjectsProjectSlugAdminSkillsRoute
+  '/projects/$projectSlug/admin/validations': typeof ProjectsProjectSlugAdminValidationsRoute
+  '/projects/$projectSlug/admin/workflows': typeof ProjectsProjectSlugAdminWorkflowsRoute
+  '/projects/$projectSlug/departments/$departmentId': typeof ProjectsProjectSlugDepartmentsDepartmentIdRoute
+  '/projects/$projectSlug/workflows/$workflowId': typeof ProjectsProjectSlugWorkflowsWorkflowIdRouteWithChildren
+  '/projects/$projectSlug/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/projects/$projectId/admin': typeof ProjectsProjectIdAdminRouteWithChildren
-  '/projects/$projectId/diff': typeof ProjectsProjectIdDiffRoute
-  '/projects/$projectId/org': typeof ProjectsProjectIdOrgRoute
-  '/projects/$projectId': typeof ProjectsProjectIdIndexRoute
-  '/projects/$projectId/admin/agents': typeof ProjectsProjectIdAdminAgentsRoute
-  '/projects/$projectId/admin/audit': typeof ProjectsProjectIdAdminAuditRoute
-  '/projects/$projectId/admin/capabilities': typeof ProjectsProjectIdAdminCapabilitiesRoute
-  '/projects/$projectId/admin/company-model': typeof ProjectsProjectIdAdminCompanyModelRoute
-  '/projects/$projectId/admin/contracts': typeof ProjectsProjectIdAdminContractsRoute
-  '/projects/$projectId/admin/departments': typeof ProjectsProjectIdAdminDepartmentsRoute
-  '/projects/$projectId/admin/overview': typeof ProjectsProjectIdAdminOverviewRoute
-  '/projects/$projectId/admin/policies': typeof ProjectsProjectIdAdminPoliciesRoute
-  '/projects/$projectId/admin/releases': typeof ProjectsProjectIdAdminReleasesRoute
-  '/projects/$projectId/admin/roles': typeof ProjectsProjectIdAdminRolesRoute
-  '/projects/$projectId/admin/skills': typeof ProjectsProjectIdAdminSkillsRoute
-  '/projects/$projectId/admin/validations': typeof ProjectsProjectIdAdminValidationsRoute
-  '/projects/$projectId/admin/workflows': typeof ProjectsProjectIdAdminWorkflowsRoute
-  '/projects/$projectId/departments/$departmentId': typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
-  '/projects/$projectId/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
+  '/projects/new': typeof ProjectsNewRoute
+  '/projects/$projectSlug/admin': typeof ProjectsProjectSlugAdminRouteWithChildren
+  '/projects/$projectSlug/diff': typeof ProjectsProjectSlugDiffRoute
+  '/projects/$projectSlug/org': typeof ProjectsProjectSlugOrgRoute
+  '/projects/$projectSlug': typeof ProjectsProjectSlugIndexRoute
+  '/projects/$projectSlug/admin/agents': typeof ProjectsProjectSlugAdminAgentsRoute
+  '/projects/$projectSlug/admin/audit': typeof ProjectsProjectSlugAdminAuditRoute
+  '/projects/$projectSlug/admin/capabilities': typeof ProjectsProjectSlugAdminCapabilitiesRoute
+  '/projects/$projectSlug/admin/company-model': typeof ProjectsProjectSlugAdminCompanyModelRoute
+  '/projects/$projectSlug/admin/contracts': typeof ProjectsProjectSlugAdminContractsRoute
+  '/projects/$projectSlug/admin/departments': typeof ProjectsProjectSlugAdminDepartmentsRoute
+  '/projects/$projectSlug/admin/overview': typeof ProjectsProjectSlugAdminOverviewRoute
+  '/projects/$projectSlug/admin/policies': typeof ProjectsProjectSlugAdminPoliciesRoute
+  '/projects/$projectSlug/admin/releases': typeof ProjectsProjectSlugAdminReleasesRoute
+  '/projects/$projectSlug/admin/roles': typeof ProjectsProjectSlugAdminRolesRoute
+  '/projects/$projectSlug/admin/skills': typeof ProjectsProjectSlugAdminSkillsRoute
+  '/projects/$projectSlug/admin/validations': typeof ProjectsProjectSlugAdminValidationsRoute
+  '/projects/$projectSlug/admin/workflows': typeof ProjectsProjectSlugAdminWorkflowsRoute
+  '/projects/$projectSlug/departments/$departmentId': typeof ProjectsProjectSlugDepartmentsDepartmentIdRoute
+  '/projects/$projectSlug/workflows/$workflowId': typeof ProjectsProjectSlugWorkflowsWorkflowIdRouteWithChildren
+  '/projects/$projectSlug/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
-  '/projects/$projectId/admin': typeof ProjectsProjectIdAdminRouteWithChildren
-  '/projects/$projectId/diff': typeof ProjectsProjectIdDiffRoute
-  '/projects/$projectId/org': typeof ProjectsProjectIdOrgRoute
-  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
-  '/projects/$projectId/admin/agents': typeof ProjectsProjectIdAdminAgentsRoute
-  '/projects/$projectId/admin/audit': typeof ProjectsProjectIdAdminAuditRoute
-  '/projects/$projectId/admin/capabilities': typeof ProjectsProjectIdAdminCapabilitiesRoute
-  '/projects/$projectId/admin/company-model': typeof ProjectsProjectIdAdminCompanyModelRoute
-  '/projects/$projectId/admin/contracts': typeof ProjectsProjectIdAdminContractsRoute
-  '/projects/$projectId/admin/departments': typeof ProjectsProjectIdAdminDepartmentsRoute
-  '/projects/$projectId/admin/overview': typeof ProjectsProjectIdAdminOverviewRoute
-  '/projects/$projectId/admin/policies': typeof ProjectsProjectIdAdminPoliciesRoute
-  '/projects/$projectId/admin/releases': typeof ProjectsProjectIdAdminReleasesRoute
-  '/projects/$projectId/admin/roles': typeof ProjectsProjectIdAdminRolesRoute
-  '/projects/$projectId/admin/skills': typeof ProjectsProjectIdAdminSkillsRoute
-  '/projects/$projectId/admin/validations': typeof ProjectsProjectIdAdminValidationsRoute
-  '/projects/$projectId/admin/workflows': typeof ProjectsProjectIdAdminWorkflowsRoute
-  '/projects/$projectId/departments/$departmentId': typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  '/projects/$projectId/workflows/$workflowId': typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
-  '/projects/$projectId/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
+  '/projects/$projectSlug': typeof ProjectsProjectSlugRouteWithChildren
+  '/projects/new': typeof ProjectsNewRoute
+  '/projects/$projectSlug/admin': typeof ProjectsProjectSlugAdminRouteWithChildren
+  '/projects/$projectSlug/diff': typeof ProjectsProjectSlugDiffRoute
+  '/projects/$projectSlug/org': typeof ProjectsProjectSlugOrgRoute
+  '/projects/$projectSlug/': typeof ProjectsProjectSlugIndexRoute
+  '/projects/$projectSlug/admin/agents': typeof ProjectsProjectSlugAdminAgentsRoute
+  '/projects/$projectSlug/admin/audit': typeof ProjectsProjectSlugAdminAuditRoute
+  '/projects/$projectSlug/admin/capabilities': typeof ProjectsProjectSlugAdminCapabilitiesRoute
+  '/projects/$projectSlug/admin/company-model': typeof ProjectsProjectSlugAdminCompanyModelRoute
+  '/projects/$projectSlug/admin/contracts': typeof ProjectsProjectSlugAdminContractsRoute
+  '/projects/$projectSlug/admin/departments': typeof ProjectsProjectSlugAdminDepartmentsRoute
+  '/projects/$projectSlug/admin/overview': typeof ProjectsProjectSlugAdminOverviewRoute
+  '/projects/$projectSlug/admin/policies': typeof ProjectsProjectSlugAdminPoliciesRoute
+  '/projects/$projectSlug/admin/releases': typeof ProjectsProjectSlugAdminReleasesRoute
+  '/projects/$projectSlug/admin/roles': typeof ProjectsProjectSlugAdminRolesRoute
+  '/projects/$projectSlug/admin/skills': typeof ProjectsProjectSlugAdminSkillsRoute
+  '/projects/$projectSlug/admin/validations': typeof ProjectsProjectSlugAdminValidationsRoute
+  '/projects/$projectSlug/admin/workflows': typeof ProjectsProjectSlugAdminWorkflowsRoute
+  '/projects/$projectSlug/departments/$departmentId': typeof ProjectsProjectSlugDepartmentsDepartmentIdRoute
+  '/projects/$projectSlug/workflows/$workflowId': typeof ProjectsProjectSlugWorkflowsWorkflowIdRouteWithChildren
+  '/projects/$projectSlug/workflows/$workflowId/stages/$stageId': typeof ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/projects/$projectId'
-    | '/projects/$projectId/admin'
-    | '/projects/$projectId/diff'
-    | '/projects/$projectId/org'
-    | '/projects/$projectId/'
-    | '/projects/$projectId/admin/agents'
-    | '/projects/$projectId/admin/audit'
-    | '/projects/$projectId/admin/capabilities'
-    | '/projects/$projectId/admin/company-model'
-    | '/projects/$projectId/admin/contracts'
-    | '/projects/$projectId/admin/departments'
-    | '/projects/$projectId/admin/overview'
-    | '/projects/$projectId/admin/policies'
-    | '/projects/$projectId/admin/releases'
-    | '/projects/$projectId/admin/roles'
-    | '/projects/$projectId/admin/skills'
-    | '/projects/$projectId/admin/validations'
-    | '/projects/$projectId/admin/workflows'
-    | '/projects/$projectId/departments/$departmentId'
-    | '/projects/$projectId/workflows/$workflowId'
-    | '/projects/$projectId/workflows/$workflowId/stages/$stageId'
+    | '/projects/$projectSlug'
+    | '/projects/new'
+    | '/projects/$projectSlug/admin'
+    | '/projects/$projectSlug/diff'
+    | '/projects/$projectSlug/org'
+    | '/projects/$projectSlug/'
+    | '/projects/$projectSlug/admin/agents'
+    | '/projects/$projectSlug/admin/audit'
+    | '/projects/$projectSlug/admin/capabilities'
+    | '/projects/$projectSlug/admin/company-model'
+    | '/projects/$projectSlug/admin/contracts'
+    | '/projects/$projectSlug/admin/departments'
+    | '/projects/$projectSlug/admin/overview'
+    | '/projects/$projectSlug/admin/policies'
+    | '/projects/$projectSlug/admin/releases'
+    | '/projects/$projectSlug/admin/roles'
+    | '/projects/$projectSlug/admin/skills'
+    | '/projects/$projectSlug/admin/validations'
+    | '/projects/$projectSlug/admin/workflows'
+    | '/projects/$projectSlug/departments/$departmentId'
+    | '/projects/$projectSlug/workflows/$workflowId'
+    | '/projects/$projectSlug/workflows/$workflowId/stages/$stageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/projects/$projectId/admin'
-    | '/projects/$projectId/diff'
-    | '/projects/$projectId/org'
-    | '/projects/$projectId'
-    | '/projects/$projectId/admin/agents'
-    | '/projects/$projectId/admin/audit'
-    | '/projects/$projectId/admin/capabilities'
-    | '/projects/$projectId/admin/company-model'
-    | '/projects/$projectId/admin/contracts'
-    | '/projects/$projectId/admin/departments'
-    | '/projects/$projectId/admin/overview'
-    | '/projects/$projectId/admin/policies'
-    | '/projects/$projectId/admin/releases'
-    | '/projects/$projectId/admin/roles'
-    | '/projects/$projectId/admin/skills'
-    | '/projects/$projectId/admin/validations'
-    | '/projects/$projectId/admin/workflows'
-    | '/projects/$projectId/departments/$departmentId'
-    | '/projects/$projectId/workflows/$workflowId'
-    | '/projects/$projectId/workflows/$workflowId/stages/$stageId'
+    | '/projects/new'
+    | '/projects/$projectSlug/admin'
+    | '/projects/$projectSlug/diff'
+    | '/projects/$projectSlug/org'
+    | '/projects/$projectSlug'
+    | '/projects/$projectSlug/admin/agents'
+    | '/projects/$projectSlug/admin/audit'
+    | '/projects/$projectSlug/admin/capabilities'
+    | '/projects/$projectSlug/admin/company-model'
+    | '/projects/$projectSlug/admin/contracts'
+    | '/projects/$projectSlug/admin/departments'
+    | '/projects/$projectSlug/admin/overview'
+    | '/projects/$projectSlug/admin/policies'
+    | '/projects/$projectSlug/admin/releases'
+    | '/projects/$projectSlug/admin/roles'
+    | '/projects/$projectSlug/admin/skills'
+    | '/projects/$projectSlug/admin/validations'
+    | '/projects/$projectSlug/admin/workflows'
+    | '/projects/$projectSlug/departments/$departmentId'
+    | '/projects/$projectSlug/workflows/$workflowId'
+    | '/projects/$projectSlug/workflows/$workflowId/stages/$stageId'
   id:
     | '__root__'
     | '/'
-    | '/projects/$projectId'
-    | '/projects/$projectId/admin'
-    | '/projects/$projectId/diff'
-    | '/projects/$projectId/org'
-    | '/projects/$projectId/'
-    | '/projects/$projectId/admin/agents'
-    | '/projects/$projectId/admin/audit'
-    | '/projects/$projectId/admin/capabilities'
-    | '/projects/$projectId/admin/company-model'
-    | '/projects/$projectId/admin/contracts'
-    | '/projects/$projectId/admin/departments'
-    | '/projects/$projectId/admin/overview'
-    | '/projects/$projectId/admin/policies'
-    | '/projects/$projectId/admin/releases'
-    | '/projects/$projectId/admin/roles'
-    | '/projects/$projectId/admin/skills'
-    | '/projects/$projectId/admin/validations'
-    | '/projects/$projectId/admin/workflows'
-    | '/projects/$projectId/departments/$departmentId'
-    | '/projects/$projectId/workflows/$workflowId'
-    | '/projects/$projectId/workflows/$workflowId/stages/$stageId'
+    | '/projects/$projectSlug'
+    | '/projects/new'
+    | '/projects/$projectSlug/admin'
+    | '/projects/$projectSlug/diff'
+    | '/projects/$projectSlug/org'
+    | '/projects/$projectSlug/'
+    | '/projects/$projectSlug/admin/agents'
+    | '/projects/$projectSlug/admin/audit'
+    | '/projects/$projectSlug/admin/capabilities'
+    | '/projects/$projectSlug/admin/company-model'
+    | '/projects/$projectSlug/admin/contracts'
+    | '/projects/$projectSlug/admin/departments'
+    | '/projects/$projectSlug/admin/overview'
+    | '/projects/$projectSlug/admin/policies'
+    | '/projects/$projectSlug/admin/releases'
+    | '/projects/$projectSlug/admin/roles'
+    | '/projects/$projectSlug/admin/skills'
+    | '/projects/$projectSlug/admin/validations'
+    | '/projects/$projectSlug/admin/workflows'
+    | '/projects/$projectSlug/departments/$departmentId'
+    | '/projects/$projectSlug/workflows/$workflowId'
+    | '/projects/$projectSlug/workflows/$workflowId/stages/$stageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
+  ProjectsProjectSlugRoute: typeof ProjectsProjectSlugRouteWithChildren
+  ProjectsNewRoute: typeof ProjectsNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -319,239 +334,252 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId': {
-      id: '/projects/$projectId'
-      path: '/projects/$projectId'
-      fullPath: '/projects/$projectId'
-      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+    '/projects/new': {
+      id: '/projects/new'
+      path: '/projects/new'
+      fullPath: '/projects/new'
+      preLoaderRoute: typeof ProjectsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId/': {
-      id: '/projects/$projectId/'
+    '/projects/$projectSlug': {
+      id: '/projects/$projectSlug'
+      path: '/projects/$projectSlug'
+      fullPath: '/projects/$projectSlug'
+      preLoaderRoute: typeof ProjectsProjectSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectSlug/': {
+      id: '/projects/$projectSlug/'
       path: '/'
-      fullPath: '/projects/$projectId/'
-      preLoaderRoute: typeof ProjectsProjectIdIndexRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      fullPath: '/projects/$projectSlug/'
+      preLoaderRoute: typeof ProjectsProjectSlugIndexRouteImport
+      parentRoute: typeof ProjectsProjectSlugRoute
     }
-    '/projects/$projectId/org': {
-      id: '/projects/$projectId/org'
+    '/projects/$projectSlug/org': {
+      id: '/projects/$projectSlug/org'
       path: '/org'
-      fullPath: '/projects/$projectId/org'
-      preLoaderRoute: typeof ProjectsProjectIdOrgRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      fullPath: '/projects/$projectSlug/org'
+      preLoaderRoute: typeof ProjectsProjectSlugOrgRouteImport
+      parentRoute: typeof ProjectsProjectSlugRoute
     }
-    '/projects/$projectId/diff': {
-      id: '/projects/$projectId/diff'
+    '/projects/$projectSlug/diff': {
+      id: '/projects/$projectSlug/diff'
       path: '/diff'
-      fullPath: '/projects/$projectId/diff'
-      preLoaderRoute: typeof ProjectsProjectIdDiffRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      fullPath: '/projects/$projectSlug/diff'
+      preLoaderRoute: typeof ProjectsProjectSlugDiffRouteImport
+      parentRoute: typeof ProjectsProjectSlugRoute
     }
-    '/projects/$projectId/admin': {
-      id: '/projects/$projectId/admin'
+    '/projects/$projectSlug/admin': {
+      id: '/projects/$projectSlug/admin'
       path: '/admin'
-      fullPath: '/projects/$projectId/admin'
-      preLoaderRoute: typeof ProjectsProjectIdAdminRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      fullPath: '/projects/$projectSlug/admin'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminRouteImport
+      parentRoute: typeof ProjectsProjectSlugRoute
     }
-    '/projects/$projectId/workflows/$workflowId': {
-      id: '/projects/$projectId/workflows/$workflowId'
+    '/projects/$projectSlug/workflows/$workflowId': {
+      id: '/projects/$projectSlug/workflows/$workflowId'
       path: '/workflows/$workflowId'
-      fullPath: '/projects/$projectId/workflows/$workflowId'
-      preLoaderRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      fullPath: '/projects/$projectSlug/workflows/$workflowId'
+      preLoaderRoute: typeof ProjectsProjectSlugWorkflowsWorkflowIdRouteImport
+      parentRoute: typeof ProjectsProjectSlugRoute
     }
-    '/projects/$projectId/departments/$departmentId': {
-      id: '/projects/$projectId/departments/$departmentId'
+    '/projects/$projectSlug/departments/$departmentId': {
+      id: '/projects/$projectSlug/departments/$departmentId'
       path: '/departments/$departmentId'
-      fullPath: '/projects/$projectId/departments/$departmentId'
-      preLoaderRoute: typeof ProjectsProjectIdDepartmentsDepartmentIdRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
+      fullPath: '/projects/$projectSlug/departments/$departmentId'
+      preLoaderRoute: typeof ProjectsProjectSlugDepartmentsDepartmentIdRouteImport
+      parentRoute: typeof ProjectsProjectSlugRoute
     }
-    '/projects/$projectId/admin/workflows': {
-      id: '/projects/$projectId/admin/workflows'
+    '/projects/$projectSlug/admin/workflows': {
+      id: '/projects/$projectSlug/admin/workflows'
       path: '/workflows'
-      fullPath: '/projects/$projectId/admin/workflows'
-      preLoaderRoute: typeof ProjectsProjectIdAdminWorkflowsRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/workflows'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminWorkflowsRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/validations': {
-      id: '/projects/$projectId/admin/validations'
+    '/projects/$projectSlug/admin/validations': {
+      id: '/projects/$projectSlug/admin/validations'
       path: '/validations'
-      fullPath: '/projects/$projectId/admin/validations'
-      preLoaderRoute: typeof ProjectsProjectIdAdminValidationsRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/validations'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminValidationsRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/skills': {
-      id: '/projects/$projectId/admin/skills'
+    '/projects/$projectSlug/admin/skills': {
+      id: '/projects/$projectSlug/admin/skills'
       path: '/skills'
-      fullPath: '/projects/$projectId/admin/skills'
-      preLoaderRoute: typeof ProjectsProjectIdAdminSkillsRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/skills'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminSkillsRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/roles': {
-      id: '/projects/$projectId/admin/roles'
+    '/projects/$projectSlug/admin/roles': {
+      id: '/projects/$projectSlug/admin/roles'
       path: '/roles'
-      fullPath: '/projects/$projectId/admin/roles'
-      preLoaderRoute: typeof ProjectsProjectIdAdminRolesRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/roles'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminRolesRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/releases': {
-      id: '/projects/$projectId/admin/releases'
+    '/projects/$projectSlug/admin/releases': {
+      id: '/projects/$projectSlug/admin/releases'
       path: '/releases'
-      fullPath: '/projects/$projectId/admin/releases'
-      preLoaderRoute: typeof ProjectsProjectIdAdminReleasesRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/releases'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminReleasesRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/policies': {
-      id: '/projects/$projectId/admin/policies'
+    '/projects/$projectSlug/admin/policies': {
+      id: '/projects/$projectSlug/admin/policies'
       path: '/policies'
-      fullPath: '/projects/$projectId/admin/policies'
-      preLoaderRoute: typeof ProjectsProjectIdAdminPoliciesRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/policies'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminPoliciesRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/overview': {
-      id: '/projects/$projectId/admin/overview'
+    '/projects/$projectSlug/admin/overview': {
+      id: '/projects/$projectSlug/admin/overview'
       path: '/overview'
-      fullPath: '/projects/$projectId/admin/overview'
-      preLoaderRoute: typeof ProjectsProjectIdAdminOverviewRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/overview'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminOverviewRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/departments': {
-      id: '/projects/$projectId/admin/departments'
+    '/projects/$projectSlug/admin/departments': {
+      id: '/projects/$projectSlug/admin/departments'
       path: '/departments'
-      fullPath: '/projects/$projectId/admin/departments'
-      preLoaderRoute: typeof ProjectsProjectIdAdminDepartmentsRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/departments'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminDepartmentsRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/contracts': {
-      id: '/projects/$projectId/admin/contracts'
+    '/projects/$projectSlug/admin/contracts': {
+      id: '/projects/$projectSlug/admin/contracts'
       path: '/contracts'
-      fullPath: '/projects/$projectId/admin/contracts'
-      preLoaderRoute: typeof ProjectsProjectIdAdminContractsRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/contracts'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminContractsRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/company-model': {
-      id: '/projects/$projectId/admin/company-model'
+    '/projects/$projectSlug/admin/company-model': {
+      id: '/projects/$projectSlug/admin/company-model'
       path: '/company-model'
-      fullPath: '/projects/$projectId/admin/company-model'
-      preLoaderRoute: typeof ProjectsProjectIdAdminCompanyModelRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/company-model'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminCompanyModelRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/capabilities': {
-      id: '/projects/$projectId/admin/capabilities'
+    '/projects/$projectSlug/admin/capabilities': {
+      id: '/projects/$projectSlug/admin/capabilities'
       path: '/capabilities'
-      fullPath: '/projects/$projectId/admin/capabilities'
-      preLoaderRoute: typeof ProjectsProjectIdAdminCapabilitiesRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/capabilities'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminCapabilitiesRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/audit': {
-      id: '/projects/$projectId/admin/audit'
+    '/projects/$projectSlug/admin/audit': {
+      id: '/projects/$projectSlug/admin/audit'
       path: '/audit'
-      fullPath: '/projects/$projectId/admin/audit'
-      preLoaderRoute: typeof ProjectsProjectIdAdminAuditRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/audit'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminAuditRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/admin/agents': {
-      id: '/projects/$projectId/admin/agents'
+    '/projects/$projectSlug/admin/agents': {
+      id: '/projects/$projectSlug/admin/agents'
       path: '/agents'
-      fullPath: '/projects/$projectId/admin/agents'
-      preLoaderRoute: typeof ProjectsProjectIdAdminAgentsRouteImport
-      parentRoute: typeof ProjectsProjectIdAdminRoute
+      fullPath: '/projects/$projectSlug/admin/agents'
+      preLoaderRoute: typeof ProjectsProjectSlugAdminAgentsRouteImport
+      parentRoute: typeof ProjectsProjectSlugAdminRoute
     }
-    '/projects/$projectId/workflows/$workflowId/stages/$stageId': {
-      id: '/projects/$projectId/workflows/$workflowId/stages/$stageId'
+    '/projects/$projectSlug/workflows/$workflowId/stages/$stageId': {
+      id: '/projects/$projectSlug/workflows/$workflowId/stages/$stageId'
       path: '/stages/$stageId'
-      fullPath: '/projects/$projectId/workflows/$workflowId/stages/$stageId'
-      preLoaderRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRouteImport
-      parentRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdRoute
+      fullPath: '/projects/$projectSlug/workflows/$workflowId/stages/$stageId'
+      preLoaderRoute: typeof ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRouteImport
+      parentRoute: typeof ProjectsProjectSlugWorkflowsWorkflowIdRoute
     }
   }
 }
 
-interface ProjectsProjectIdAdminRouteChildren {
-  ProjectsProjectIdAdminAgentsRoute: typeof ProjectsProjectIdAdminAgentsRoute
-  ProjectsProjectIdAdminAuditRoute: typeof ProjectsProjectIdAdminAuditRoute
-  ProjectsProjectIdAdminCapabilitiesRoute: typeof ProjectsProjectIdAdminCapabilitiesRoute
-  ProjectsProjectIdAdminCompanyModelRoute: typeof ProjectsProjectIdAdminCompanyModelRoute
-  ProjectsProjectIdAdminContractsRoute: typeof ProjectsProjectIdAdminContractsRoute
-  ProjectsProjectIdAdminDepartmentsRoute: typeof ProjectsProjectIdAdminDepartmentsRoute
-  ProjectsProjectIdAdminOverviewRoute: typeof ProjectsProjectIdAdminOverviewRoute
-  ProjectsProjectIdAdminPoliciesRoute: typeof ProjectsProjectIdAdminPoliciesRoute
-  ProjectsProjectIdAdminReleasesRoute: typeof ProjectsProjectIdAdminReleasesRoute
-  ProjectsProjectIdAdminRolesRoute: typeof ProjectsProjectIdAdminRolesRoute
-  ProjectsProjectIdAdminSkillsRoute: typeof ProjectsProjectIdAdminSkillsRoute
-  ProjectsProjectIdAdminValidationsRoute: typeof ProjectsProjectIdAdminValidationsRoute
-  ProjectsProjectIdAdminWorkflowsRoute: typeof ProjectsProjectIdAdminWorkflowsRoute
+interface ProjectsProjectSlugAdminRouteChildren {
+  ProjectsProjectSlugAdminAgentsRoute: typeof ProjectsProjectSlugAdminAgentsRoute
+  ProjectsProjectSlugAdminAuditRoute: typeof ProjectsProjectSlugAdminAuditRoute
+  ProjectsProjectSlugAdminCapabilitiesRoute: typeof ProjectsProjectSlugAdminCapabilitiesRoute
+  ProjectsProjectSlugAdminCompanyModelRoute: typeof ProjectsProjectSlugAdminCompanyModelRoute
+  ProjectsProjectSlugAdminContractsRoute: typeof ProjectsProjectSlugAdminContractsRoute
+  ProjectsProjectSlugAdminDepartmentsRoute: typeof ProjectsProjectSlugAdminDepartmentsRoute
+  ProjectsProjectSlugAdminOverviewRoute: typeof ProjectsProjectSlugAdminOverviewRoute
+  ProjectsProjectSlugAdminPoliciesRoute: typeof ProjectsProjectSlugAdminPoliciesRoute
+  ProjectsProjectSlugAdminReleasesRoute: typeof ProjectsProjectSlugAdminReleasesRoute
+  ProjectsProjectSlugAdminRolesRoute: typeof ProjectsProjectSlugAdminRolesRoute
+  ProjectsProjectSlugAdminSkillsRoute: typeof ProjectsProjectSlugAdminSkillsRoute
+  ProjectsProjectSlugAdminValidationsRoute: typeof ProjectsProjectSlugAdminValidationsRoute
+  ProjectsProjectSlugAdminWorkflowsRoute: typeof ProjectsProjectSlugAdminWorkflowsRoute
 }
 
-const ProjectsProjectIdAdminRouteChildren: ProjectsProjectIdAdminRouteChildren =
+const ProjectsProjectSlugAdminRouteChildren: ProjectsProjectSlugAdminRouteChildren =
   {
-    ProjectsProjectIdAdminAgentsRoute: ProjectsProjectIdAdminAgentsRoute,
-    ProjectsProjectIdAdminAuditRoute: ProjectsProjectIdAdminAuditRoute,
-    ProjectsProjectIdAdminCapabilitiesRoute:
-      ProjectsProjectIdAdminCapabilitiesRoute,
-    ProjectsProjectIdAdminCompanyModelRoute:
-      ProjectsProjectIdAdminCompanyModelRoute,
-    ProjectsProjectIdAdminContractsRoute: ProjectsProjectIdAdminContractsRoute,
-    ProjectsProjectIdAdminDepartmentsRoute:
-      ProjectsProjectIdAdminDepartmentsRoute,
-    ProjectsProjectIdAdminOverviewRoute: ProjectsProjectIdAdminOverviewRoute,
-    ProjectsProjectIdAdminPoliciesRoute: ProjectsProjectIdAdminPoliciesRoute,
-    ProjectsProjectIdAdminReleasesRoute: ProjectsProjectIdAdminReleasesRoute,
-    ProjectsProjectIdAdminRolesRoute: ProjectsProjectIdAdminRolesRoute,
-    ProjectsProjectIdAdminSkillsRoute: ProjectsProjectIdAdminSkillsRoute,
-    ProjectsProjectIdAdminValidationsRoute:
-      ProjectsProjectIdAdminValidationsRoute,
-    ProjectsProjectIdAdminWorkflowsRoute: ProjectsProjectIdAdminWorkflowsRoute,
+    ProjectsProjectSlugAdminAgentsRoute: ProjectsProjectSlugAdminAgentsRoute,
+    ProjectsProjectSlugAdminAuditRoute: ProjectsProjectSlugAdminAuditRoute,
+    ProjectsProjectSlugAdminCapabilitiesRoute:
+      ProjectsProjectSlugAdminCapabilitiesRoute,
+    ProjectsProjectSlugAdminCompanyModelRoute:
+      ProjectsProjectSlugAdminCompanyModelRoute,
+    ProjectsProjectSlugAdminContractsRoute:
+      ProjectsProjectSlugAdminContractsRoute,
+    ProjectsProjectSlugAdminDepartmentsRoute:
+      ProjectsProjectSlugAdminDepartmentsRoute,
+    ProjectsProjectSlugAdminOverviewRoute:
+      ProjectsProjectSlugAdminOverviewRoute,
+    ProjectsProjectSlugAdminPoliciesRoute:
+      ProjectsProjectSlugAdminPoliciesRoute,
+    ProjectsProjectSlugAdminReleasesRoute:
+      ProjectsProjectSlugAdminReleasesRoute,
+    ProjectsProjectSlugAdminRolesRoute: ProjectsProjectSlugAdminRolesRoute,
+    ProjectsProjectSlugAdminSkillsRoute: ProjectsProjectSlugAdminSkillsRoute,
+    ProjectsProjectSlugAdminValidationsRoute:
+      ProjectsProjectSlugAdminValidationsRoute,
+    ProjectsProjectSlugAdminWorkflowsRoute:
+      ProjectsProjectSlugAdminWorkflowsRoute,
   }
 
-const ProjectsProjectIdAdminRouteWithChildren =
-  ProjectsProjectIdAdminRoute._addFileChildren(
-    ProjectsProjectIdAdminRouteChildren,
+const ProjectsProjectSlugAdminRouteWithChildren =
+  ProjectsProjectSlugAdminRoute._addFileChildren(
+    ProjectsProjectSlugAdminRouteChildren,
   )
 
-interface ProjectsProjectIdWorkflowsWorkflowIdRouteChildren {
-  ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute
+interface ProjectsProjectSlugWorkflowsWorkflowIdRouteChildren {
+  ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute: typeof ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute
 }
 
-const ProjectsProjectIdWorkflowsWorkflowIdRouteChildren: ProjectsProjectIdWorkflowsWorkflowIdRouteChildren =
+const ProjectsProjectSlugWorkflowsWorkflowIdRouteChildren: ProjectsProjectSlugWorkflowsWorkflowIdRouteChildren =
   {
-    ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute:
-      ProjectsProjectIdWorkflowsWorkflowIdStagesStageIdRoute,
+    ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute:
+      ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute,
   }
 
-const ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren =
-  ProjectsProjectIdWorkflowsWorkflowIdRoute._addFileChildren(
-    ProjectsProjectIdWorkflowsWorkflowIdRouteChildren,
+const ProjectsProjectSlugWorkflowsWorkflowIdRouteWithChildren =
+  ProjectsProjectSlugWorkflowsWorkflowIdRoute._addFileChildren(
+    ProjectsProjectSlugWorkflowsWorkflowIdRouteChildren,
   )
 
-interface ProjectsProjectIdRouteChildren {
-  ProjectsProjectIdAdminRoute: typeof ProjectsProjectIdAdminRouteWithChildren
-  ProjectsProjectIdDiffRoute: typeof ProjectsProjectIdDiffRoute
-  ProjectsProjectIdOrgRoute: typeof ProjectsProjectIdOrgRoute
-  ProjectsProjectIdIndexRoute: typeof ProjectsProjectIdIndexRoute
-  ProjectsProjectIdDepartmentsDepartmentIdRoute: typeof ProjectsProjectIdDepartmentsDepartmentIdRoute
-  ProjectsProjectIdWorkflowsWorkflowIdRoute: typeof ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren
+interface ProjectsProjectSlugRouteChildren {
+  ProjectsProjectSlugAdminRoute: typeof ProjectsProjectSlugAdminRouteWithChildren
+  ProjectsProjectSlugDiffRoute: typeof ProjectsProjectSlugDiffRoute
+  ProjectsProjectSlugOrgRoute: typeof ProjectsProjectSlugOrgRoute
+  ProjectsProjectSlugIndexRoute: typeof ProjectsProjectSlugIndexRoute
+  ProjectsProjectSlugDepartmentsDepartmentIdRoute: typeof ProjectsProjectSlugDepartmentsDepartmentIdRoute
+  ProjectsProjectSlugWorkflowsWorkflowIdRoute: typeof ProjectsProjectSlugWorkflowsWorkflowIdRouteWithChildren
 }
 
-const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
-  ProjectsProjectIdAdminRoute: ProjectsProjectIdAdminRouteWithChildren,
-  ProjectsProjectIdDiffRoute: ProjectsProjectIdDiffRoute,
-  ProjectsProjectIdOrgRoute: ProjectsProjectIdOrgRoute,
-  ProjectsProjectIdIndexRoute: ProjectsProjectIdIndexRoute,
-  ProjectsProjectIdDepartmentsDepartmentIdRoute:
-    ProjectsProjectIdDepartmentsDepartmentIdRoute,
-  ProjectsProjectIdWorkflowsWorkflowIdRoute:
-    ProjectsProjectIdWorkflowsWorkflowIdRouteWithChildren,
+const ProjectsProjectSlugRouteChildren: ProjectsProjectSlugRouteChildren = {
+  ProjectsProjectSlugAdminRoute: ProjectsProjectSlugAdminRouteWithChildren,
+  ProjectsProjectSlugDiffRoute: ProjectsProjectSlugDiffRoute,
+  ProjectsProjectSlugOrgRoute: ProjectsProjectSlugOrgRoute,
+  ProjectsProjectSlugIndexRoute: ProjectsProjectSlugIndexRoute,
+  ProjectsProjectSlugDepartmentsDepartmentIdRoute:
+    ProjectsProjectSlugDepartmentsDepartmentIdRoute,
+  ProjectsProjectSlugWorkflowsWorkflowIdRoute:
+    ProjectsProjectSlugWorkflowsWorkflowIdRouteWithChildren,
 }
 
-const ProjectsProjectIdRouteWithChildren =
-  ProjectsProjectIdRoute._addFileChildren(ProjectsProjectIdRouteChildren)
+const ProjectsProjectSlugRouteWithChildren =
+  ProjectsProjectSlugRoute._addFileChildren(ProjectsProjectSlugRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
+  ProjectsProjectSlugRoute: ProjectsProjectSlugRouteWithChildren,
+  ProjectsNewRoute: ProjectsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

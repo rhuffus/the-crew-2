@@ -4,12 +4,28 @@ import type { BreadcrumbEntry } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
 // Mock tanstack router
-const mockUseParams = vi.fn().mockReturnValue({ projectId: 'proj-1' })
 vi.mock('@tanstack/react-router', () => ({
-  useParams: (...args: unknown[]) => mockUseParams(...args),
   Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string; [k: string]: unknown }) => (
     <a href={to} data-testid={rest['data-testid'] as string}>{children}</a>
   ),
+}))
+
+// Mock project provider
+const mockUseCurrentProject = vi.fn().mockReturnValue({
+  projectId: 'p1',
+  projectName: 'Test Project',
+  projectSlug: 'test-project',
+})
+vi.mock('@/providers/project-provider', () => ({
+  useCurrentProject: (...args: unknown[]) => mockUseCurrentProject(...args),
+}))
+
+// Mock language store to avoid localStorage access during module load
+vi.mock('@/stores/language-store', () => ({
+  useLanguageStore: vi.fn(() => ({
+    language: 'en',
+    setLanguage: vi.fn(),
+  })),
 }))
 
 import { TopBar } from '@/components/visual-shell/top-bar'
@@ -19,7 +35,7 @@ function resetStore() {
     currentView: 'org',
     zoomLevel: 'L1',
     scopeEntityId: null,
-    projectId: 'proj-1',
+    projectId: 'p1',
     breadcrumb: [],
     navigationStack: [],
     transitionDirection: null,
@@ -42,7 +58,11 @@ function resetStore() {
 describe('TopBar', () => {
   beforeEach(() => {
     resetStore()
-    mockUseParams.mockReturnValue({ projectId: 'proj-1' })
+    mockUseCurrentProject.mockReturnValue({
+      projectId: 'p1',
+      projectName: 'Test Project',
+      projectSlug: 'test-project',
+    })
   })
 
   it('should render the TheCrew link', () => {
@@ -50,9 +70,21 @@ describe('TopBar', () => {
     expect(screen.getByText('TheCrew')).toBeDefined()
   })
 
-  it('should show project ID as first breadcrumb', () => {
+  it('should show project name as first breadcrumb', () => {
     render(<TopBar />)
-    expect(screen.getByText('proj-1')).toBeDefined()
+    expect(screen.getByText('Test Project')).toBeDefined()
+  })
+
+  it('should show translated Company label at L1 scope', () => {
+    useVisualWorkspaceStore.setState({
+      breadcrumb: [{ label: 'Verticaler', nodeType: 'company', entityId: 'comp-1', zoomLevel: 'L1' }],
+      zoomLevel: 'L1',
+    })
+    render(<TopBar />)
+    // L1 entry label is replaced by translated "Company", not the company name
+    expect(screen.getByText('Company')).toBeDefined()
+    // The company name should NOT appear as a separate breadcrumb entry
+    expect(screen.queryAllByText('Verticaler')).toHaveLength(0)
   })
 
   it('should show zoom level badge', () => {
@@ -73,14 +105,15 @@ describe('TopBar', () => {
     expect(screen.getByTestId('zoom-level-badge').textContent).toBe('L3')
   })
 
-  it('should render breadcrumb entries from store', () => {
+  it('should render breadcrumb entries from store (L1 filtered out)', () => {
     const entries: BreadcrumbEntry[] = [
       { label: 'Organization', nodeType: 'company', entityId: 'comp-1', zoomLevel: 'L1' },
       { label: 'Engineering', nodeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' },
     ]
     useVisualWorkspaceStore.setState({ breadcrumb: entries, zoomLevel: 'L2' })
     render(<TopBar />)
-    expect(screen.getByText('Organization')).toBeDefined()
+    // L1 entry is filtered out (project name already covers it)
+    expect(screen.queryByText('Organization')).toBeNull()
     expect(screen.getByText('Engineering')).toBeDefined()
   })
 
@@ -91,7 +124,7 @@ describe('TopBar', () => {
     ]
     useVisualWorkspaceStore.setState({ breadcrumb: entries, zoomLevel: 'L2' })
     render(<TopBar />)
-    // Last entry should be a span, not a link
+    // Engineering is the only visible entry (L1 filtered), so it's the last = non-clickable
     const engineering = screen.getByText('Engineering')
     expect(engineering.tagName).toBe('SPAN')
     expect(engineering.className).toContain('font-medium')
@@ -101,14 +134,18 @@ describe('TopBar', () => {
     const entries: BreadcrumbEntry[] = [
       { label: 'Organization', nodeType: 'company', entityId: 'comp-1', zoomLevel: 'L1' },
       { label: 'Engineering', nodeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' },
+      { label: 'CI/CD Pipeline', nodeType: 'workflow', entityId: 'wf-1', zoomLevel: 'L3' },
     ]
-    useVisualWorkspaceStore.setState({ breadcrumb: entries, zoomLevel: 'L2' })
+    useVisualWorkspaceStore.setState({ breadcrumb: entries, zoomLevel: 'L3' })
     render(<TopBar />)
-    const org = screen.getByText('Organization')
-    expect(org.tagName).toBe('A')
+    // L1 filtered out; Engineering (L2) is non-last → link; CI/CD (L3) is last → span
+    const eng = screen.getByText('Engineering')
+    expect(eng.tagName).toBe('A')
+    const pipeline = screen.getByText('CI/CD Pipeline')
+    expect(pipeline.tagName).toBe('SPAN')
   })
 
-  it('should show three-level breadcrumb for workflow', () => {
+  it('should show three-level breadcrumb for workflow (L1 filtered)', () => {
     const entries: BreadcrumbEntry[] = [
       { label: 'Organization', nodeType: 'company', entityId: 'comp-1', zoomLevel: 'L1' },
       { label: 'Engineering', nodeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' },
@@ -116,7 +153,8 @@ describe('TopBar', () => {
     ]
     useVisualWorkspaceStore.setState({ breadcrumb: entries, zoomLevel: 'L3' })
     render(<TopBar />)
-    expect(screen.getByText('Organization')).toBeDefined()
+    // L1 "Organization" is filtered out
+    expect(screen.queryByText('Organization')).toBeNull()
     expect(screen.getByText('Engineering')).toBeDefined()
     expect(screen.getByText('CI/CD Pipeline')).toBeDefined()
   })
@@ -132,17 +170,19 @@ describe('TopBar', () => {
     expect(screen.getByText('Admin')).toBeDefined()
   })
 
-  it('should render empty breadcrumb when no entries', () => {
-    useVisualWorkspaceStore.setState({ breadcrumb: [] })
+  it('should render Company label when breadcrumb is empty at L1', () => {
+    useVisualWorkspaceStore.setState({ breadcrumb: [], zoomLevel: 'L1' })
     render(<TopBar />)
-    // Should still show TheCrew and project ID, but no additional breadcrumbs
+    // Should show TheCrew → Test Project → Company
     expect(screen.getByText('TheCrew')).toBeDefined()
-    expect(screen.getByText('proj-1')).toBeDefined()
+    expect(screen.getByText('Test Project')).toBeDefined()
+    expect(screen.getByText('Company')).toBeDefined()
   })
 
-  it('should handle missing projectId gracefully', () => {
-    mockUseParams.mockReturnValue({})
-    render(<TopBar />)
-    expect(screen.getByText('TheCrew')).toBeDefined()
+  it('should throw when rendered outside ProjectProvider', () => {
+    mockUseCurrentProject.mockImplementation(() => {
+      throw new Error('useCurrentProject must be used within a ProjectProvider')
+    })
+    expect(() => render(<TopBar />)).toThrow('useCurrentProject must be used within a ProjectProvider')
   })
 })

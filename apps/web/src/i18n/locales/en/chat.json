@@ -1,0 +1,28 @@
+{
+  "dock": {
+    "ceoAgent": "CEO Agent",
+    "chatScope": "Chat: {{scope}}",
+    "readOnly": "Read-only — you need commenter access to send messages"
+  },
+  "input": {
+    "placeholder": "Type a message...",
+    "send": "Send message"
+  },
+  "messages": {
+    "noMessages": "No messages yet. Start a conversation!",
+    "loadingMessages": "Loading messages..."
+  },
+  "ceo": {
+    "phaseMessage": {
+      "seed": "Your company is in its seed phase. I'll propose the initial organizational structure.",
+      "formation": "We're forming the core departments and teams. Review my proposals to shape the organization.",
+      "structured": "The basic structure is in place. I'm now optimizing workflows and team composition.",
+      "operating": "The company is operating. I'll suggest improvements based on performance metrics.",
+      "scaling": "We're scaling up. Watch for proposals to split teams and create new departments.",
+      "optimizing": "The organization is mature. I focus on efficiency and continuous improvement."
+    },
+    "pendingProposals": "Pending Proposals ({{count}})",
+    "recentlyApproved": "Recently Approved",
+    "noPending": "No pending proposals. The CEO is analyzing the organization..."
+  }
+}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { Search, Plus } from 'lucide-react'
 import {
   Building2, Users, UserCog, Bot, UserCheck,
@@ -11,6 +11,7 @@ import {
   filterNodePaletteItems,
   type NodePaletteItem,
 } from '@/lib/palette-data'
+import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
 const NODE_TYPE_ICONS: Record<string, typeof Building2> = {
   department: Users,
@@ -154,7 +155,12 @@ export interface NodePaletteButtonProps {
 }
 
 export function NodePaletteButton({ zoomLevel, onAddEntity }: NodePaletteButtonProps) {
-  const [open, setOpen] = useState(false)
+  const nodePaletteOpen = useVisualWorkspaceStore((s) => s.nodePaletteOpen)
+  const toggleNodePalette = useVisualWorkspaceStore((s) => s.toggleNodePalette)
+
+  const handleClose = useCallback(() => {
+    if (nodePaletteOpen) toggleNodePalette()
+  }, [nodePaletteOpen, toggleNodePalette])
 
   const items = getNodePaletteItems(zoomLevel)
   if (items.length === 0) return null
@@ -166,16 +172,16 @@ export function NodePaletteButton({ zoomLevel, onAddEntity }: NodePaletteButtonP
         aria-label="Add node"
         title="Add node"
         data-testid="node-palette-button"
-        onClick={() => setOpen(!open)}
+        onClick={toggleNodePalette}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       >
         <Plus className="h-4 w-4" />
       </button>
-      {open && (
+      {nodePaletteOpen && (
         <NodePalette
           zoomLevel={zoomLevel}
           onSelect={onAddEntity}
-          onClose={() => setOpen(false)}
+          onClose={handleClose}
         />
       )}
     </div>

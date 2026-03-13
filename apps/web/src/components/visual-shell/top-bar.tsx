@@ -1,14 +1,24 @@
-import { Link, useParams } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { BreadcrumbEntry } from '@the-crew/shared-types'
 import { Badge } from '@/components/ui/badge'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { breadcrumbToRoute } from '@/lib/breadcrumb-utils'
+import { useCurrentProject } from '@/providers/project-provider'
+import { UserMenu } from './user-menu'
 
 export function TopBar() {
-  const params = useParams({ strict: false })
-  const projectId = 'projectId' in params ? (params.projectId as string) : ''
-  const { breadcrumb, zoomLevel } = useVisualWorkspaceStore()
+  const { projectSlug, projectName } = useCurrentProject()
+  const breadcrumb = useVisualWorkspaceStore((s) => s.breadcrumb)
+  const zoomLevel = useVisualWorkspaceStore((s) => s.zoomLevel)
+  const { t } = useTranslation('common')
+  const { t: tEntities } = useTranslation('entities')
+
+  // Filter out L1/company entries — the project name link already covers that level.
+  // When at L1 with no deeper entries, show a translated "Company" label instead.
+  const visibleBreadcrumb = breadcrumb.filter((e) => e.zoomLevel !== 'L1')
+  const showCompanyLevel = visibleBreadcrumb.length === 0
 
   return (
     <header
@@ -17,23 +27,27 @@ export function TopBar() {
     >
       <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
         <Link to="/" className="font-semibold text-foreground hover:text-primary">
-          TheCrew
+          {t('appName')}
         </Link>
-        {projectId && (
+        <span className="flex items-center gap-1">
+          <ChevronRight className="h-3 w-3 text-muted-foreground" />
+          <Link
+            to="/projects/$projectSlug/org"
+            params={{ projectSlug }}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            {projectName}
+          </Link>
+        </span>
+        {showCompanyLevel && (
           <span className="flex items-center gap-1">
             <ChevronRight className="h-3 w-3 text-muted-foreground" />
-            <Link
-              to="/projects/$projectId/org"
-              params={{ projectId }}
-              className={breadcrumb.length > 0 ? 'text-muted-foreground hover:text-foreground' : 'font-medium text-foreground'}
-            >
-              {projectId}
-            </Link>
+            <span className="font-medium text-foreground">{tEntities('nodeType.company')}</span>
           </span>
         )}
-        {breadcrumb.map((entry: BreadcrumbEntry, i: number) => {
-          const isLast = i === breadcrumb.length - 1
-          const route = breadcrumbToRoute(entry, projectId)
+        {visibleBreadcrumb.map((entry: BreadcrumbEntry, i: number) => {
+          const isLast = i === visibleBreadcrumb.length - 1
+          const route = breadcrumbToRoute(entry, projectSlug)
           return (
             <span key={`${entry.zoomLevel}-${entry.entityId}`} className="flex items-center gap-1">
               <ChevronRight className="h-3 w-3 text-muted-foreground" />
@@ -52,19 +66,20 @@ export function TopBar() {
         </Badge>
       </nav>
       <div className="flex items-center gap-3">
-        <Badge variant="warning">Draft</Badge>
+        <Badge variant="warning">{t('draft')}</Badge>
         <div className="flex rounded-md border border-border text-xs">
           <span className="bg-primary px-2 py-1 font-medium text-primary-foreground rounded-l-md">
-            Visual
+            {t('visual')}
           </span>
           <Link
-            to="/projects/$projectId/admin"
-            params={{ projectId }}
+            to="/projects/$projectSlug/admin"
+            params={{ projectSlug }}
             className="px-2 py-1 text-muted-foreground hover:text-foreground rounded-r-md"
           >
-            Admin
+            {t('admin')}
           </Link>
         </div>
+        <UserMenu />
       </div>
     </header>
   )

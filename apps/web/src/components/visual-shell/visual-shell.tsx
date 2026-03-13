@@ -9,7 +9,6 @@ import { Inspector } from './inspector/inspector'
 import { CanvasViewport } from './canvas-viewport'
 import { ChatDock } from './chat-dock/chat-dock'
 import { MutationErrorBanner, type MutationError } from './mutation-error-banner'
-import { DevModeBanner } from '@/components/dev-mode-banner'
 
 export interface VisualShellProps {
   children?: ReactNode
@@ -27,7 +26,8 @@ export interface VisualShellProps {
 }
 
 export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onNodeUpdate, onEdgeCreate, onEdgeDelete, onEdgeUpdateMetadata, onNodeDelete, isPending = false, mutationErrors: externalErrors, onDismissError: externalDismiss }: VisualShellProps) {
-  const { explorerCollapsed, inspectorCollapsed } = useVisualWorkspaceStore()
+  const explorerCollapsed = useVisualWorkspaceStore((s) => s.explorerCollapsed)
+  const inspectorCollapsed = useVisualWorkspaceStore((s) => s.inspectorCollapsed)
   const [internalErrors, setInternalErrors] = useState<MutationError[]>([])
 
   const errors = externalErrors ?? internalErrors
@@ -46,7 +46,6 @@ export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onN
 
   return (
     <div data-testid="visual-shell" className="flex h-screen flex-col overflow-hidden bg-background">
-      <DevModeBanner />
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
         {explorerCollapsed && <Explorer />}

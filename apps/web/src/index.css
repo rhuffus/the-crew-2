@@ -25,6 +25,28 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 224.3 76.3% 48%;
+  }
 }
 
 @layer base {
@@ -34,4 +56,14 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Canvas cursor contract — documented in docs/34-live-company-canvas-v3-spec.md
+   Override XYFlow defaults: pane idle = default arrow, node hover = pointer.
+   :not(.dragging) ensures XYFlow's grabbing cursor takes over during drag. */
+.react-flow__pane.draggable:not(.dragging) {
+  cursor: default;
+}
+.react-flow__node.draggable:not(.dragging) {
+  cursor: pointer;
 }

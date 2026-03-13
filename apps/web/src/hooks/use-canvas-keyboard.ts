@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import type { NodeType } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
-import type { CanvasMode } from '@/stores/visual-workspace-store'
 import { useUndoRedoStore } from '@/stores/undo-redo-store'
 
 export const DRILLABLE_NODE_TYPES: ReadonlySet<NodeType> = new Set([
@@ -17,15 +16,6 @@ function isTextInputFocused(): boolean {
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
   if ((el as HTMLElement).isContentEditable) return true
   return false
-}
-
-// Mode shortcut map: key → CanvasMode
-const MODE_SHORTCUTS: Record<string, CanvasMode> = {
-  v: 'select',
-  h: 'pan',
-  c: 'connect',
-  n: 'add-node',
-  e: 'add-edge',
 }
 
 export interface UseCanvasKeyboardOptions {
@@ -80,12 +70,16 @@ export function useCanvasKeyboard({
         return
       }
 
-      // Mode switching shortcuts: V, H, C, N, E (no modifiers)
+      // Palette shortcuts: N = toggle node palette, E = toggle relationship palette (no modifiers)
       if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-        const mode = MODE_SHORTCUTS[e.key.toLowerCase()]
-        if (mode && !store.isDiffMode) {
+        if ((e.key === 'n' || e.key === 'N') && !store.isDiffMode) {
           e.preventDefault()
-          store.setCanvasMode(mode)
+          store.toggleNodePalette()
+          return
+        }
+        if ((e.key === 'e' || e.key === 'E') && !store.isDiffMode) {
+          e.preventDefault()
+          store.toggleRelationshipPalette()
           return
         }
       }
@@ -116,15 +110,16 @@ export function useCanvasKeyboard({
             return
           }
 
-          // Cancel add-edge source first
-          if (store.canvasMode === 'add-edge' && store.addEdgeSource) {
+          // Cancel preselected edge type
+          if (store.preselectedEdgeType) {
+            store.setPreselectedEdgeType(null)
             store.setAddEdgeSource(null)
             return
           }
 
-          // Return to select mode if in another mode
-          if (store.canvasMode !== 'select') {
-            store.setCanvasMode('select')
+          // Cancel add-edge source
+          if (store.addEdgeSource) {
+            store.setAddEdgeSource(null)
             return
           }
 

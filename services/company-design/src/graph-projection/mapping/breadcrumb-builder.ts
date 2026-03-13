@@ -12,9 +12,11 @@ type ParentResolverFn = (
   snapshot: ReleaseSnapshotDto,
 ) => BreadcrumbEntry[]
 
-const PARENT_RESOLVERS: Record<ScopeType, ParentResolverFn> = {
+const PARENT_RESOLVERS: Record<string, ParentResolverFn> = {
   company: () => [],
   department: (entityId, snapshot) => buildDeptChain(entityId, snapshot),
+  team: (entityId, snapshot) => buildUoChain(entityId, snapshot),
+  'agent-detail': (entityId, snapshot) => buildAgentChain(entityId, snapshot),
   workflow: (entityId, snapshot) => {
     const wf = snapshot.workflows.find((w) => w.id === entityId)
     const chain: BreadcrumbEntry[] = []
@@ -32,13 +34,13 @@ const PARENT_RESOLVERS: Record<ScopeType, ParentResolverFn> = {
         const stageIdx = (w.stages ?? []).findIndex((s) => `${w.id}:stage:${(w.stages ?? []).indexOf(s)}` === entityId)
         if (stageIdx >= 0) {
           const s = w.stages![stageIdx]!
-          const parentChain = PARENT_RESOLVERS.workflow(w.id, snapshot)
+          const parentChain = PARENT_RESOLVERS['workflow']!(w.id, snapshot)
           return [...parentChain, { label: s.name, nodeType: 'workflow-stage' as const, entityId, zoomLevel: 'L4' as const }]
         }
       }
       return []
     }
-    const parentChain = PARENT_RESOLVERS.workflow(stage.workflowId, snapshot)
+    const parentChain = PARENT_RESOLVERS['workflow']!(stage.workflowId, snapshot)
     return [...parentChain, { label: stage.name, nodeType: 'workflow-stage', entityId, zoomLevel: 'L4' }]
   },
 }
@@ -52,14 +54,15 @@ export function buildBreadcrumb(
   snapshot: ReleaseSnapshotDto,
   projectId: string,
 ): BreadcrumbEntry[] {
-  const companyLabel = snapshot.companyModel?.purpose ?? 'Company'
+  const companyUo = (snapshot.organizationalUnits ?? []).find(u => u.uoType === 'company')
+  const companyLabel = companyUo?.name ?? snapshot.companyModel?.purpose ?? 'Company'
   const crumbs: BreadcrumbEntry[] = [
     { label: companyLabel, nodeType: 'company', entityId: projectId, zoomLevel: 'L1' },
   ]
 
   const scopeType: ScopeType = 'scopeType' in scope
     ? scope.scopeType
-    : scopeTypeFromZoomLevel(scope.level)
+    : (scope.entityType as ScopeType) ?? scopeTypeFromZoomLevel(scope.level)
 
   if (scopeType === 'company') return crumbs
 
@@ -93,4 +96,42 @@ function buildDeptChain(
   }
 
   return chain
+}
+
+function buildUoChain(
+  uoId: string,
+  snapshot: ReleaseSnapshotDto,
+): BreadcrumbEntry[] {
+  const chain: BreadcrumbEntry[] = []
+  const uoMap = new Map((snapshot.organizationalUnits ?? []).map((u) => [u.id, u]))
+
+  let current = uoMap.get(uoId)
+  while (current && current.uoType !== 'company') {
+    const nodeType = current.uoType === 'team' ? 'team' as const : 'department' as const
+    const zoomLevel = current.uoType === 'team' ? 'L3' as const : 'L2' as const
+    chain.unshift({
+      label: current.name,
+      nodeType,
+      entityId: current.id,
+      zoomLevel,
+    })
+    current = current.parentUoId ? uoMap.get(current.parentUoId) : undefined
+  }
+
+  return chain
+}
+
+function buildAgentChain(
+  agentId: string,
+  snapshot: ReleaseSnapshotDto,
+): BreadcrumbEntry[] {
+  const agent = (snapshot.agents ?? []).find(a => a.id === agentId)
+  if (!agent) return []
+
+  const uoChain = agent.uoId ? buildUoChain(agent.uoId, snapshot) : []
+  const agentNodeType = agent.agentType === 'coordinator' ? 'coordinator-agent' : 'specialist-agent'
+  return [
+    ...uoChain,
+    { label: agent.name, nodeType: agentNodeType, entityId: agent.id, zoomLevel: 'L4' as const },
+  ]
 }

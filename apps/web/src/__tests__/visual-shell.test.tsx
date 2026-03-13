@@ -17,7 +17,7 @@ describe('visual shell', () => {
     await waitFor(() => {
       expect(screen.getByTestId('visual-topbar')).toBeInTheDocument()
       const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' })
-      expect(breadcrumb).toHaveTextContent('acme-corp')
+      expect(breadcrumb).toHaveTextContent('Acme Corp')
     })
   })
 

@@ -10,7 +10,7 @@ import { allMockNodes, allMockEdges } from './fixtures/visual-graph'
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
 
 vi.mock('@tanstack/react-router', () => ({
-  useParams: () => ({ projectId: 'test-project' }),
+  useParams: () => ({ projectSlug: 'test-project' }),
   useNavigate: () => vi.fn(),
 }))
 
@@ -104,7 +104,7 @@ describe('Explorer tab semantics', () => {
   it('should have role="tab" on each tab button', () => {
     renderWithQuery(<Explorer />)
     const tabs = screen.getAllByRole('tab')
-    expect(tabs.length).toBe(7) // tree, layers, filters, views, validation, chat, operations
+    expect(tabs.length).toBe(9) // tree, overlays, filters, views, validation, chat, operations, timeline, proposals
   })
 
   it('should have aria-selected="true" on the active tab (tree by default)', () => {
@@ -115,8 +115,8 @@ describe('Explorer tab semantics', () => {
 
   it('should have aria-selected="false" on inactive tabs', () => {
     renderWithQuery(<Explorer />)
-    const layersTab = screen.getByRole('tab', { name: 'Layers' })
-    expect(layersTab.getAttribute('aria-selected')).toBe('false')
+    const overlaysTab = screen.getByRole('tab', { name: 'Overlays' })
+    expect(overlaysTab.getAttribute('aria-selected')).toBe('false')
   })
 
   it('should have role="tabpanel" on content area', () => {
@@ -134,10 +134,10 @@ describe('Explorer tab semantics', () => {
 
   it('should update aria-selected and tabpanel when switching', async () => {
     renderWithQuery(<Explorer />)
-    const layersTab = screen.getByRole('tab', { name: 'Layers' })
-    await userEvent.click(layersTab)
-    expect(layersTab.getAttribute('aria-selected')).toBe('true')
+    const overlaysTab = screen.getByRole('tab', { name: 'Overlays' })
+    await userEvent.click(overlaysTab)
+    expect(overlaysTab.getAttribute('aria-selected')).toBe('true')
     const panel = screen.getByRole('tabpanel')
-    expect(panel.getAttribute('aria-labelledby')).toBe('explorer-tab-layers')
+    expect(panel.getAttribute('aria-labelledby')).toBe('explorer-tab-overlays')
   })
 })

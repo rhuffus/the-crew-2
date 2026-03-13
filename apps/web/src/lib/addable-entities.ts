@@ -1,44 +1,47 @@
 import type { NodeType, ScopeType, ZoomLevel } from '@the-crew/shared-types'
+import i18n from '@/i18n/config'
 
 export interface AddableEntity {
   nodeType: NodeType
   label: string
 }
 
-const L1_ADDABLE: AddableEntity[] = [
-  { nodeType: 'department', label: 'Department' },
-  { nodeType: 'artifact', label: 'Artifact' },
+function getLabel(nodeType: NodeType): string {
+  return i18n.t(`nodeType.${nodeType}`, { ns: 'entities', defaultValue: nodeType })
+}
+
+const L1_TYPES: NodeType[] = ['department', 'artifact']
+const L2_TYPES: NodeType[] = [
+  'role', 'capability', 'workflow', 'contract', 'policy',
+  'skill', 'agent-archetype', 'agent-assignment', 'artifact',
+]
+const TEAM_TYPES: NodeType[] = [
+  'coordinator-agent', 'specialist-agent', 'workflow', 'contract', 'policy', 'artifact',
 ]
 
-const L2_ADDABLE: AddableEntity[] = [
-  { nodeType: 'role', label: 'Role' },
-  { nodeType: 'capability', label: 'Capability' },
-  { nodeType: 'workflow', label: 'Workflow' },
-  { nodeType: 'contract', label: 'Contract' },
-  { nodeType: 'policy', label: 'Policy' },
-  { nodeType: 'skill', label: 'Skill' },
-  { nodeType: 'agent-archetype', label: 'Agent Archetype' },
-  { nodeType: 'agent-assignment', label: 'Agent Assignment' },
-  { nodeType: 'artifact', label: 'Artifact' },
-]
+function buildEntities(types: NodeType[]): AddableEntity[] {
+  return types.map((t) => ({ nodeType: t, label: getLabel(t) }))
+}
 
-const SCOPE_ADDABLE: Record<ScopeType, AddableEntity[]> = {
-  company: L1_ADDABLE,
-  department: L2_ADDABLE,
+const SCOPE_TYPES: Record<ScopeType, NodeType[]> = {
+  company: L1_TYPES,
+  department: L2_TYPES,
+  team: TEAM_TYPES,
+  'agent-detail': [],
   workflow: [],
   'workflow-stage': [],
 }
 
 export function getAddableEntitiesByScope(scopeType: ScopeType): AddableEntity[] {
-  return SCOPE_ADDABLE[scopeType] ?? []
+  return buildEntities(SCOPE_TYPES[scopeType] ?? [])
 }
 
 export function getAddableEntities(zoomLevel: ZoomLevel): AddableEntity[] {
   switch (zoomLevel) {
     case 'L1':
-      return L1_ADDABLE
+      return buildEntities(L1_TYPES)
     case 'L2':
-      return L2_ADDABLE
+      return buildEntities(L2_TYPES)
     default:
       return []
   }

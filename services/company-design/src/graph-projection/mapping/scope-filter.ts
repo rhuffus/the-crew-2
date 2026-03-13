@@ -22,9 +22,11 @@ type ScopeFilterFn = (
   snapshot: ReleaseSnapshotDto,
 ) => FilterResult
 
-const SCOPE_FILTERS: Record<ScopeType, ScopeFilterFn> = {
+const SCOPE_FILTERS: Record<string, ScopeFilterFn> = {
   company: filterCompanyScope,
   department: filterDepartmentScope,
+  team: filterTeamScope,
+  'agent-detail': filterAgentDetailScope,
   workflow: filterWorkflowScope,
   'workflow-stage': filterWorkflowStageScope,
 }
@@ -40,10 +42,10 @@ export function filterByScope(
   activeLayers: LayerId[],
   snapshot: ReleaseSnapshotDto,
 ): FilterResult {
-  // Determine scopeType: new ScopeDescriptor has scopeType, legacy GraphScope has level
+  // Determine scopeType: new ScopeDescriptor has scopeType, legacy GraphScope has level+entityType
   const scopeType: ScopeType = 'scopeType' in scope
     ? scope.scopeType
-    : scopeTypeFromZoomLevel(scope.level)
+    : (scope.entityType as ScopeType) ?? scopeTypeFromZoomLevel(scope.level)
 
   const entityId = 'scopeType' in scope ? scope.entityId : scope.entityId
 
@@ -77,10 +79,64 @@ function filterCompanyScope(
   _snapshot: ReleaseSnapshotDto,
 ): FilterResult {
   const filteredNodes = nodes.filter((n) => {
-    if (n.nodeType === 'company' || n.nodeType === 'department') return true
+    if (n.nodeType === 'company' || n.nodeType === 'department' || n.nodeType === 'team') return true
     return n.layerIds.some((l) => activeLayers.includes(l))
   })
   return { nodes: filteredNodes, edges: [] }
+}
+
+function filterTeamScope(
+  nodes: VisualNodeDto[],
+  _edges: VisualEdgeDto[],
+  entityId: string | null,
+  activeLayers: LayerId[],
+  snapshot: ReleaseSnapshotDto,
+): FilterResult {
+  const teamId = entityId!
+  const teamVisualId = `team:${teamId}`
+
+  const teamAgentIds = new Set(
+    (snapshot.agents ?? [])
+      .filter(a => a.uoId === teamId)
+      .map(a => a.id),
+  )
+
+  const filteredNodes = nodes.filter((n) => {
+    if (n.id === teamVisualId) return true
+    if (n.nodeType === 'coordinator-agent' && teamAgentIds.has(n.entityId)) return true
+    if (n.nodeType === 'specialist-agent' && teamAgentIds.has(n.entityId)) return true
+    if (n.nodeType === 'proposal' && activeLayers.includes('governance')) {
+      const proposal = (snapshot.proposals ?? []).find(p => p.id === n.entityId)
+      return proposal?.proposedByAgentId ? teamAgentIds.has(proposal.proposedByAgentId) : false
+    }
+    return false
+  })
+  return { nodes: filteredNodes, edges: [] }
+}
+
+function filterAgentDetailScope(
+  nodes: VisualNodeDto[],
+  edges: VisualEdgeDto[],
+  entityId: string | null,
+  _activeLayers: LayerId[],
+  _snapshot: ReleaseSnapshotDto,
+): FilterResult {
+  const agentNode = nodes.find(
+    (n) => n.entityId === entityId && (n.nodeType === 'coordinator-agent' || n.nodeType === 'specialist-agent'),
+  )
+  if (!agentNode) return { nodes: [], edges: [] }
+
+  const agentEdges = edges.filter(
+    (e) => e.sourceId === agentNode.id || e.targetId === agentNode.id,
+  )
+  const connectedNodeIds = new Set([
+    agentNode.id,
+    ...agentEdges.flatMap((e) => [e.sourceId, e.targetId]),
+  ])
+  return {
+    nodes: nodes.filter((n) => connectedNodeIds.has(n.id)),
+    edges: agentEdges,
+  }
 }
 
 function filterDepartmentScope(

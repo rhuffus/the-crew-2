@@ -12,26 +12,38 @@ export interface EntityRoute {
 const NODE_TYPE_TO_PREFIX: Record<NodeType, string> = {
   company: 'company',
   department: 'dept',
+  team: 'team',
+  'coordinator-agent': 'coord-agent',
+  'specialist-agent': 'spec-agent',
+  objective: 'objective',
+  'event-trigger': 'event-trigger',
+  'external-source': 'ext-source',
+  workflow: 'wf',
+  'workflow-stage': 'wf-stage',
+  handoff: 'handoff',
+  contract: 'contract',
+  policy: 'policy',
+  artifact: 'artifact',
+  decision: 'decision',
+  proposal: 'proposal',
+  // Legacy (kept for backend bridge)
   role: 'role',
   'agent-archetype': 'archetype',
   'agent-assignment': 'assignment',
   capability: 'cap',
   skill: 'skill',
-  workflow: 'wf',
-  'workflow-stage': 'wf-stage',
-  contract: 'contract',
-  policy: 'policy',
-  artifact: 'artifact',
 }
 
 /**
  * Route patterns per scope type.
  */
 const SCOPE_ROUTE_PATTERNS: Record<ScopeType, string> = {
-  company: '/projects/:projectId/org',
-  department: '/projects/:projectId/departments/:entityId',
-  workflow: '/projects/:projectId/workflows/:entityId',
-  'workflow-stage': '/projects/:projectId/workflows/:parentId/stages/:entityId',
+  company: '/projects/:projectSlug/org',
+  department: '/projects/:projectSlug/departments/:entityId',
+  team: '/projects/:projectSlug/teams/:entityId',
+  'agent-detail': '/projects/:projectSlug/agents/:entityId',
+  workflow: '/projects/:projectSlug/workflows/:entityId',
+  'workflow-stage': '/projects/:projectSlug/workflows/:parentId/stages/:entityId',
 }
 
 /**
@@ -57,59 +69,64 @@ export function buildVisualId(nodeType: NodeType, entityId: string): string {
 /**
  * Resolves the route and focus target for navigating to a specific entity.
  *
- * - department → /projects/:projectId/departments/:entityId (direct L2 scope)
- * - workflow → /projects/:projectId/workflows/:entityId (direct L3 scope)
- * - workflow-stage → /projects/:projectId/workflows/:parentId/stages/:entityId (L4 scope)
- * - Leaf entities with a known parentDeptId → navigate to parent dept L2, focus on entity
- * - contract/policy with no parent dept → navigate to org L1, focus on entity
- * - company → /projects/:projectId/org
+ * @param projectSlug - The project slug used in URL paths
  */
 export function resolveEntityRoute(
-  projectId: string,
+  projectSlug: string,
   nodeType: NodeType,
   entityId: string,
   parentDeptId?: string | null,
 ): EntityRoute {
   if (nodeType === 'company') {
-    return { path: `/projects/${projectId}/org`, focusNodeId: null }
+    return { path: `/projects/${projectSlug}/org`, focusNodeId: null }
   }
 
   if (nodeType === 'department') {
     return {
-      path: `/projects/${projectId}/departments/${entityId}`,
+      path: `/projects/${projectSlug}/departments/${entityId}`,
       focusNodeId: null,
     }
   }
 
   if (nodeType === 'workflow') {
     return {
-      path: `/projects/${projectId}/workflows/${entityId}`,
+      path: `/projects/${projectSlug}/workflows/${entityId}`,
+      focusNodeId: null,
+    }
+  }
+
+  if (nodeType === 'team') {
+    return {
+      path: `/projects/${projectSlug}/teams/${entityId}`,
+      focusNodeId: null,
+    }
+  }
+
+  if (nodeType === 'coordinator-agent' || nodeType === 'specialist-agent') {
+    return {
+      path: `/projects/${projectSlug}/agents/${entityId}`,
       focusNodeId: null,
     }
   }
 
   if (nodeType === 'workflow-stage') {
-    // workflow-stage needs parent workflow info for routing
-    // Fallback: focus on the stage in the workflow view if parent is known
     return {
-      path: `/projects/${projectId}/org`,
+      path: `/projects/${projectSlug}/org`,
       focusNodeId: buildVisualId(nodeType, entityId),
     }
   }
 
   const visualId = buildVisualId(nodeType, entityId)
 
-  // Leaf entities with a known parent department → navigate to that dept's L2
   if (LEAF_TYPES_WITH_DEPT.has(nodeType) && parentDeptId) {
     return {
-      path: `/projects/${projectId}/departments/${parentDeptId}`,
+      path: `/projects/${projectSlug}/departments/${parentDeptId}`,
       focusNodeId: visualId,
     }
   }
 
-  // contract, policy, or entities without a parent dept → org L1, focus on entity
   return {
-    path: `/projects/${projectId}/org`,
+    path: `/projects/${projectSlug}/org`,
     focusNodeId: visualId,
   }
 }
@@ -135,11 +152,13 @@ export function extractDeptIdFromParent(parentId: string | null): string | null 
 /**
  * Generic drilldown resolution using SCOPE_REGISTRY.
  * Returns the target route and scope type for a given node.
+ *
+ * @param projectSlug - The project slug used in URL paths
  */
 export function resolveDrillTarget(
   nodeType: NodeType,
   entityId: string,
-  projectId: string,
+  projectSlug: string,
 ): { route: string; scopeType: ScopeType } | null {
   const scopeDef = Object.values(SCOPE_REGISTRY).find(
     def => def.rootNodeType === nodeType,
@@ -150,7 +169,7 @@ export function resolveDrillTarget(
   if (!routePattern) return null
 
   const route = routePattern
-    .replace(':projectId', projectId)
+    .replace(':projectSlug', projectSlug)
     .replace(':entityId', entityId)
 
   return { route, scopeType: scopeDef.scopeType }

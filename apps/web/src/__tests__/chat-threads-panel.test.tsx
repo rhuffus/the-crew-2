@@ -10,6 +10,14 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+vi.mock('@/providers/project-provider', () => ({
+  useCurrentProject: () => ({
+    projectId: 'p1',
+    projectName: 'Test',
+    projectSlug: 'test-project',
+  }),
+}))
+
 const mockThreads = [
   { id: 't1', projectId: 'p1', scopeType: 'company', entityId: null, title: 'Chat: company', messageCount: 3, lastMessageAt: '2024-01-02T00:00:00Z', createdAt: '2024-01-01T00:00:00Z' },
   { id: 't2', projectId: 'p1', scopeType: 'department', entityId: 'd1', title: 'Chat: Engineering', messageCount: 0, lastMessageAt: null, createdAt: '2024-01-01T00:00:00Z' },
@@ -55,7 +63,7 @@ describe('ChatThreadsPanel', () => {
     render(<ChatThreadsPanel projectId="p1" />, { wrapper: Wrapper })
     fireEvent.click(screen.getByText('Chat: company'))
     expect(mockNavigate).toHaveBeenCalledWith(
-      expect.objectContaining({ to: '/projects/$projectId/org' }),
+      expect.objectContaining({ to: '/projects/$projectSlug/org', params: { projectSlug: 'test-project' } }),
     )
   })
 

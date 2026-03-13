@@ -68,6 +68,29 @@ import type {
   CreateContractComplianceDto,
   UpdateContractComplianceDto,
   StageExecutionStatus,
+  RuntimeStatusResponse,
+  NodeRuntimeStatusDto,
+  RuntimeExecutionDto,
+  CreateRuntimeExecutionDto,
+  UpdateRuntimeExecutionDto,
+  RuntimeEventDto,
+  CreateRuntimeEventDto,
+  CostSummaryDto,
+  OrganizationalUnitDto,
+  CreateOrganizationalUnitDto,
+  UpdateOrganizationalUnitDto,
+  LcpAgentDto,
+  CreateLcpAgentDto,
+  UpdateLcpAgentDto,
+  ProposalDto,
+  CreateProposalDto,
+  GrowthEvaluationResultDto,
+  OrgHealthReportDto,
+  PhaseCapabilitiesDto,
+  ProposalType,
+  ProposalStatus,
+  GrowthPace,
+  ApprovalLevel,
 } from '@the-crew/shared-types'
 
 @Injectable()
@@ -864,5 +887,232 @@ export class CompanyDesignClient {
       this.http.patch<ContractComplianceDto>(`${this.baseUrl}/projects/${projectId}/operations/compliance/${complianceId}`, dto),
     )
     return data
+  }
+
+  // ── Runtime (LCP-015) ─────────────────────────────────────────────
+
+  async getRuntimeStatus(projectId: string): Promise<RuntimeStatusResponse> {
+    const { data } = await firstValueFrom(
+      this.http.get<RuntimeStatusResponse>(`${this.baseUrl}/projects/${projectId}/runtime/status`),
+    )
+    return data
+  }
+
+  async getRuntimeNodeStatus(projectId: string, entityId: string, entityType?: string): Promise<NodeRuntimeStatusDto> {
+    const params = entityType ? `?entityType=${entityType}` : ''
+    const { data } = await firstValueFrom(
+      this.http.get<NodeRuntimeStatusDto>(`${this.baseUrl}/projects/${projectId}/runtime/status/${entityId}${params}`),
+    )
+    return data
+  }
+
+  async listRuntimeExecutions(projectId: string): Promise<RuntimeExecutionDto[]> {
+    const { data } = await firstValueFrom(
+      this.http.get<RuntimeExecutionDto[]>(`${this.baseUrl}/projects/${projectId}/runtime/executions`),
+    )
+    return data
+  }
+
+  async getRuntimeExecution(projectId: string, executionId: string): Promise<RuntimeExecutionDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<RuntimeExecutionDto>(`${this.baseUrl}/projects/${projectId}/runtime/executions/${executionId}`),
+    )
+    return data
+  }
+
+  async createRuntimeExecution(projectId: string, dto: CreateRuntimeExecutionDto): Promise<RuntimeExecutionDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<RuntimeExecutionDto>(`${this.baseUrl}/projects/${projectId}/runtime/executions`, dto),
+    )
+    return data
+  }
+
+  async updateRuntimeExecution(projectId: string, executionId: string, dto: UpdateRuntimeExecutionDto): Promise<RuntimeExecutionDto> {
+    const { data } = await firstValueFrom(
+      this.http.patch<RuntimeExecutionDto>(`${this.baseUrl}/projects/${projectId}/runtime/executions/${executionId}`, dto),
+    )
+    return data
+  }
+
+  async listRuntimeEvents(projectId: string, filters?: { limit?: string; offset?: string; executionId?: string; entityId?: string }): Promise<RuntimeEventDto[]> {
+    const params = new URLSearchParams()
+    if (filters?.limit) params.append('limit', filters.limit)
+    if (filters?.offset) params.append('offset', filters.offset)
+    if (filters?.executionId) params.append('executionId', filters.executionId)
+    if (filters?.entityId) params.append('entityId', filters.entityId)
+    const qs = params.toString() ? `?${params.toString()}` : ''
+    const { data } = await firstValueFrom(
+      this.http.get<RuntimeEventDto[]>(`${this.baseUrl}/projects/${projectId}/runtime/events${qs}`),
+    )
+    return data
+  }
+
+  async createRuntimeEvent(projectId: string, dto: CreateRuntimeEventDto): Promise<RuntimeEventDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<RuntimeEventDto>(`${this.baseUrl}/projects/${projectId}/runtime/events`, dto),
+    )
+    return data
+  }
+
+  async getRuntimeCostSummary(projectId: string): Promise<CostSummaryDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<CostSummaryDto>(`${this.baseUrl}/projects/${projectId}/runtime/cost-summary`),
+    )
+    return data
+  }
+
+  // ── Bootstrap (LCP-017) ────────────────────────────────────────────
+
+  async bootstrapProject(projectId: string, body: {
+    name: string; mission: string; companyType: string
+    vision?: string; growthPace?: GrowthPace; approvalLevel?: ApprovalLevel
+  }) {
+    const { data } = await firstValueFrom(
+      this.http.post(`${this.baseUrl}/projects/${projectId}/bootstrap`, body),
+    )
+    return data
+  }
+
+  async getBootstrapStatus(projectId: string) {
+    const { data } = await firstValueFrom(
+      this.http.get(`${this.baseUrl}/projects/${projectId}/bootstrap/status`),
+    )
+    return data
+  }
+
+  // ── Proposals (LCP-017) ────────────────────────────────────────────
+
+  async submitProposal(projectId: string, body: CreateProposalDto & { id: string }): Promise<{ proposal: ProposalDto; evaluation: GrowthEvaluationResultDto }> {
+    const { data } = await firstValueFrom(
+      this.http.post<{ proposal: ProposalDto; evaluation: GrowthEvaluationResultDto }>(`${this.baseUrl}/projects/${projectId}/proposals`, body),
+    )
+    return data
+  }
+
+  async listProposals(projectId: string, filters?: { status?: ProposalStatus; proposalType?: ProposalType }): Promise<ProposalDto[]> {
+    const params = new URLSearchParams()
+    if (filters?.status) params.append('status', filters.status)
+    if (filters?.proposalType) params.append('proposalType', filters.proposalType)
+    const qs = params.toString() ? `?${params.toString()}` : ''
+    const { data } = await firstValueFrom(
+      this.http.get<ProposalDto[]>(`${this.baseUrl}/projects/${projectId}/proposals${qs}`),
+    )
+    return data
+  }
+
+  async getProposal(projectId: string, proposalId: string): Promise<ProposalDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<ProposalDto>(`${this.baseUrl}/projects/${projectId}/proposals/${proposalId}`),
+    )
+    return data
+  }
+
+  async evaluateProposal(projectId: string, proposalId: string): Promise<GrowthEvaluationResultDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<GrowthEvaluationResultDto>(`${this.baseUrl}/projects/${projectId}/proposals/${proposalId}/evaluate`),
+    )
+    return data
+  }
+
+  async approveProposal(projectId: string, proposalId: string, body: { approvedByUserId: string }): Promise<ProposalDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<ProposalDto>(`${this.baseUrl}/projects/${projectId}/proposals/${proposalId}/approve`, body),
+    )
+    return data
+  }
+
+  async rejectProposal(projectId: string, proposalId: string, body: { reason: string }): Promise<ProposalDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<ProposalDto>(`${this.baseUrl}/projects/${projectId}/proposals/${proposalId}/reject`, body),
+    )
+    return data
+  }
+
+  // ── Growth Engine (LCP-017) ────────────────────────────────────────
+
+  async getGrowthHealth(projectId: string): Promise<OrgHealthReportDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<OrgHealthReportDto>(`${this.baseUrl}/projects/${projectId}/health`),
+    )
+    return data
+  }
+
+  async getPhaseCapabilities(projectId: string): Promise<PhaseCapabilitiesDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<PhaseCapabilitiesDto>(`${this.baseUrl}/projects/${projectId}/phase-capabilities`),
+    )
+    return data
+  }
+
+  // ── Organizational Units (LCP-018) ─────────────────────────────────
+
+  async listOrganizationalUnits(projectId: string): Promise<OrganizationalUnitDto[]> {
+    const { data } = await firstValueFrom(
+      this.http.get<OrganizationalUnitDto[]>(`${this.baseUrl}/projects/${projectId}/organizational-units`),
+    )
+    return data
+  }
+
+  async getOrganizationalUnit(projectId: string, id: string): Promise<OrganizationalUnitDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<OrganizationalUnitDto>(`${this.baseUrl}/projects/${projectId}/organizational-units/${id}`),
+    )
+    return data
+  }
+
+  async createOrganizationalUnit(projectId: string, dto: CreateOrganizationalUnitDto): Promise<OrganizationalUnitDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<OrganizationalUnitDto>(`${this.baseUrl}/projects/${projectId}/organizational-units`, dto),
+    )
+    return data
+  }
+
+  async updateOrganizationalUnit(projectId: string, id: string, dto: UpdateOrganizationalUnitDto): Promise<OrganizationalUnitDto> {
+    const { data } = await firstValueFrom(
+      this.http.patch<OrganizationalUnitDto>(`${this.baseUrl}/projects/${projectId}/organizational-units/${id}`, dto),
+    )
+    return data
+  }
+
+  async deleteOrganizationalUnit(projectId: string, id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.baseUrl}/projects/${projectId}/organizational-units/${id}`),
+    )
+  }
+
+  // ── LCP Agents (LCP-018) ──────────────────────────────────────────
+
+  async listLcpAgents(projectId: string): Promise<LcpAgentDto[]> {
+    const { data } = await firstValueFrom(
+      this.http.get<LcpAgentDto[]>(`${this.baseUrl}/projects/${projectId}/lcp-agents`),
+    )
+    return data
+  }
+
+  async getLcpAgent(projectId: string, id: string): Promise<LcpAgentDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<LcpAgentDto>(`${this.baseUrl}/projects/${projectId}/lcp-agents/${id}`),
+    )
+    return data
+  }
+
+  async createLcpAgent(projectId: string, dto: CreateLcpAgentDto): Promise<LcpAgentDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<LcpAgentDto>(`${this.baseUrl}/projects/${projectId}/lcp-agents`, dto),
+    )
+    return data
+  }
+
+  async updateLcpAgent(projectId: string, id: string, dto: UpdateLcpAgentDto): Promise<LcpAgentDto> {
+    const { data } = await firstValueFrom(
+      this.http.patch<LcpAgentDto>(`${this.baseUrl}/projects/${projectId}/lcp-agents/${id}`, dto),
+    )
+    return data
+  }
+
+  async deleteLcpAgent(projectId: string, id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.baseUrl}/projects/${projectId}/lcp-agents/${id}`),
+    )
   }
 }

@@ -9,7 +9,7 @@ describe('routing', () => {
     await renderWithRouter('/')
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /new project/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /new company/i })).toBeInTheDocument()
     })
   })
 

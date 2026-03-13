@@ -1,4 +1,5 @@
 import type { NodeType, EdgeType, VisualNodeDto, VisualEdgeDto } from '@the-crew/shared-types'
+import i18n from '@/i18n/config'
 
 export interface ParsedVisualId {
   nodeType: NodeType
@@ -98,42 +99,10 @@ export function getRelatedEdges(
   return edges.filter((e) => e.sourceId === nodeId || e.targetId === nodeId)
 }
 
-const EDGE_TYPE_LABELS: Record<EdgeType, string> = {
-  reports_to: 'Reports To',
-  owns: 'Owns',
-  assigned_to: 'Assigned To',
-  contributes_to: 'Contributes To',
-  has_skill: 'Has Skill',
-  compatible_with: 'Compatible With',
-  provides: 'Provides',
-  consumes: 'Consumes',
-  bound_by: 'Bound By',
-  participates_in: 'Participates In',
-  hands_off_to: 'Hands Off To',
-  governs: 'Governs',
-  produces_artifact: 'Produces Artifact',
-  consumes_artifact: 'Consumes Artifact',
-}
-
 export function getEdgeTypeLabel(edgeType: EdgeType): string {
-  return EDGE_TYPE_LABELS[edgeType] ?? edgeType
-}
-
-const NODE_TYPE_LABELS: Record<NodeType, string> = {
-  company: 'Company',
-  department: 'Department',
-  role: 'Role',
-  'agent-archetype': 'Agent Archetype',
-  'agent-assignment': 'Agent Assignment',
-  capability: 'Capability',
-  skill: 'Skill',
-  workflow: 'Workflow',
-  'workflow-stage': 'Workflow Stage',
-  contract: 'Contract',
-  policy: 'Policy',
-  artifact: 'Artifact',
+  return i18n.t(`edgeType.${edgeType}`, { ns: 'entities', defaultValue: edgeType })
 }
 
 export function getNodeTypeLabel(nodeType: NodeType): string {
-  return NODE_TYPE_LABELS[nodeType] ?? nodeType
+  return i18n.t(`nodeType.${nodeType}`, { ns: 'entities', defaultValue: nodeType })
 }

@@ -12,10 +12,13 @@ interface WorkflowStageData {
 }
 
 const STATUS_RING: Record<NodeStatus, string> = {
-  normal: 'ring-blue-200',
-  warning: 'ring-yellow-400',
-  error: 'ring-red-400',
-  dimmed: 'ring-slate-200 opacity-50',
+  normal: 'ring-blue-200 dark:ring-blue-700',
+  warning: 'ring-yellow-400 dark:ring-yellow-600',
+  error: 'ring-red-400 dark:ring-red-600',
+  dimmed: 'ring-slate-200 dark:ring-slate-700 opacity-50',
+  active: 'ring-green-500',
+  proposed: 'ring-blue-400 dark:ring-blue-600',
+  retired: 'ring-slate-300 dark:ring-slate-600',
 }
 
 function WorkflowStageNodeComponent({ data }: NodeProps) {
@@ -27,14 +30,14 @@ function WorkflowStageNodeComponent({ data }: NodeProps) {
       <Handle type="target" position={Position.Left} className="!bg-blue-400" />
       <div
         data-testid="workflow-stage-node"
-        className={`relative flex flex-col items-center rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 shadow-sm ring-2 ${ringClass} min-w-[140px]`}
+        className={`relative flex flex-col items-center rounded-xl border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-950 px-5 py-4 shadow-sm ring-2 ${ringClass} min-w-[140px]`}
       >
-        <GitBranch className="h-5 w-5 text-blue-500" />
-        <div className="mt-2 text-sm font-semibold text-blue-800 text-center leading-tight">
+        <GitBranch className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+        <div className="mt-2 text-sm font-semibold text-blue-800 dark:text-blue-200 text-center leading-tight">
           {stageData.label}
         </div>
         {stageData.sublabel && (
-          <div className="mt-1 text-xs text-blue-500 text-center leading-tight max-w-[160px]">
+          <div className="mt-1 text-xs text-blue-500 dark:text-blue-400 text-center leading-tight max-w-[160px]">
             {stageData.sublabel}
           </div>
         )}

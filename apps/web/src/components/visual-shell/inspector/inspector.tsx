@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { PanelRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { VisualNodeDto, VisualEdgeDto, ValidationIssue, EdgeType, NodeType, VisualDiffStatus, VisualDiffSummary } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { groupIssuesByVisualNodeId } from '@/lib/validation-mapping'
@@ -15,11 +16,15 @@ import { RelationsTab } from './relations-tab'
 import { ValidationTab } from './validation-tab'
 import { CommentsTab } from './comments-tab'
 import { OperationsTab } from './operations-tab'
+import { RuntimeTab } from './runtime-tab'
 import { ChangesTab } from './changes-tab'
 import { EdgeInspector } from './edge-inspector'
 import { MultiSelectSummary } from './multi-select-summary'
 import { CanvasSummary } from './canvas-summary'
 import { DiffSummaryPanel } from './diff-summary-panel'
+import { UoDetailPanel } from './uo-detail-panel'
+import { AgentDetailPanel } from './agent-detail-panel'
+import { ProposalDetailPanel } from './proposal-detail-panel'
 import {
   getSelectionSummary,
   findNodeInGraph,
@@ -27,23 +32,20 @@ import {
   getRelatedEdges,
 } from './inspector-utils'
 
-export type InspectorTabId = 'overview' | 'edit' | 'properties' | 'relations' | 'validation' | 'changes' | 'comments' | 'operations'
+const V3_DETAIL_NODE_TYPES = new Set<NodeType>([
+  'company', 'department', 'team',
+  'coordinator-agent', 'specialist-agent',
+  'proposal',
+])
 
-const TAB_LABELS: Record<InspectorTabId, string> = {
-  overview: 'Overview',
-  edit: 'Edit',
-  properties: 'Properties',
-  relations: 'Relations',
-  validation: 'Validation',
-  changes: 'Changes',
-  comments: 'Comments',
-  operations: 'Ops',
-}
+export type InspectorTabId = 'overview' | 'edit' | 'properties' | 'relations' | 'validation' | 'changes' | 'comments' | 'operations' | 'runtime'
 
 const STANDARD_TABS: InspectorTabId[] = ['edit', 'relations', 'validation', 'comments', 'properties']
 const STANDARD_TABS_WITH_OPS: InspectorTabId[] = ['edit', 'relations', 'validation', 'comments', 'operations', 'properties']
+const STANDARD_TABS_LIVE: InspectorTabId[] = ['runtime', 'relations', 'validation', 'comments', 'properties']
 const READ_ONLY_TABS: InspectorTabId[] = ['overview', 'relations', 'comments', 'properties']
 const READ_ONLY_TABS_WITH_OPS: InspectorTabId[] = ['overview', 'relations', 'comments', 'operations', 'properties']
+const READ_ONLY_TABS_LIVE: InspectorTabId[] = ['runtime', 'relations', 'comments', 'properties']
 const DIFF_TABS: InspectorTabId[] = ['overview', 'changes', 'properties']
 
 const EDITABLE_NODE_TYPES = new Set<NodeType>([
@@ -64,21 +66,21 @@ export interface InspectorProps {
 }
 
 export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, onEdgeUpdateMetadata, onNodeUpdate, onNodeDelete, isPending = false, diffSummary }: InspectorProps) {
-  const {
-    inspectorCollapsed,
-    toggleInspector,
-    selectedNodeIds,
-    selectedEdgeIds,
-    validationIssues,
-    projectId,
-    isDiffMode,
-    graphNodes: storeNodes,
-    graphEdges: storeEdges,
-    showDeleteConfirm,
-    currentScope,
-    showOperationsOverlay,
-  } = useVisualWorkspaceStore()
+  const inspectorCollapsed = useVisualWorkspaceStore((s) => s.inspectorCollapsed)
+  const toggleInspector = useVisualWorkspaceStore((s) => s.toggleInspector)
+  const selectedNodeIds = useVisualWorkspaceStore((s) => s.selectedNodeIds)
+  const selectedEdgeIds = useVisualWorkspaceStore((s) => s.selectedEdgeIds)
+  const validationIssues = useVisualWorkspaceStore((s) => s.validationIssues)
+  const projectId = useVisualWorkspaceStore((s) => s.projectId)
+  const isDiffMode = useVisualWorkspaceStore((s) => s.isDiffMode)
+  const storeNodes = useVisualWorkspaceStore((s) => s.graphNodes)
+  const storeEdges = useVisualWorkspaceStore((s) => s.graphEdges)
+  const showDeleteConfirm = useVisualWorkspaceStore((s) => s.showDeleteConfirm)
+  const currentScope = useVisualWorkspaceStore((s) => s.currentScope)
+  const showOperationsOverlay = useVisualWorkspaceStore((s) => s.showOperationsOverlay)
+  const designMode = useVisualWorkspaceStore((s) => s.designMode)
   const [activeTab, setActiveTab] = useState<InspectorTabId>('edit')
+  const { t } = useTranslation('inspector')
 
   // Permission checks (CAV-020)
   const canEditNodes = usePermission('canvas:node:edit')
@@ -128,6 +130,10 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
   // Determine which tabs to show (CAV-020: gate edit by permission, CAV-019: ops tab when overlay active)
   const getTabOrder = (): InspectorTabId[] => {
     if (isDiffMode) return DIFF_TABS
+    if (designMode === 'live') {
+      if (!isEditable || !canEditNodes) return READ_ONLY_TABS_LIVE
+      return STANDARD_TABS_LIVE
+    }
     if (!isEditable || !canEditNodes) return showOperationsOverlay ? READ_ONLY_TABS_WITH_OPS : READ_ONLY_TABS
     return showOperationsOverlay ? STANDARD_TABS_WITH_OPS : STANDARD_TABS
   }
@@ -144,7 +150,7 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
       >
         <button
           type="button"
-          aria-label="Expand inspector"
+          aria-label={t('expand')}
           onClick={toggleInspector}
           className="rounded p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
@@ -158,11 +164,11 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
     <div data-testid="inspector" className="flex h-full w-full min-w-0 flex-col overflow-hidden border-l border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Inspector
+          {t('title')}
         </span>
         <button
           type="button"
-          aria-label="Close inspector"
+          aria-label={t('collapse')}
           onClick={toggleInspector}
           className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
@@ -212,7 +218,7 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {TAB_LABELS[tabId]}
+                {t(`tab.${tabId}`)}
                 {tabId === 'validation' && nodeValidationIssues.length > 0 && (
                   <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-100 px-1 text-[10px] font-semibold text-red-700">
                     {nodeValidationIssues.length}
@@ -240,7 +246,17 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
                 />
               )}
               {effectiveTab === 'overview' && (
-                <OverviewTab node={selectedNode} validationIssues={nodeValidationIssues} onNodeUpdate={onNodeUpdate as ((entityId: string, nodeType: NodeType, patch: Record<string, string>) => void) | undefined} isPending={isPending} />
+                V3_DETAIL_NODE_TYPES.has(selectedNode.nodeType) && projectId ? (
+                  selectedNode.nodeType === 'proposal' ? (
+                    <ProposalDetailPanel entityId={selectedNode.entityId} projectId={projectId} />
+                  ) : selectedNode.nodeType === 'coordinator-agent' || selectedNode.nodeType === 'specialist-agent' ? (
+                    <AgentDetailPanel entityId={selectedNode.entityId} nodeType={selectedNode.nodeType} projectId={projectId} />
+                  ) : (
+                    <UoDetailPanel entityId={selectedNode.entityId} nodeType={selectedNode.nodeType} projectId={projectId} />
+                  )
+                ) : (
+                  <OverviewTab node={selectedNode} validationIssues={nodeValidationIssues} onNodeUpdate={onNodeUpdate as ((entityId: string, nodeType: NodeType, patch: Record<string, string>) => void) | undefined} isPending={isPending} />
+                )
               )}
               {effectiveTab === 'changes' && isDiffMode && nodeDiffStatus && (
                 <ChangesTab
@@ -273,6 +289,13 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
               )}
               {effectiveTab === 'operations' && !isDiffMode && projectId && (
                 <OperationsTab
+                  entityId={selectedNode.entityId}
+                  nodeType={selectedNode.nodeType}
+                  projectId={projectId}
+                />
+              )}
+              {effectiveTab === 'runtime' && !isDiffMode && projectId && (
+                <RuntimeTab
                   entityId={selectedNode.entityId}
                   nodeType={selectedNode.nodeType}
                   projectId={projectId}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { renderWithRouter } from './test-utils'
 
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
@@ -15,7 +15,8 @@ describe('shell layout', () => {
   it('should render TheCrew brand in sidebar', async () => {
     await renderWithRouter('/')
     await waitFor(() => {
-      expect(screen.getByText('TheCrew')).toBeInTheDocument()
+      const sidebar = screen.getByTestId('sidebar')
+      expect(within(sidebar).getByText('TheCrew')).toBeInTheDocument()
     })
   })
 
@@ -58,8 +59,8 @@ describe('shell layout', () => {
     await renderWithRouter('/projects/acme-corp/admin/departments')
     await waitFor(() => {
       const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' })
-      expect(breadcrumb).toHaveTextContent('Platform')
-      expect(breadcrumb).toHaveTextContent('acme-corp')
+      expect(breadcrumb).toHaveTextContent('TheCrew')
+      expect(breadcrumb).toHaveTextContent('Acme Corp')
     })
   })
 

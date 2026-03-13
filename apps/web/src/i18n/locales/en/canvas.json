@@ -1,0 +1,48 @@
+{
+  "mode": {
+    "select": "Select",
+    "pan": "Pan",
+    "connect": "Connect",
+    "addNode": "Add Node",
+    "addEdge": "Add Edge",
+    "addEdgeWith": "Add Edge: {{edgeType}}"
+  },
+  "toolbar": {
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fitView": "Fit view",
+    "autoLayout": "Auto layout",
+    "collapseAll": "Collapse all",
+    "expandAll": "Expand all",
+    "resetFilters": "Reset filters",
+    "validationOverlay": "Validation overlay",
+    "operationsOverlay": "Operations overlay",
+    "liveMode": "Live mode",
+    "keyboardShortcuts": "Keyboard shortcuts (?)",
+    "undo": "Undo (Ctrl+Z)",
+    "redo": "Redo (Ctrl+Shift+Z)"
+  },
+  "scope": {
+    "label": "Scope:",
+    "companyOrg": "Company Org",
+    "department": "Department",
+    "workflow": "Workflow"
+  },
+  "overlays": {
+    "label": "Overlays:",
+    "none": "Overlays: —"
+  },
+  "views": "Views",
+  "clearPreset": "Clear preset",
+  "loadingGraph": "Loading graph...",
+  "noNodesAtLevel": "No nodes available at this level",
+  "noMatchingNodes": "No matching nodes",
+  "searchNodes": "Search nodes...",
+  "searchRelationships": "Search relationships...",
+  "addRelationship": "Add relationship",
+  "noMatchingRelationships": "No matching relationships",
+  "selectRelationshipType": "Select relationship type",
+  "expandChildren": "Expand children",
+  "collapseChildren": "Collapse children",
+  "doubleClickExpand": "Double-click to expand"
+}

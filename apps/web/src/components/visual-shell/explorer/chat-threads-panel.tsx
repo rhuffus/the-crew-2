@@ -2,6 +2,7 @@ import { MessageSquare } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useChatThreads } from '@/hooks/use-chat'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
+import { useCurrentProject } from '@/providers/project-provider'
 
 interface ChatThreadsPanelProps {
   projectId?: string
@@ -10,7 +11,8 @@ interface ChatThreadsPanelProps {
 export function ChatThreadsPanel({ projectId }: ChatThreadsPanelProps) {
   const { data: threads, isLoading } = useChatThreads(projectId ?? '')
   const navigate = useNavigate()
-  const { toggleChatDock, chatDockOpen } = useVisualWorkspaceStore()
+  const chatDockOpen = useVisualWorkspaceStore((s) => s.chatDockOpen)
+  const { projectSlug } = useCurrentProject()
 
   if (!projectId) {
     return <div className="p-3 text-xs text-muted-foreground">No project selected</div>
@@ -38,21 +40,21 @@ export function ChatThreadsPanel({ projectId }: ChatThreadsPanelProps) {
   const handleThreadClick = (thread: (typeof sortedThreads)[0]) => {
     // Navigate to the scope
     if (thread.scopeType === 'company') {
-      navigate({ to: '/projects/$projectId/org', params: { projectId } })
+      navigate({ to: '/projects/$projectSlug/org', params: { projectSlug } })
     } else if (thread.scopeType === 'department' && thread.entityId) {
       navigate({
-        to: '/projects/$projectId/departments/$departmentId',
-        params: { projectId, departmentId: thread.entityId },
+        to: '/projects/$projectSlug/departments/$departmentId',
+        params: { projectSlug, departmentId: thread.entityId },
       })
     } else if (thread.scopeType === 'workflow' && thread.entityId) {
       navigate({
-        to: '/projects/$projectId/workflows/$workflowId',
-        params: { projectId, workflowId: thread.entityId },
+        to: '/projects/$projectSlug/workflows/$workflowId',
+        params: { projectSlug, workflowId: thread.entityId },
       })
     }
     // Open the chat dock
     if (!chatDockOpen) {
-      toggleChatDock()
+      useVisualWorkspaceStore.getState().toggleChatDock()
     }
   }
 

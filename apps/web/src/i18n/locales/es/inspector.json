@@ -1,0 +1,170 @@
+{
+  "title": "Inspector",
+  "collapse": "Cerrar inspector",
+  "expand": "Expandir inspector",
+  "noSelection": "Sin selección",
+  "tab": {
+    "overview": "Resumen",
+    "edit": "Editar",
+    "properties": "Propiedades",
+    "relations": "Relaciones",
+    "validation": "Validación",
+    "changes": "Cambios",
+    "comments": "Comentarios",
+    "operations": "Ops",
+    "runtime": "Tiempo Real"
+  },
+  "overview": {
+    "companyPhase": "Fase de la Empresa",
+    "capabilities": "Capacidades:",
+    "orgHealth": "Salud Organizacional",
+    "nodes": "Nodos",
+    "noNodes": "No hay nodos en la vista.",
+    "edges": "Conexiones",
+    "noEdges": "No hay conexiones en la vista.",
+    "validation": "Validación",
+    "error": "{{count}} error",
+    "error_other": "{{count}} errores",
+    "warning": "{{count}} advertencia",
+    "warning_other": "{{count}} advertencias",
+    "pendingProposal": "{{count}} propuesta pendiente",
+    "pendingProposal_other": "{{count}} propuestas pendientes"
+  },
+  "properties": {
+    "title": "Pestaña de Propiedades",
+    "visualId": "ID Visual",
+    "entityId": "ID de Entidad",
+    "nodeType": "Tipo de Nodo",
+    "collapsed": "Colapsado",
+    "layers": "Capas",
+    "position": "Posición",
+    "autoLayout": "Diseño automático",
+    "parentId": "ID del Padre"
+  },
+  "relations": {
+    "title": "Pestaña de Relaciones",
+    "incoming": "Entrantes",
+    "outgoing": "Salientes",
+    "noRelations": "No se encontraron relaciones.",
+    "addRelationship": "Añadir Relación",
+    "remove": "Quitar"
+  },
+  "validation": {
+    "title": "Pestaña de Validación",
+    "noIssues": "Sin problemas de validación"
+  },
+  "comments": {
+    "title": "Pestaña de Comentarios",
+    "noComments": "Aún no hay comentarios.",
+    "loadingComments": "Cargando comentarios...",
+    "replyingTo": "Respondiendo al comentario",
+    "cancelReply": "cancelar",
+    "replyPlaceholder": "Escribe una respuesta...",
+    "addPlaceholder": "Añade un comentario...",
+    "comment": "{{count}} comentario",
+    "comment_other": "{{count}} comentarios"
+  },
+  "operations": {
+    "title": "Pestaña de Operaciones",
+    "enableOverlay": "Activa la capa de operaciones para ver el estado en tiempo real",
+    "status": "Estado",
+    "activeRuns": "Ejecuciones activas",
+    "incidents": "Incidentes",
+    "queueDepth": "Profundidad de cola",
+    "compliance": "Cumplimiento",
+    "badges": "Insignias"
+  },
+  "runtime": {
+    "title": "Pestaña de Tiempo Real",
+    "switchToLive": "Cambia al modo en vivo para ver el estado en tiempo real",
+    "runtimeState": "Estado en Tiempo Real",
+    "indicators": "Indicadores",
+    "activeExecutions": "Ejecuciones Activas",
+    "cost": "Costo",
+    "recentEvents": "Eventos Recientes",
+    "lastActivity": "Última actividad:"
+  },
+  "changes": {
+    "title": "Pestaña de Cambios",
+    "newEntity": "Entidad nueva",
+    "deletedEntity": "Entidad eliminada",
+    "modifiedEntity": "Entidad modificada",
+    "unchanged": "Sin cambios",
+    "allFieldsAdded": "Todos los campos son adiciones para",
+    "allFieldsRemoved": "Todos los campos fueron eliminados para",
+    "noChanges": "No se detectaron cambios.",
+    "noVisualChanges": "La entidad fue modificada pero no se detectaron cambios en campos visuales.",
+    "changeField": "Campo de cambio"
+  },
+  "diff": {
+    "title": "Resumen de Diferencias",
+    "nodes": "Nodos",
+    "edges": "Conexiones",
+    "added": "añadidos",
+    "removed": "eliminados",
+    "modified": "modificados",
+    "unchanged": "sin cambios"
+  },
+  "edit": {
+    "notEditable": "Este tipo de entidad no es editable.",
+    "loadingData": "Cargando datos de la entidad...",
+    "loadFailed": "No se pudieron cargar los datos de la entidad.",
+    "noOptions": "No hay opciones disponibles"
+  },
+  "edge": {
+    "edgeType": "Tipo de Relación",
+    "deleteRelationship": "Eliminar relación",
+    "style": "Estilo",
+    "source": "Origen",
+    "target": "Destino",
+    "responsibility": "Responsabilidad",
+    "noResponsibility": "Sin responsabilidad asignada",
+    "label": "Etiqueta",
+    "layers": "Capas"
+  },
+  "multiSelect": {
+    "itemsSelected": "{{count}} elementos seleccionados",
+    "edges": "Conexiones",
+    "bulkActions": "Acciones Masivas",
+    "deleteConfirm": "¿Eliminar {{count}} nodo seleccionado?",
+    "deleteConfirm_other": "¿Eliminar {{count}} nodos seleccionados?",
+    "confirmDelete": "Confirmar Eliminación",
+    "cancel": "Cancelar",
+    "deleteSelected": "Eliminar Seleccionados"
+  },
+  "lock": {
+    "lockedBy": "Bloqueado por",
+    "release": "Liberar",
+    "lockForEditing": "Bloquear para editar"
+  },
+  "review": {
+    "approve": "Aprobar",
+    "needsChanges": "Requiere Cambios",
+    "requestReview": "Solicitar Revisión",
+    "pendingReview": "Revisión Pendiente"
+  },
+  "uo": {
+    "mandate": "Mandato",
+    "functions": "Funciones",
+    "coordinator": "Coordinador",
+    "status": "Estado"
+  },
+  "agent": {
+    "skills": "Habilidades",
+    "responsibilities": "Responsabilidades",
+    "inputs": "Entradas",
+    "outputs": "Salidas",
+    "budget": "Presupuesto",
+    "maxMonthlyTokens": "Tokens mensuales máx.:",
+    "maxConcurrentTasks": "Tareas concurrentes máx.:",
+    "costLimit": "Límite de costo: $"
+  },
+  "proposal": {
+    "motivation": "Motivación",
+    "expectedBenefit": "Beneficio Esperado",
+    "estimatedCost": "Costo Estimado",
+    "proposedBy": "Propuesto Por",
+    "rejectionReason": "Razón del Rechazo",
+    "confirm": "Confirmar"
+  }
+}

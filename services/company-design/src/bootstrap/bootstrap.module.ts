@@ -1,31 +1,30 @@
+/**
+ * CEO-First Bootstrap Module — new projects use this path.
+ * Rewritten as part of LCP-013. Legacy Verticaler bootstrap lives in legacy-bootstrap.module.ts.
+ * Extended by LCP-016 to include VerticalerDemoSeeder.
+ */
 import { Module } from '@nestjs/common'
-import { CompanyModelModule } from '../company-model/company-model.module'
-import { DepartmentsModule } from '../departments/departments.module'
-import { CapabilitiesModule } from '../capabilities/capabilities.module'
-import { RolesModule } from '../roles/roles.module'
-import { SkillsModule } from '../skills/skills.module'
-import { AgentArchetypesModule } from '../agent-archetypes/agent-archetypes.module'
-import { AgentAssignmentsModule } from '../agent-assignments/agent-assignments.module'
-import { ContractsModule } from '../contracts/contracts.module'
-import { WorkflowsModule } from '../workflows/workflows.module'
-import { PoliciesModule } from '../policies/policies.module'
-import { ArtifactsModule } from '../artifacts/artifacts.module'
-import { BootstrapService } from './bootstrap.service'
+import { ProjectSeedModule } from '../project-seed/project-seed.module'
+import { ConstitutionModule } from '../constitution/constitution.module'
+import { OrganizationalUnitsModule } from '../organizational-units/organizational-units.module'
+import { LcpAgentsModule } from '../lcp-agents/lcp-agents.module'
+import { ProposalsModule } from '../proposals/proposals.module'
+import { RuntimeModule } from '../runtime/runtime.module'
+import { CeoFirstBootstrapService } from './ceo-first-bootstrap.service'
+import { BootstrapController } from './bootstrap.controller'
+import { VerticalerDemoSeeder } from './verticaler-demo-seeder'
 
 @Module({
   imports: [
-    CompanyModelModule,
-    DepartmentsModule,
-    CapabilitiesModule,
-    RolesModule,
-    SkillsModule,
-    AgentArchetypesModule,
-    AgentAssignmentsModule,
-    ContractsModule,
-    WorkflowsModule,
-    PoliciesModule,
-    ArtifactsModule,
+    ProjectSeedModule,
+    ConstitutionModule,
+    OrganizationalUnitsModule,
+    LcpAgentsModule,
+    ProposalsModule,
+    RuntimeModule,
   ],
-  providers: [BootstrapService],
+  controllers: [BootstrapController],
+  providers: [CeoFirstBootstrapService, VerticalerDemoSeeder],
+  exports: [CeoFirstBootstrapService],
 })
 export class BootstrapModule {}

@@ -1,0 +1,28 @@
+{
+  "dock": {
+    "ceoAgent": "Agente CEO",
+    "chatScope": "Chat: {{scope}}",
+    "readOnly": "Solo lectura — necesitas acceso de comentarista para enviar mensajes"
+  },
+  "input": {
+    "placeholder": "Escribe un mensaje...",
+    "send": "Enviar mensaje"
+  },
+  "messages": {
+    "noMessages": "¡Aún no hay mensajes. Inicia una conversación!",
+    "loadingMessages": "Cargando mensajes..."
+  },
+  "ceo": {
+    "phaseMessage": {
+      "seed": "Tu empresa está en su fase semilla. Propondré la estructura organizacional inicial.",
+      "formation": "Estamos formando los departamentos y equipos principales. Revisa mis propuestas para dar forma a la organización.",
+      "structured": "La estructura básica está en su lugar. Ahora estoy optimizando flujos de trabajo y composición de equipos.",
+      "operating": "La empresa está operando. Sugeriré mejoras basadas en métricas de rendimiento.",
+      "scaling": "Estamos escalando. Observa las propuestas para dividir equipos y crear nuevos departamentos.",
+      "optimizing": "La organización es madura. Me enfoco en eficiencia y mejora continua."
+    },
+    "pendingProposals": "Propuestas Pendientes ({{count}})",
+    "recentlyApproved": "Aprobadas Recientemente",
+    "noPending": "No hay propuestas pendientes. El CEO está analizando la organización..."
+  }
+}

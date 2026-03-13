@@ -13,9 +13,11 @@ describe('CanvasToolbar — Node Palette (CAV-006)', () => {
       statusFilter: null,
       showValidationOverlay: false,
       collapsedNodeIds: [],
-      canvasMode: 'select',
+
       isDiffMode: false,
       preselectedEdgeType: null,
+      nodePaletteOpen: false,
+      relationshipPaletteOpen: false,
     })
   })
 
@@ -95,9 +97,11 @@ describe('CanvasToolbar — Relationship Palette (CAV-006)', () => {
       statusFilter: null,
       showValidationOverlay: false,
       collapsedNodeIds: [],
-      canvasMode: 'select',
+
       isDiffMode: false,
       preselectedEdgeType: null,
+      nodePaletteOpen: false,
+      relationshipPaletteOpen: false,
     })
   })
 
@@ -122,20 +126,19 @@ describe('CanvasToolbar — Relationship Palette (CAV-006)', () => {
     expect(screen.queryByTestId('rel-palette-button')).not.toBeInTheDocument()
   })
 
-  it('should show preselected edge type in mode label', () => {
+  it('should show preselected edge type pill', () => {
     useVisualWorkspaceStore.setState({
-      canvasMode: 'add-edge',
       preselectedEdgeType: 'reports_to',
     })
     const onAddEntity = vi.fn()
     render(<CanvasToolbar onAddEntity={onAddEntity} />)
-    expect(screen.getByTestId('mode-label')).toHaveTextContent('Add Edge: Reports To')
+    expect(screen.getByTestId('preselected-edge-pill')).toHaveTextContent('Reports To')
   })
 
-  it('should show normal mode label when no preselected type', () => {
-    useVisualWorkspaceStore.setState({ canvasMode: 'add-edge', preselectedEdgeType: null })
+  it('should not show edge pill when no preselected type', () => {
+    useVisualWorkspaceStore.setState({ preselectedEdgeType: null })
     const onAddEntity = vi.fn()
     render(<CanvasToolbar onAddEntity={onAddEntity} />)
-    expect(screen.getByTestId('mode-label')).toHaveTextContent('Add Edge')
+    expect(screen.queryByTestId('preselected-edge-pill')).not.toBeInTheDocument()
   })
 })

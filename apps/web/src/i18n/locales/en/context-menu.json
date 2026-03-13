@@ -1,0 +1,11 @@
+{
+  "addNode": "Add node",
+  "deleteNode": "Delete",
+  "editNode": "Edit",
+  "drillIn": "Drill in",
+  "viewDetails": "View details",
+  "copyId": "Copy ID",
+  "lockNode": "Lock for editing",
+  "unlockNode": "Release lock",
+  "requestReview": "Request review"
+}

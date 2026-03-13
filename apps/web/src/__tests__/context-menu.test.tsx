@@ -150,7 +150,7 @@ describe('CanvasContextMenu', () => {
     expect(onNodeDelete).toHaveBeenCalledWith('role', 'role-42')
   })
 
-  it('switches to add-edge mode on create-relationship click', () => {
+  it('sets addEdgeSource on create-relationship click', () => {
     const nodes = [makeNode({ id: 'n1', nodeType: 'role' })]
     useVisualWorkspaceStore.setState({
       contextMenu: { x: 100, y: 200, type: 'node', targetId: 'n1' },
@@ -158,7 +158,6 @@ describe('CanvasContextMenu', () => {
     })
     renderMenu()
     fireEvent.click(screen.getByTestId('context-menu-create-relationship'))
-    expect(useVisualWorkspaceStore.getState().canvasMode).toBe('add-edge')
     expect(useVisualWorkspaceStore.getState().addEdgeSource).toBe('n1')
   })
 

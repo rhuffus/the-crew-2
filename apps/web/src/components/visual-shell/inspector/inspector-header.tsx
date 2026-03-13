@@ -1,17 +1,24 @@
 import type { NodeType } from '@the-crew/shared-types'
 import {
-  Building2,
-  Network,
-  UserCog,
+  ArrowRightLeft,
   Bot,
-  Zap,
-  Wrench,
-  GitBranch,
-  FileText,
-  Shield,
-  User,
-  ListOrdered,
+  BrainCircuit,
+  Building2,
   FileBox,
+  FileText,
+  Gavel,
+  GitBranch,
+  Globe,
+  ListOrdered,
+  MessageSquarePlus,
+  Network,
+  Shield,
+  Target,
+  User,
+  UserCog,
+  UsersRound,
+  Wrench,
+  Zap,
 } from 'lucide-react'
 
 const NODE_TYPE_ICONS: Record<NodeType, typeof Building2> = {
@@ -27,6 +34,15 @@ const NODE_TYPE_ICONS: Record<NodeType, typeof Building2> = {
   contract: FileText,
   policy: Shield,
   artifact: FileBox,
+  team: UsersRound,
+  'coordinator-agent': BrainCircuit,
+  'specialist-agent': Bot,
+  objective: Target,
+  'event-trigger': Zap,
+  'external-source': Globe,
+  handoff: ArrowRightLeft,
+  decision: Gavel,
+  proposal: MessageSquarePlus,
 }
 
 const NODE_TYPE_LABELS: Record<NodeType, string> = {
@@ -42,6 +58,15 @@ const NODE_TYPE_LABELS: Record<NodeType, string> = {
   contract: 'Contract',
   policy: 'Policy',
   artifact: 'Artifact',
+  team: 'Team',
+  'coordinator-agent': 'Coordinator Agent',
+  'specialist-agent': 'Specialist Agent',
+  objective: 'Objective',
+  'event-trigger': 'Event Trigger',
+  'external-source': 'External Source',
+  handoff: 'Handoff',
+  decision: 'Decision',
+  proposal: 'Proposal',
 }
 
 export interface InspectorHeaderProps {

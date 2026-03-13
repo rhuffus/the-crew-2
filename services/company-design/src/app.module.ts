@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
+import { DrizzleModule, isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { HealthController } from './health.controller'
 import { BootstrapModule } from './bootstrap/bootstrap.module'
+import { LegacyBootstrapModule } from './bootstrap/legacy-bootstrap.module'
 import { CompanyModelModule } from './company-model/company-model.module'
 import { DepartmentsModule } from './departments/departments.module'
 import { CapabilitiesModule } from './capabilities/capabilities.module'
@@ -21,9 +23,56 @@ import { ArtifactsModule } from './artifacts/artifacts.module'
 import { CommentsModule } from './comments/comments.module'
 import { CollaborationModule } from './collaboration/collaboration.module'
 import { OperationsModule } from './operations/operations.module'
+import { ProjectSeedModule } from './project-seed/project-seed.module'
+import { ConstitutionModule } from './constitution/constitution.module'
+import { OrganizationalUnitsModule } from './organizational-units/organizational-units.module'
+import { LcpAgentsModule } from './lcp-agents/lcp-agents.module'
+import { ProposalsModule } from './proposals/proposals.module'
+import { GrowthEngineModule } from './growth-engine/growth-engine.module'
+import { RuntimeModule } from './runtime/runtime.module'
+
+const drizzleImport = isPersistenceModeDrizzle()
+  ? [DrizzleModule.forRoot({ connectionString: process.env.DATABASE_URL! })]
+  : []
 
 @Module({
-  imports: [BootstrapModule, CompanyModelModule, DepartmentsModule, CapabilitiesModule, RolesModule, AgentArchetypesModule, AgentAssignmentsModule, SkillsModule, ContractsModule, WorkflowsModule, PoliciesModule, ArtifactsModule, ReleasesModule, ValidationsModule, AuditModule, GraphProjectionModule, SavedViewsModule, ChatModule, CommentsModule, CollaborationModule, OperationsModule],
+  imports: [
+    ...drizzleImport,
+    // CEO-first bootstrap (new projects)
+    BootstrapModule,
+    // Legacy Verticaler bootstrap (pre-populated company)
+    LegacyBootstrapModule,
+    // New domain modules (Live Company Pivot)
+    ProjectSeedModule,
+    ConstitutionModule,
+    OrganizationalUnitsModule,
+    LcpAgentsModule,
+    ProposalsModule,
+    GrowthEngineModule,
+    // Legacy domain modules
+    CompanyModelModule,
+    DepartmentsModule,
+    CapabilitiesModule,
+    RolesModule,
+    AgentArchetypesModule,
+    AgentAssignmentsModule,
+    SkillsModule,
+    ContractsModule,
+    WorkflowsModule,
+    PoliciesModule,
+    ArtifactsModule,
+    // Cross-cutting modules
+    ReleasesModule,
+    ValidationsModule,
+    AuditModule,
+    GraphProjectionModule,
+    SavedViewsModule,
+    ChatModule,
+    CommentsModule,
+    CollaborationModule,
+    OperationsModule,
+    RuntimeModule,
+  ],
   controllers: [HealthController],
 })
 export class AppModule {}

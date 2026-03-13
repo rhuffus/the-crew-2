@@ -10,13 +10,10 @@ interface ShortcutEntry {
 
 const SHORTCUT_SECTIONS: { title: string; shortcuts: ShortcutEntry[] }[] = [
   {
-    title: 'Modes',
+    title: 'Creation',
     shortcuts: [
-      { keys: 'V', description: 'Select mode' },
-      { keys: 'H', description: 'Pan mode' },
-      { keys: 'C', description: 'Connect mode' },
-      { keys: 'N', description: 'Add Node mode' },
-      { keys: 'E', description: 'Add Edge mode' },
+      { keys: 'N', description: 'Open node palette' },
+      { keys: 'E', description: 'Open relationship palette' },
     ],
   },
   {

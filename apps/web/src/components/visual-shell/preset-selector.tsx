@@ -7,16 +7,23 @@ import {
   FileBox,
   Shield,
   Activity,
+  Package,
   ChevronDown,
   Check,
   X,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ViewPresetId, ScopeType } from '@the-crew/shared-types'
 import { VIEW_PRESET_REGISTRY } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
 const PRESET_ICONS: Record<ViewPresetId, typeof Building2> = {
   organization: Building2,
+  work: Workflow,
+  deliverables: Package,
+  rules: Shield,
+  'live-status': Activity,
+  // Legacy presets
   capabilities: Puzzle,
   workflows: Workflow,
   contracts: FileSignature,
@@ -50,6 +57,7 @@ export function PresetSelector({
 }: PresetSelectorProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation('canvas')
 
   const availablePresets = PRESET_ORDER.filter((id) => {
     const def = VIEW_PRESET_REGISTRY[id]
@@ -97,7 +105,7 @@ export function PresetSelector({
             {activePresetDef.label}
           </>
         ) : (
-          <>Views</>
+          <>{t('views')}</>
         )}
         <ChevronDown className="h-3 w-3" />
       </button>
@@ -111,7 +119,7 @@ export function PresetSelector({
             onClearPreset()
           }}
           className="ml-0.5 rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          title="Clear preset"
+          title={t('clearPreset')}
         >
           <X className="h-3 w-3" />
         </button>

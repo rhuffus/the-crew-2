@@ -23,7 +23,7 @@ describe('KeyboardShortcutsHelp', () => {
   it('should show all shortcut sections', () => {
     useVisualWorkspaceStore.setState({ showKeyboardHelp: true })
     render(<KeyboardShortcutsHelp />)
-    expect(screen.getByText('Modes')).toBeTruthy()
+    expect(screen.getByText('Creation')).toBeTruthy()
     expect(screen.getByText('Navigation')).toBeTruthy()
     expect(screen.getByText('Editing')).toBeTruthy()
     expect(screen.getByText('Panels & View')).toBeTruthy()

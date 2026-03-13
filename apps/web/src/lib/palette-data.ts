@@ -1,4 +1,5 @@
 import type { NodeType, EdgeType, EdgeCategory, ZoomLevel, ConnectionRule } from '@the-crew/shared-types'
+import i18n from '@/i18n/config'
 
 // --- Node palette types ---
 
@@ -45,15 +46,6 @@ const NODE_CATEGORY_MAP: Record<string, NodeCategory> = {
   artifact: 'artifacts',
 }
 
-const NODE_CATEGORY_LABELS: Record<NodeCategory, string> = {
-  organization: 'Organization',
-  capabilities: 'Capabilities',
-  workflows: 'Workflows',
-  contracts: 'Contracts',
-  artifacts: 'Artifacts',
-  governance: 'Governance',
-}
-
 const NODE_CATEGORY_ORDER: NodeCategory[] = [
   'organization',
   'capabilities',
@@ -62,60 +54,6 @@ const NODE_CATEGORY_ORDER: NodeCategory[] = [
   'artifacts',
   'governance',
 ]
-
-const NODE_DESCRIPTIONS: Record<string, string> = {
-  department: 'Organizational unit with mandate and ownership',
-  role: 'Named accountability with authority and capabilities',
-  'agent-archetype': 'AI agent template bound to a role',
-  'agent-assignment': 'Active instance of an agent archetype',
-  capability: 'Business capability owned by a department',
-  skill: 'Skill or competency that roles can require',
-  workflow: 'Business process with stages and participants',
-  contract: 'Agreement between provider and consumer',
-  policy: 'Governance rule, constraint, or approval gate',
-  artifact: 'Document, deliverable, or data output flowing through the company',
-}
-
-const NODE_LABELS: Record<string, string> = {
-  department: 'Department',
-  role: 'Role',
-  'agent-archetype': 'Agent Archetype',
-  'agent-assignment': 'Agent Assignment',
-  capability: 'Capability',
-  skill: 'Skill',
-  workflow: 'Workflow',
-  contract: 'Contract',
-  policy: 'Policy',
-  artifact: 'Artifact',
-}
-
-export const EDGE_TYPE_LABELS: Record<EdgeType, string> = {
-  reports_to: 'Reports To',
-  owns: 'Owns',
-  assigned_to: 'Assigned To',
-  contributes_to: 'Contributes To',
-  has_skill: 'Has Skill',
-  compatible_with: 'Compatible With',
-  provides: 'Provides',
-  consumes: 'Consumes',
-  bound_by: 'Bound By',
-  participates_in: 'Participates In',
-  hands_off_to: 'Hands Off To',
-  governs: 'Governs',
-  produces_artifact: 'Produces',
-  consumes_artifact: 'Consumes',
-}
-
-const EDGE_CATEGORY_LABELS: Record<EdgeCategory, string> = {
-  hierarchical: 'Hierarchical',
-  ownership: 'Ownership',
-  assignment: 'Assignment',
-  capability: 'Capability',
-  contract: 'Contract',
-  workflow: 'Workflow',
-  governance: 'Governance',
-  artifact: 'Artifact',
-}
 
 const EDGE_CATEGORY_ORDER: EdgeCategory[] = [
   'hierarchical',
@@ -138,14 +76,44 @@ const L2_ADDABLE_TYPES: NodeType[] = [
   'skill', 'agent-archetype', 'agent-assignment', 'artifact',
 ]
 
+// --- i18n helper functions ---
+
+function getNodeLabel(nodeType: string): string {
+  return i18n.t(`nodeType.${nodeType}`, { ns: 'entities', defaultValue: nodeType })
+}
+
+function getNodeDescription(nodeType: string): string {
+  return i18n.t(`nodeDescription.${nodeType}`, { ns: 'entities', defaultValue: '' })
+}
+
+function getNodeCategoryLabel(category: NodeCategory): string {
+  return i18n.t(`nodeCategory.${category}`, { ns: 'entities', defaultValue: category })
+}
+
+export function getEdgeTypeLabel(edgeType: EdgeType): string {
+  return i18n.t(`edgeType.${edgeType}`, { ns: 'entities', defaultValue: edgeType })
+}
+
+export function getEdgeCategoryLabel(category: EdgeCategory): string {
+  return i18n.t(`edgeCategory.${category}`, { ns: 'entities', defaultValue: category })
+}
+
+// Re-export EDGE_TYPE_LABELS as a getter for backward compatibility in components
+// that destructure it. Returns a Proxy that resolves labels via i18n at access time.
+export const EDGE_TYPE_LABELS: Record<EdgeType, string> = new Proxy({} as Record<EdgeType, string>, {
+  get(_target, prop: string) {
+    return i18n.t(`edgeType.${prop}`, { ns: 'entities', defaultValue: prop })
+  },
+})
+
 // --- Node palette functions ---
 
 export function getNodePaletteItems(zoomLevel: ZoomLevel): NodePaletteItem[] {
   const types = zoomLevel === 'L1' ? L1_ADDABLE_TYPES : zoomLevel === 'L2' ? L2_ADDABLE_TYPES : []
   return types.map((nodeType) => ({
     nodeType,
-    label: NODE_LABELS[nodeType] ?? nodeType,
-    description: NODE_DESCRIPTIONS[nodeType] ?? '',
+    label: getNodeLabel(nodeType),
+    description: getNodeDescription(nodeType),
     category: NODE_CATEGORY_MAP[nodeType] ?? 'organization',
   }))
 }
@@ -164,7 +132,7 @@ export function getGroupedNodePaletteItems(zoomLevel: ZoomLevel): PaletteGroup<N
     .filter((cat) => groups.has(cat))
     .map((cat) => ({
       category: cat,
-      label: NODE_CATEGORY_LABELS[cat],
+      label: getNodeCategoryLabel(cat),
       items: groups.get(cat)!,
     }))
 }
@@ -198,7 +166,7 @@ export function getCreatableRelationships(rules: ConnectionRule[]): Relationship
     } else {
       byEdgeType.set(r.edgeType, {
         edgeType: r.edgeType,
-        label: EDGE_TYPE_LABELS[r.edgeType] ?? r.edgeType,
+        label: getEdgeTypeLabel(r.edgeType),
         sourceTypes: [...r.sourceTypes],
         targetTypes: [...r.targetTypes],
         category: r.category,
@@ -224,7 +192,7 @@ export function getGroupedRelationships(rules: ConnectionRule[]): PaletteGroup<R
     .filter((cat) => groups.has(cat))
     .map((cat) => ({
       category: cat,
-      label: EDGE_CATEGORY_LABELS[cat],
+      label: getEdgeCategoryLabel(cat),
       items: groups.get(cat)!,
     }))
 }
@@ -242,9 +210,5 @@ export function filterRelationshipItems(items: RelationshipPaletteItem[], query:
 }
 
 export function formatTypeList(types: NodeType[]): string {
-  return types.map((t) => NODE_LABELS[t] ?? t).join(', ')
-}
-
-export function getEdgeCategoryLabel(category: EdgeCategory): string {
-  return EDGE_CATEGORY_LABELS[category] ?? category
+  return types.map((t) => getNodeLabel(t)).join(', ')
 }

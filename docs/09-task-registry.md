@@ -1,5 +1,9 @@
 # Task Registry — Verticaler + Polish
 
+> **SUPERSEDED** — Esta fase está completada. El task registry activo es ahora
+> **`docs/39-live-company-task-registry.md`** (Live Company Pivot).
+> Este archivo se conserva como referencia histórica.
+
 ## Leyenda
 - status: todo | in-progress | done | blocked
 - mode: plan | edit

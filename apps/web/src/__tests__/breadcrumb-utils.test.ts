@@ -3,29 +3,29 @@ import type { BreadcrumbEntry } from '@the-crew/shared-types'
 import { breadcrumbToRoute, zoomLevelLabel } from '@/lib/breadcrumb-utils'
 
 describe('breadcrumbToRoute', () => {
-  const projectId = 'proj-1'
+  const projectSlug = 'proj-1'
 
   it('should return org route for L1 entry', () => {
     const entry: BreadcrumbEntry = { label: 'Organization', nodeType: 'company', entityId: 'comp-1', zoomLevel: 'L1' }
-    expect(breadcrumbToRoute(entry, projectId)).toBe('/projects/proj-1/org')
+    expect(breadcrumbToRoute(entry, projectSlug)).toBe('/projects/proj-1/org')
   })
 
   it('should return department route for L2 entry', () => {
     const entry: BreadcrumbEntry = { label: 'Engineering', nodeType: 'department', entityId: 'dept-1', zoomLevel: 'L2' }
-    expect(breadcrumbToRoute(entry, projectId)).toBe('/projects/proj-1/departments/dept-1')
+    expect(breadcrumbToRoute(entry, projectSlug)).toBe('/projects/proj-1/departments/dept-1')
   })
 
   it('should return workflow route for L3 entry', () => {
     const entry: BreadcrumbEntry = { label: 'CI/CD', nodeType: 'workflow', entityId: 'wf-1', zoomLevel: 'L3' }
-    expect(breadcrumbToRoute(entry, projectId)).toBe('/projects/proj-1/workflows/wf-1')
+    expect(breadcrumbToRoute(entry, projectSlug)).toBe('/projects/proj-1/workflows/wf-1')
   })
 
   it('should default to org route for unknown zoom level', () => {
     const entry = { label: 'Unknown', nodeType: 'company', entityId: 'x', zoomLevel: 'L4' } as unknown as BreadcrumbEntry
-    expect(breadcrumbToRoute(entry, projectId)).toBe('/projects/proj-1/org')
+    expect(breadcrumbToRoute(entry, projectSlug)).toBe('/projects/proj-1/org')
   })
 
-  it('should use the entry entityId, not projectId', () => {
+  it('should use the entry entityId, not projectSlug', () => {
     const entry: BreadcrumbEntry = { label: 'Finance', nodeType: 'department', entityId: 'dept-finance', zoomLevel: 'L2' }
     expect(breadcrumbToRoute(entry, 'other-proj')).toBe('/projects/other-proj/departments/dept-finance')
   })

@@ -1,0 +1,91 @@
+{
+  "title": "Explorer",
+  "collapse": "Collapse explorer",
+  "expand": "Expand explorer",
+  "tab": {
+    "tree": "Entity Tree",
+    "overlays": "Overlays",
+    "filters": "Filters",
+    "views": "Saved Views",
+    "validation": "Validation",
+    "chat": "Chat",
+    "operations": "Operations",
+    "timeline": "Timeline",
+    "proposals": "Proposals"
+  },
+  "tree": {
+    "noEntities": "No entities in current view."
+  },
+  "overlays": {
+    "title": "Overlays"
+  },
+  "filters": {
+    "title": "Filters",
+    "clearAll": "Clear all",
+    "nodeType": "Node Type",
+    "status": "Status",
+    "noGraph": "No graph loaded"
+  },
+  "views": {
+    "title": "Saved Views",
+    "namePlaceholder": "View name...",
+    "save": "Save",
+    "loading": "Loading views...",
+    "noViews": "No saved views yet",
+    "deleteView": "Delete view"
+  },
+  "validation": {
+    "title": "Validation",
+    "noIssues": "No issues",
+    "noValidationIssues": "No validation issues",
+    "validationIssues": "Validation Issues",
+    "error": "{{count}} error",
+    "error_other": "{{count}} errors",
+    "warning": "{{count}} warning",
+    "warning_other": "{{count}} warnings"
+  },
+  "chat": {
+    "noThreads": "No chat threads yet. Open the chat dock to start a conversation.",
+    "loadingThreads": "Loading threads...",
+    "messages": "messages"
+  },
+  "operations": {
+    "title": "Operations",
+    "activeRuns": "Active Runs",
+    "blocked": "Blocked",
+    "failed": "Failed",
+    "incidents": "Incidents",
+    "complianceViolations": "Compliance Violations",
+    "noActiveRuns": "No active runs",
+    "noIncidents": "No open incidents",
+    "noComplianceData": "No compliance data",
+    "compliance": "Compliance",
+    "compliant": "Compliant",
+    "atRisk": "At Risk",
+    "violated": "Violated",
+    "incident": "{{count}} incident",
+    "incident_other": "{{count}} incidents"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "switchToLive": "Switch to Live mode to see the timeline",
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "noEvents": "No events yet",
+    "event": "{{count}} event",
+    "event_other": "{{count}} events"
+  },
+  "proposals": {
+    "title": "Proposals",
+    "pending": "Pending",
+    "pendingCount": "Pending ({{count}})",
+    "approvedCount": "Approved ({{count}})",
+    "rejectedCount": "Rejected ({{count}})",
+    "draftsCount": "Drafts ({{count}})",
+    "loadingProposals": "Loading proposals...",
+    "noProposals": "No proposals yet. The CEO will propose structural changes as the company grows.",
+    "noPending": "No pending proposals. The CEO is analyzing the organization...",
+    "recentlyApproved": "Recently Approved",
+    "rejectionReason": "Reason for rejection..."
+  }
+}

@@ -1,72 +1,86 @@
 # TheCrew
 
-Plataforma visual-first para diseñar, gobernar y operar empresas autónomas versionadas.
+Plataforma para **crear, cultivar y operar empresas IA vivas**.
 
-## Qué es
+## Qué es ahora TheCrew
 
-TheCrew permite modelar una empresa completa — departamentos, capacidades, roles, agentes, contratos, workflows, políticas y artefactos — y navegarla visualmente desde un canvas multinivel con inspector, filtros y vistas semánticas.
+TheCrew deja de tratar cada proyecto como una empresa completamente diseñada desde el principio y pasa a tratarlo como una **empresa viva** que:
 
-## Stack
+- nace con una semilla mínima
+- empieza con un **CEO agent**
+- se organiza progresivamente
+- propone su propia estructura
+- crea departamentos, equipos y especialistas mínimos cuando lo necesita
+- define contratos, workflows, documentos y reglas de forma incremental
+- opera en tiempo real con observabilidad completa
 
-- **Monorepo**: pnpm workspaces + Turborepo
-- **Frontend**: Vite + React + TanStack Router + Tailwind + shadcn/ui + XYFlow
-- **Backend**: NestJS microservices (platform, company-design)
-- **Dominio**: DDD con domain-core compartido
-- **Testing**: Vitest + Playwright
-- **Infra local**: k3d + Tilt
+## Enfoque del producto
 
-## Estructura
+La vista principal del producto ya no debe ser “capas abstractas de entidad”, sino:
 
-```
-apps/
-  web/              → UI visual-first (canvas, explorer, inspector)
-  api-gateway/      → BFF NestJS
+1. **estructura organizativa**
+2. **agentes responsables**
+3. **trabajo y comunicación**
+4. **estado vivo de la empresa**
 
-services/
-  platform/         → Gestión de proyectos
-  company-design/   → Modelo de empresa (DDD)
+## Principios del pivot
 
-packages/
-  domain-core/      → Primitivas DDD (Entity, ValueObject, AggregateRoot, etc.)
-  shared-types/     → Tipos compartidos, reglas de conexión, permisos
-  tsconfig/         → Configuración TS compartida
-  eslint-config/    → ESLint 9 flat config
-```
+- **No big-bang rewrite**
+- **Reutilizar la base técnica actual**
+- **Migrar el canvas a una semántica más humana**
+- **Empresa viva y gobernada, no autonomía caótica**
+- **Diseño y runtime como dos modos del mismo sistema**
 
-## Requisitos
+## Desarrollo local
 
+### Requisitos
 - Node >= 22
-- pnpm >= 9
+- pnpm
+- k3d + Tilt (para entorno con PostgreSQL)
 
-## Desarrollo
-
+### Sin k3d (in-memory, solo desarrollo rápido)
 ```bash
 pnpm install
-pnpm dev          # Arranca todos los servicios en paralelo
-pnpm typecheck    # Verifica tipos
-pnpm lint         # Linting
-pnpm test         # Tests unitarios
-pnpm test:e2e     # Tests e2e (requiere servicios levantados)
+PERSISTENCE_MODE=in-memory pnpm turbo run dev
 ```
 
-## Empresa de referencia: Verticaler
+### Con k3d (producción-paridad, PostgreSQL real)
+```bash
+tilt up
+```
 
-TheCrew incluye **Verticaler**, una empresa SaaS B2B de gestión de ascensores que se crea automáticamente en instancias vacías. Verticaler sirve como demo, validación funcional y documentación ejecutable del producto.
+Tilt arranca:
+- **PostgreSQL 16** con schemas `platform` y `company_design`
+- **Redis** para pub/sub
+- **platform** y **company-design** services con hot-reload
+- **api-gateway** como BFF
+- **web** frontend
 
-Spec completa: `docs/25-verticaler-reference-company-spec.md`
+### Base de datos
+- ORM: **Drizzle**
+- Driver: `postgres` (postgres.js)
+- Schemas: `platform`, `company_design` (1 instancia PostgreSQL, 2 schemas lógicos)
+- `PERSISTENCE_MODE=drizzle` (default) usa PostgreSQL real
+- `PERSISTENCE_MODE=in-memory` usa Map<> en memoria (tests unitarios)
 
-## Fase actual
+```bash
+# Generar migraciones
+pnpm --filter @the-crew/company-design-service run db:generate
+pnpm --filter @the-crew/platform-service run db:generate
 
-**Verticaler + Polish** — consolidar el producto existente sin abrir funcionalidades nuevas. Ver `docs/09-task-registry.md`.
+# Aplicar migraciones
+pnpm --filter @the-crew/company-design-service run db:migrate
+pnpm --filter @the-crew/platform-service run db:migrate
+```
 
-## Documentación
+## Documentación canónica del pivot
 
-| Documento | Contenido |
-|---|---|
-| `docs/03-backlog-completo.md` | Backlog de producto |
-| `docs/09-task-registry.md` | Registry de tareas ejecutables |
-| `docs/18-canvas-editor-v2-spec.md` | Especificación del canvas editor |
-| `docs/25-verticaler-reference-company-spec.md` | Spec de Verticaler |
-| `docs/26-current-state-polish-review.md` | Revisión de estado actual y deuda técnica |
-| `docs/28-persistence-bootstrap-strategy.md` | Estrategia de bootstrap y persistencia |
-| `CLAUDE.md` | Instrucciones para Claude Code |
+- `docs/31-live-company-pivot-decision.md`
+- `docs/32-live-company-repo-analysis.md`
+- `docs/33-live-company-domain-model.md`
+- `docs/34-live-company-canvas-v3-spec.md`
+- `docs/35-live-company-growth-protocol.md`
+- `docs/36-live-company-runtime-live-mode-spec.md`
+- `docs/37-live-company-migration-strategy.md`
+- `docs/38-live-company-backlog-v5.md`
+- `docs/39-live-company-task-registry.md`

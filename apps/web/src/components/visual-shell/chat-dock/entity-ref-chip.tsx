@@ -10,7 +10,7 @@ interface EntityRefChipProps {
 
 export function EntityRefChip({ entityRef, projectId }: EntityRefChipProps) {
   const navigate = useNavigate()
-  const { focusNode, graphNodes } = useVisualWorkspaceStore()
+  const graphNodes = useVisualWorkspaceStore((s) => s.graphNodes)
 
   const isInScope = graphNodes.some(
     (n) => n.entityId === entityRef.entityId && n.nodeType === entityRef.entityType,
@@ -18,7 +18,7 @@ export function EntityRefChip({ entityRef, projectId }: EntityRefChipProps) {
 
   const handleClick = () => {
     if (isInScope) {
-      focusNode(entityRef.entityId)
+      useVisualWorkspaceStore.getState().focusNode(entityRef.entityId)
     } else {
       const route = resolveEntityRoute(projectId, entityRef.entityType, entityRef.entityId)
       if (route) {

@@ -1,0 +1,54 @@
+{
+  "bootstrap": {
+    "title": "Bootstrap a Live Company",
+    "stepOf": "Step {{step}} of {{total}}",
+    "companyName": "Company Name *",
+    "companyNamePlaceholder": "Acme Corp",
+    "mission": "Mission *",
+    "missionPlaceholder": "What does this company do?",
+    "companyType": "Company Type",
+    "vision": "Vision (optional)",
+    "visionPlaceholder": "Where do you see this company in 3 years?",
+    "growthPace": "Growth Pace",
+    "growthPaceDescription": "Controls how quickly the CEO proposes structural changes",
+    "approvalLevel": "Approval Level",
+    "approvalLevelDescription": "What types of proposals require your approval",
+    "bootstrapping": "Bootstrapping...",
+    "bootstrapCompany": "Bootstrap Company"
+  },
+  "companyType": {
+    "startup": "Startup",
+    "agency": "Agency",
+    "saas": "SaaS",
+    "consultancy": "Consultancy",
+    "marketplace": "Marketplace",
+    "other": "Other"
+  },
+  "growthPace": {
+    "conservative": "Conservative",
+    "moderate": "Moderate",
+    "aggressive": "Aggressive"
+  },
+  "approvalLevel": {
+    "all": "All Changes",
+    "structural": "Structural Only",
+    "budget": "Budget Only",
+    "none": "None (auto-approve)"
+  },
+  "field": {
+    "name": "Name",
+    "type": "Type",
+    "status": "Status",
+    "mandate": "Mandate",
+    "accountability": "Accountability",
+    "description": "Description",
+    "assignmentStatus": "Assignment Status",
+    "workflowStatus": "Workflow Status",
+    "contractInfo": "Contract Info",
+    "policyInfo": "Policy Info",
+    "details": "Details",
+    "companyType": "Company Type",
+    "category": "Category",
+    "parent": "Parent"
+  }
+}

@@ -46,13 +46,9 @@ function buildNodeIssueGroups(
 }
 
 export function ValidationSummary({ errors = 0, warnings = 0, projectId }: ValidationSummaryProps) {
-  const {
-    validationIssues,
-    graphNodes,
-    showValidationOverlay,
-    selectNodes,
-    focusNode,
-  } = useVisualWorkspaceStore()
+  const validationIssues = useVisualWorkspaceStore((s) => s.validationIssues)
+  const graphNodes = useVisualWorkspaceStore((s) => s.graphNodes)
+  const showValidationOverlay = useVisualWorkspaceStore((s) => s.showValidationOverlay)
 
   const hasIssueData = validationIssues.length > 0 && projectId
   const isClean = errors === 0 && warnings === 0
@@ -62,8 +58,9 @@ export function ValidationSummary({ errors = 0, warnings = 0, projectId }: Valid
     : []
 
   const handleNodeClick = (visualNodeId: string) => {
-    selectNodes([visualNodeId])
-    focusNode(visualNodeId)
+    const state = useVisualWorkspaceStore.getState()
+    state.selectNodes([visualNodeId])
+    state.focusNode(visualNodeId)
   }
 
   return (

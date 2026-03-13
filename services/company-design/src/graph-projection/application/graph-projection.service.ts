@@ -11,7 +11,7 @@ import type {
   ScopeType,
   ScopeDescriptor,
 } from '@the-crew/shared-types'
-import { SCOPE_REGISTRY, scopeTypeFromZoomLevel } from '@the-crew/shared-types'
+import { SCOPE_REGISTRY } from '@the-crew/shared-types'
 import { SnapshotCollector } from '../../releases/application/snapshot-collector'
 import { ValidationEngine } from '../../validations/application/validation-engine'
 import type { ReleaseRepository } from '../../releases/domain/release-repository'
@@ -167,14 +167,23 @@ export class GraphProjectionService {
     return { nodes: scopedNodes, edges: cleanEdges, breadcrumb }
   }
 
+  /** Legacy API mapping: level → scope type (backend contract, pre-v3) */
+  private static readonly LEGACY_ZOOM_TO_SCOPE: Record<string, ScopeType> = {
+    L1: 'company',
+    L2: 'department',
+    L3: 'workflow',
+    L4: 'workflow-stage',
+  }
+
   private resolveScopeType(input: ZoomLevel | ScopeType): { scopeType: ScopeType; level: ZoomLevel } {
     // Check if input is a ScopeType (exists in SCOPE_REGISTRY)
     if (input in SCOPE_REGISTRY) {
       const scopeType = input as ScopeType
       return { scopeType, level: SCOPE_REGISTRY[scopeType].zoomLevel }
     }
-    // Otherwise treat as ZoomLevel (backward compat)
+    // Otherwise treat as ZoomLevel (backward compat with legacy mapping)
     const level = input as ZoomLevel
-    return { scopeType: scopeTypeFromZoomLevel(level), level }
+    const scopeType = GraphProjectionService.LEGACY_ZOOM_TO_SCOPE[level] ?? 'company'
+    return { scopeType, level }
   }
 }

@@ -13,6 +13,11 @@ const NODE_TYPE_TO_API_PATH: Record<string, string> = {
   contract: 'contracts',
   policy: 'policies',
   artifact: 'artifacts',
+  company: 'organizational-units',
+  team: 'organizational-units',
+  'coordinator-agent': 'lcp-agents',
+  'specialist-agent': 'lcp-agents',
+  proposal: 'proposals',
 }
 
 const EDITABLE_NODE_TYPES = new Set<string>(Object.keys(NODE_TYPE_TO_API_PATH))

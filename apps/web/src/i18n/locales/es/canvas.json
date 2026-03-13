@@ -1,0 +1,48 @@
+{
+  "mode": {
+    "select": "Seleccionar",
+    "pan": "Desplazar",
+    "connect": "Conectar",
+    "addNode": "Añadir Nodo",
+    "addEdge": "Añadir Relación",
+    "addEdgeWith": "Añadir Relación: {{edgeType}}"
+  },
+  "toolbar": {
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "fitView": "Ajustar vista",
+    "autoLayout": "Diseño automático",
+    "collapseAll": "Colapsar todo",
+    "expandAll": "Expandir todo",
+    "resetFilters": "Restablecer filtros",
+    "validationOverlay": "Capa de validación",
+    "operationsOverlay": "Capa de operaciones",
+    "liveMode": "Modo en vivo",
+    "keyboardShortcuts": "Atajos de teclado (?)",
+    "undo": "Deshacer (Ctrl+Z)",
+    "redo": "Rehacer (Ctrl+Shift+Z)"
+  },
+  "scope": {
+    "label": "Ámbito:",
+    "companyOrg": "Org. Empresa",
+    "department": "Departamento",
+    "workflow": "Flujo de Trabajo"
+  },
+  "overlays": {
+    "label": "Capas:",
+    "none": "Capas: —"
+  },
+  "views": "Vistas",
+  "clearPreset": "Limpiar preset",
+  "loadingGraph": "Cargando grafo...",
+  "noNodesAtLevel": "No hay nodos disponibles en este nivel",
+  "noMatchingNodes": "No hay nodos coincidentes",
+  "searchNodes": "Buscar nodos...",
+  "searchRelationships": "Buscar relaciones...",
+  "addRelationship": "Añadir relación",
+  "noMatchingRelationships": "No hay relaciones coincidentes",
+  "selectRelationshipType": "Seleccionar tipo de relación",
+  "expandChildren": "Expandir hijos",
+  "collapseChildren": "Colapsar hijos",
+  "doubleClickExpand": "Doble clic para expandir"
+}

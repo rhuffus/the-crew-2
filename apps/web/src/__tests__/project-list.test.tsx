@@ -15,7 +15,8 @@ function renderInContext(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const rootRoute = createRootRoute({ component: () => ui })
   const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/' })
-  const routeTree = rootRoute.addChildren([indexRoute])
+  const projectSlugRoute = createRoute({ getParentRoute: () => rootRoute, path: '/projects/$projectSlug' })
+  const routeTree = rootRoute.addChildren([indexRoute, projectSlugRoute])
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: ['/'] }),
@@ -52,6 +53,16 @@ describe('ProjectList', () => {
     })
     expect(screen.getByText('A test company')).toBeDefined()
     expect(screen.getByText('active')).toBeDefined()
+  })
+
+  it('should link to slug-based project route', async () => {
+    renderInContext(<ProjectList projects={[mockProject]} />)
+    await waitFor(() => {
+      expect(screen.getByText('Acme Corp')).toBeDefined()
+    })
+    const link = screen.getByText('Acme Corp').closest('a')
+    expect(link).toBeDefined()
+    expect(link!.getAttribute('href')).toBe('/projects/acme-corp')
   })
 
   it('should render multiple projects', async () => {

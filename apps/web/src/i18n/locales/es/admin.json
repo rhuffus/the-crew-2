@@ -1,0 +1,18 @@
+{
+  "title": "Admin",
+  "section": {
+    "overview": "Resumen",
+    "departments": "Departamentos",
+    "roles": "Roles",
+    "capabilities": "Capacidades",
+    "skills": "Habilidades",
+    "workflows": "Flujos de Trabajo",
+    "contracts": "Contratos",
+    "policies": "Políticas",
+    "agents": "Agentes",
+    "audit": "Auditoría",
+    "validations": "Validaciones",
+    "companyModel": "Modelo de Empresa",
+    "releases": "Versiones"
+  }
+}

@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import type { ProjectSummary } from '@the-crew/shared-types'
 import { Badge } from '@/components/ui/badge'
+import { slugify } from '@/lib/slugify'
 
 interface ProjectCardProps {
   project: ProjectSummary
@@ -9,8 +10,8 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
-      to="/projects/$projectId"
-      params={{ projectId: project.id }}
+      to="/projects/$projectSlug"
+      params={{ projectSlug: slugify(project.name) }}
       className="block rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="flex items-start justify-between">

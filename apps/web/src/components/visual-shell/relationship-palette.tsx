@@ -12,13 +12,18 @@ import {
 } from '@/lib/palette-data'
 
 const CATEGORY_COLORS: Record<EdgeCategory, string> = {
+  structural: 'bg-blue-100 text-blue-700',
+  responsibility: 'bg-emerald-100 text-emerald-700',
+  collaboration: 'bg-purple-100 text-purple-700',
+  flow: 'bg-orange-100 text-orange-700',
+  governance: 'bg-rose-100 text-rose-700',
+  // Legacy categories
   hierarchical: 'bg-blue-100 text-blue-700',
   ownership: 'bg-emerald-100 text-emerald-700',
   assignment: 'bg-purple-100 text-purple-700',
   capability: 'bg-amber-100 text-amber-700',
   contract: 'bg-cyan-100 text-cyan-700',
   workflow: 'bg-orange-100 text-orange-700',
-  governance: 'bg-rose-100 text-rose-700',
   artifact: 'bg-indigo-100 text-indigo-700',
 }
 
@@ -153,15 +158,20 @@ export function RelationshipPalette({ onSelect, onClose }: RelationshipPalettePr
 }
 
 export function RelationshipPaletteButton() {
-  const [open, setOpen] = useState(false)
-  const { setPreselectedEdgeType, isDiffMode } = useVisualWorkspaceStore()
+  const isDiffMode = useVisualWorkspaceStore((s) => s.isDiffMode)
+  const relationshipPaletteOpen = useVisualWorkspaceStore((s) => s.relationshipPaletteOpen)
+  const toggleRelationshipPalette = useVisualWorkspaceStore((s) => s.toggleRelationshipPalette)
 
   const handleSelect = useCallback(
     (edgeType: EdgeType) => {
-      setPreselectedEdgeType(edgeType)
+      useVisualWorkspaceStore.getState().setPreselectedEdgeType(edgeType)
     },
-    [setPreselectedEdgeType],
+    [],
   )
+
+  const handleClose = useCallback(() => {
+    if (relationshipPaletteOpen) toggleRelationshipPalette()
+  }, [relationshipPaletteOpen, toggleRelationshipPalette])
 
   if (isDiffMode) return null
 
@@ -172,15 +182,15 @@ export function RelationshipPaletteButton() {
         aria-label="Add relationship"
         title="Add relationship"
         data-testid="rel-palette-button"
-        onClick={() => setOpen(!open)}
+        onClick={toggleRelationshipPalette}
         className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       >
         <Cable className="h-4 w-4" />
       </button>
-      {open && (
+      {relationshipPaletteOpen && (
         <RelationshipPalette
           onSelect={handleSelect}
-          onClose={() => setOpen(false)}
+          onClose={handleClose}
         />
       )}
     </div>

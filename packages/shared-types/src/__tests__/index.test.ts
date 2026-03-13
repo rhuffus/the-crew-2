@@ -16,6 +16,12 @@ import {
   hasAnyPermission,
   buildManifest,
   VIEW_PRESET_REGISTRY,
+  OVERLAY_DEFINITIONS,
+  DEFAULT_OVERLAYS_PER_LEVEL,
+  overlayToLayers,
+  overlaysToLayers,
+  isOverlayActive,
+  layersToOverlays,
 } from '../index.js'
 
 // ---------------------------------------------------------------------------
@@ -42,12 +48,14 @@ describe('Verticaler Constants', () => {
 // ---------------------------------------------------------------------------
 
 describe('SCOPE_REGISTRY', () => {
-  it('has entries for all 4 scope types', () => {
-    expect(Object.keys(SCOPE_REGISTRY)).toHaveLength(4)
+  it('has entries for all 6 scope types (4 legacy + 2 v3)', () => {
+    expect(Object.keys(SCOPE_REGISTRY)).toHaveLength(6)
     expect(SCOPE_REGISTRY).toHaveProperty('company')
     expect(SCOPE_REGISTRY).toHaveProperty('department')
     expect(SCOPE_REGISTRY).toHaveProperty('workflow')
     expect(SCOPE_REGISTRY).toHaveProperty('workflow-stage')
+    expect(SCOPE_REGISTRY).toHaveProperty('team')
+    expect(SCOPE_REGISTRY).toHaveProperty('agent-detail')
   })
 
   it('company scope has correct key properties', () => {
@@ -166,16 +174,16 @@ describe('scopeTypeFromZoomLevel()', () => {
     expect(scopeTypeFromZoomLevel('L2')).toBe('department')
   })
 
-  it('maps L3 to workflow', () => {
-    expect(scopeTypeFromZoomLevel('L3')).toBe('workflow')
+  it('maps L3 to team (v3)', () => {
+    expect(scopeTypeFromZoomLevel('L3')).toBe('team')
   })
 
-  it('maps L4 to workflow-stage', () => {
-    expect(scopeTypeFromZoomLevel('L4')).toBe('workflow-stage')
+  it('maps L4 to agent-detail (v3)', () => {
+    expect(scopeTypeFromZoomLevel('L4')).toBe('agent-detail')
   })
 
-  it('is the inverse of getZoomLevelForScope', () => {
-    const scopes = ['company', 'department', 'workflow', 'workflow-stage'] as const
+  it('is the inverse of getZoomLevelForScope for v3 scopes', () => {
+    const scopes = ['company', 'department', 'team', 'agent-detail'] as const
     for (const scope of scopes) {
       expect(scopeTypeFromZoomLevel(getZoomLevelForScope(scope))).toBe(scope)
     }
@@ -436,7 +444,7 @@ describe('buildManifest()', () => {
 // ---------------------------------------------------------------------------
 
 describe('VIEW_PRESET_REGISTRY', () => {
-  const PRESET_IDS = [
+  const LEGACY_PRESET_IDS = [
     'organization',
     'capabilities',
     'workflows',
@@ -446,8 +454,17 @@ describe('VIEW_PRESET_REGISTRY', () => {
     'operations',
   ] as const
 
-  it('has exactly 7 presets', () => {
-    expect(Object.keys(VIEW_PRESET_REGISTRY)).toHaveLength(7)
+  const V3_PRESET_IDS = [
+    'work',
+    'deliverables',
+    'rules',
+    'live-status',
+  ] as const
+
+  const PRESET_IDS = [...LEGACY_PRESET_IDS, ...V3_PRESET_IDS] as const
+
+  it('has exactly 11 presets (7 legacy + 4 v3)', () => {
+    expect(Object.keys(VIEW_PRESET_REGISTRY)).toHaveLength(11)
   })
 
   it('contains all expected preset ids', () => {
@@ -496,5 +513,135 @@ describe('VIEW_PRESET_REGISTRY', () => {
     expect(preset.availableAtScopes).toContain('department')
     expect(preset.availableAtScopes).toContain('workflow')
     expect(preset.availableAtScopes).toContain('workflow-stage')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// OVERLAY_DEFINITIONS (LCP-010)
+// ---------------------------------------------------------------------------
+
+describe('OVERLAY_DEFINITIONS', () => {
+  it('has exactly 5 overlays', () => {
+    expect(OVERLAY_DEFINITIONS).toHaveLength(5)
+  })
+
+  it('each overlay has required fields', () => {
+    for (const overlay of OVERLAY_DEFINITIONS) {
+      expect(overlay).toHaveProperty('id')
+      expect(overlay).toHaveProperty('label')
+      expect(overlay).toHaveProperty('description')
+      expect(overlay).toHaveProperty('layerIds')
+      expect(overlay).toHaveProperty('locked')
+      expect(Array.isArray(overlay.layerIds)).toBe(true)
+      expect(overlay.layerIds.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('organization overlay is locked', () => {
+    const org = OVERLAY_DEFINITIONS.find(o => o.id === 'organization')
+    expect(org).toBeDefined()
+    expect(org!.locked).toBe(true)
+  })
+
+  it('non-organization overlays are not locked', () => {
+    const nonOrg = OVERLAY_DEFINITIONS.filter(o => o.id !== 'organization')
+    expect(nonOrg).toHaveLength(4)
+    for (const overlay of nonOrg) {
+      expect(overlay.locked).toBe(false)
+    }
+  })
+
+  it('rules overlay maps to contracts + governance layers', () => {
+    const rules = OVERLAY_DEFINITIONS.find(o => o.id === 'rules')
+    expect(rules).toBeDefined()
+    expect(rules!.layerIds).toContain('contracts')
+    expect(rules!.layerIds).toContain('governance')
+  })
+
+  it('work overlay maps to workflows layer', () => {
+    const work = OVERLAY_DEFINITIONS.find(o => o.id === 'work')
+    expect(work).toBeDefined()
+    expect(work!.layerIds).toEqual(['workflows'])
+  })
+
+  it('live-status overlay maps to operations layer', () => {
+    const live = OVERLAY_DEFINITIONS.find(o => o.id === 'live-status')
+    expect(live).toBeDefined()
+    expect(live!.layerIds).toEqual(['operations'])
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Overlay helper functions (LCP-010)
+// ---------------------------------------------------------------------------
+
+describe('overlayToLayers()', () => {
+  it('returns the correct layers for each overlay', () => {
+    expect(overlayToLayers('organization')).toEqual(['organization'])
+    expect(overlayToLayers('work')).toEqual(['workflows'])
+    expect(overlayToLayers('deliverables')).toEqual(['artifacts'])
+    expect(overlayToLayers('rules')).toEqual(['contracts', 'governance'])
+    expect(overlayToLayers('live-status')).toEqual(['operations'])
+  })
+})
+
+describe('overlaysToLayers()', () => {
+  it('merges layers from multiple overlays', () => {
+    const layers = overlaysToLayers(['organization', 'work', 'rules'])
+    expect(layers).toContain('organization')
+    expect(layers).toContain('workflows')
+    expect(layers).toContain('contracts')
+    expect(layers).toContain('governance')
+  })
+
+  it('deduplicates layers', () => {
+    const layers = overlaysToLayers(['organization', 'organization'])
+    expect(layers.filter(l => l === 'organization')).toHaveLength(1)
+  })
+})
+
+describe('isOverlayActive()', () => {
+  it('returns true when all constituent layers are active', () => {
+    expect(isOverlayActive(['organization'], 'organization')).toBe(true)
+    expect(isOverlayActive(['workflows'], 'work')).toBe(true)
+    expect(isOverlayActive(['contracts', 'governance'], 'rules')).toBe(true)
+  })
+
+  it('returns false when some constituent layers are missing', () => {
+    expect(isOverlayActive(['contracts'], 'rules')).toBe(false)
+    expect(isOverlayActive([], 'organization')).toBe(false)
+  })
+})
+
+describe('layersToOverlays()', () => {
+  it('returns active overlays from layer state', () => {
+    const overlays = layersToOverlays(['organization', 'workflows'])
+    expect(overlays).toContain('organization')
+    expect(overlays).toContain('work')
+    expect(overlays).not.toContain('rules')
+  })
+
+  it('includes rules only when both contracts and governance are active', () => {
+    expect(layersToOverlays(['contracts'])).not.toContain('rules')
+    expect(layersToOverlays(['governance'])).not.toContain('rules')
+    expect(layersToOverlays(['contracts', 'governance'])).toContain('rules')
+  })
+})
+
+describe('DEFAULT_OVERLAYS_PER_LEVEL', () => {
+  it('L1 has only organization', () => {
+    expect(DEFAULT_OVERLAYS_PER_LEVEL.L1).toEqual(['organization'])
+  })
+
+  it('L2 has organization + work', () => {
+    expect(DEFAULT_OVERLAYS_PER_LEVEL.L2).toEqual(['organization', 'work'])
+  })
+
+  it('L3 has organization + work', () => {
+    expect(DEFAULT_OVERLAYS_PER_LEVEL.L3).toEqual(['organization', 'work'])
+  })
+
+  it('L4 has organization + work + deliverables', () => {
+    expect(DEFAULT_OVERLAYS_PER_LEVEL.L4).toEqual(['organization', 'work', 'deliverables'])
   })
 })
