@@ -26,8 +26,17 @@ describe('KeyboardShortcutsHelp', () => {
     expect(screen.getByText('Creation')).toBeTruthy()
     expect(screen.getByText('Navigation')).toBeTruthy()
     expect(screen.getByText('Editing')).toBeTruthy()
+    expect(screen.getByText('Center Views')).toBeTruthy()
     expect(screen.getByText('Panels & View')).toBeTruthy()
     expect(screen.getByText('General')).toBeTruthy()
+  })
+
+  it('should show center view shortcuts (VSR-017)', () => {
+    useVisualWorkspaceStore.setState({ showKeyboardHelp: true })
+    render(<KeyboardShortcutsHelp />)
+    expect(screen.getByText('Switch to canvas')).toBeTruthy()
+    expect(screen.getByText('Switch to chat')).toBeTruthy()
+    expect(screen.getByText('Switch to last document')).toBeTruthy()
   })
 
   it('should show undo/redo shortcuts', () => {

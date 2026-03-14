@@ -1,17 +1,55 @@
 import { Link } from '@tanstack/react-router'
-import { ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronRight, LayoutGrid, MessageSquare, FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { BreadcrumbEntry } from '@the-crew/shared-types'
 import { Badge } from '@/components/ui/badge'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { breadcrumbToRoute } from '@/lib/breadcrumb-utils'
 import { useCurrentProject } from '@/providers/project-provider'
+import { useProjectDocument } from '@/hooks/use-project-documents'
 import { UserMenu } from './user-menu'
 
+function CenterViewIndicator({ projectId }: { projectId: string }) {
+  const centerView = useVisualWorkspaceStore((s) => s.centerView)
+  const { t } = useTranslation('common')
+
+  const documentId = centerView.type === 'document' ? centerView.documentId : ''
+  const { data: documentData } = useProjectDocument(projectId, documentId)
+
+  if (centerView.type === 'canvas') {
+    return (
+      <span data-testid="center-view-indicator" className="ml-3 flex items-center gap-1.5 border-l border-border pl-3">
+        <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">{t('centerView.canvas')}</span>
+      </span>
+    )
+  }
+
+  if (centerView.type === 'chat') {
+    const label = centerView.chatMode === 'ceo' ? t('centerView.ceoChat') : t('centerView.chat')
+    return (
+      <span data-testid="center-view-indicator" className="ml-3 flex items-center gap-1.5 border-l border-border pl-3">
+        <MessageSquare className="h-3.5 w-3.5 text-primary" />
+        <span className="text-xs font-medium text-foreground">{label}</span>
+      </span>
+    )
+  }
+
+  const title = documentData?.title ?? t('centerView.document')
+  return (
+    <span data-testid="center-view-indicator" className="ml-3 flex items-center gap-1.5 border-l border-border pl-3">
+      <FileText className="h-3.5 w-3.5 text-primary" />
+      <span className="text-xs font-medium text-foreground truncate max-w-[200px]">{title}</span>
+    </span>
+  )
+}
+
 export function TopBar() {
-  const { projectSlug, projectName } = useCurrentProject()
+  const { projectId, projectSlug, projectName } = useCurrentProject()
   const breadcrumb = useVisualWorkspaceStore((s) => s.breadcrumb)
   const zoomLevel = useVisualWorkspaceStore((s) => s.zoomLevel)
+  const centerViewHistory = useVisualWorkspaceStore((s) => s.centerViewHistory)
+  const goBackCenterView = useVisualWorkspaceStore((s) => s.goBackCenterView)
   const { t } = useTranslation('common')
   const { t: tEntities } = useTranslation('entities')
 
@@ -26,6 +64,16 @@ export function TopBar() {
       className="flex h-12 items-center justify-between border-b border-border bg-card px-4"
     >
       <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
+        {centerViewHistory.length > 0 && (
+          <button
+            data-testid="center-view-back-button"
+            onClick={goBackCenterView}
+            aria-label={t('back')}
+            className="mr-1 flex h-6 w-6 items-center justify-center rounded hover:bg-muted"
+          >
+            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
         <Link to="/" className="font-semibold text-foreground hover:text-primary">
           {t('appName')}
         </Link>
@@ -64,6 +112,7 @@ export function TopBar() {
         <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0" data-testid="zoom-level-badge">
           {zoomLevel}
         </Badge>
+        <CenterViewIndicator projectId={projectId} />
       </nav>
       <div className="flex items-center gap-3">
         <Badge variant="warning">{t('draft')}</Badge>

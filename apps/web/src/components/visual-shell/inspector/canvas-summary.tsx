@@ -1,10 +1,11 @@
 import type { VisualNodeDto, VisualEdgeDto, NodeType, EdgeType, MaturityPhase } from '@the-crew/shared-types'
 import { getNodeTypeLabel, getEdgeTypeLabel } from './inspector-utils'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
+import { useRuntimeStatusStore } from '@/stores/runtime-status-store'
 import { useBootstrapStatus } from '@/hooks/use-bootstrap'
 import { useOrgHealth, usePhaseCapabilities } from '@/hooks/use-growth'
 import { useProposalsStore } from '@/stores/proposals-store'
-import { Sparkles, Heart, MessageSquarePlus } from 'lucide-react'
+import { Sparkles, Heart, MessageSquarePlus, Activity, DollarSign, AlertTriangle, Loader2, Clock } from 'lucide-react'
 
 const PHASE_COLORS: Record<MaturityPhase, string> = {
   seed: 'bg-gray-200 text-gray-700',
@@ -22,11 +23,15 @@ export interface CanvasSummaryProps {
 
 export function CanvasSummary({ nodes, edges }: CanvasSummaryProps) {
   const projectId = useVisualWorkspaceStore(s => s.projectId)
+  const designMode = useVisualWorkspaceStore(s => s.designMode)
   const { data: bootstrapStatus } = useBootstrapStatus(projectId ?? '')
   const { data: health } = useOrgHealth(projectId ?? '')
   const { data: capabilities } = usePhaseCapabilities(projectId ?? '')
   const allProposals = useProposalsStore(s => s.proposals)
   const pendingProposals = allProposals.filter(p => p.status === 'proposed' || p.status === 'under-review')
+  const runtimeSummary = useRuntimeStatusStore(s => s.summary)
+  const costSummary = useRuntimeStatusStore(s => s.costSummary)
+  const connected = useRuntimeStatusStore(s => s.connected)
 
   const phase = (bootstrapStatus?.maturityPhase ?? null) as MaturityPhase | null
   const nodesByType: Partial<Record<NodeType, number>> = {}
@@ -103,6 +108,86 @@ export function CanvasSummary({ nodes, edges }: CanvasSummaryProps) {
             <MessageSquarePlus className="h-3.5 w-3.5 text-blue-500" />
             <span className="text-foreground">{pendingProposals.length} pending proposal{pendingProposals.length > 1 ? 's' : ''}</span>
           </div>
+        </div>
+      )}
+
+      {/* Runtime Summary (live mode only) */}
+      {designMode === 'live' && (
+        <div data-testid="runtime-summary">
+          <h4 className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <Activity className="mr-1 inline h-3 w-3" />
+            Runtime
+          </h4>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span
+              data-testid="runtime-connection-dot"
+              className={`h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-400'}`}
+            />
+            <span className="text-[10px] text-muted-foreground">
+              {connected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+          {runtimeSummary ? (
+            <div className="space-y-0.5">
+              {runtimeSummary.activeExecutionCount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 text-blue-600">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Active
+                  </span>
+                  <span className="text-foreground">{runtimeSummary.activeExecutionCount}</span>
+                </div>
+              )}
+              {runtimeSummary.blockedExecutionCount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 text-orange-600">
+                    <Clock className="h-3 w-3" />
+                    Blocked
+                  </span>
+                  <span className="text-foreground">{runtimeSummary.blockedExecutionCount}</span>
+                </div>
+              )}
+              {runtimeSummary.failedExecutionCount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 text-red-600">
+                    <AlertTriangle className="h-3 w-3" />
+                    Failed
+                  </span>
+                  <span className="text-foreground">{runtimeSummary.failedExecutionCount}</span>
+                </div>
+              )}
+              {runtimeSummary.pendingApprovalCount > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-amber-600">Pending approvals</span>
+                  <span className="text-foreground">{runtimeSummary.pendingApprovalCount}</span>
+                </div>
+              )}
+              {runtimeSummary.totalCostCurrentPeriod > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <DollarSign className="h-3 w-3" />
+                    Period cost
+                  </span>
+                  <span className="text-foreground">${runtimeSummary.totalCostCurrentPeriod.toFixed(2)}</span>
+                </div>
+              )}
+              {runtimeSummary.activeExecutionCount === 0 &&
+               runtimeSummary.blockedExecutionCount === 0 &&
+               runtimeSummary.failedExecutionCount === 0 && (
+                <p className="text-xs text-muted-foreground">All systems idle</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">No runtime data</p>
+          )}
+          {costSummary && costSummary.totalCost > 0 && (
+            <div className="mt-1.5 rounded bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground">
+              Total AI cost: ${costSummary.totalCost.toFixed(2)}
+              {costSummary.budgetUsedPercent != null && (
+                <span className="ml-1">({costSummary.budgetUsedPercent.toFixed(0)}% of budget)</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 

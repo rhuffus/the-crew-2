@@ -1,0 +1,10 @@
+// Minimal schema for base PrismaClient type generation.
+// Each service defines its own schema with actual models.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

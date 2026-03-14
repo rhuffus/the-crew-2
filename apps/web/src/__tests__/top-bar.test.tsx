@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import type { BreadcrumbEntry } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 
@@ -8,6 +8,7 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to, ...rest }: { children: React.ReactNode; to: string; [k: string]: unknown }) => (
     <a href={to} data-testid={rest['data-testid'] as string}>{children}</a>
   ),
+  useNavigate: () => vi.fn(),
 }))
 
 // Mock project provider
@@ -28,6 +29,12 @@ vi.mock('@/stores/language-store', () => ({
   })),
 }))
 
+// Mock useProjectDocument for center view indicator
+const mockUseProjectDocument = vi.fn().mockReturnValue({ data: undefined, isLoading: false })
+vi.mock('@/hooks/use-project-documents', () => ({
+  useProjectDocument: (...args: unknown[]) => mockUseProjectDocument(...args),
+}))
+
 import { TopBar } from '@/components/visual-shell/top-bar'
 
 function resetStore() {
@@ -46,7 +53,8 @@ function resetStore() {
     focusNodeId: null,
     explorerCollapsed: false,
     inspectorCollapsed: false,
-    chatDockOpen: false,
+    centerView: { type: 'canvas' },
+    centerViewHistory: [],
     activeLayers: ['organization'],
     nodeTypeFilter: null,
     statusFilter: null,
@@ -63,6 +71,7 @@ describe('TopBar', () => {
       projectName: 'Test Project',
       projectSlug: 'test-project',
     })
+    mockUseProjectDocument.mockReturnValue({ data: undefined, isLoading: false })
   })
 
   it('should render the TheCrew link', () => {
@@ -184,5 +193,137 @@ describe('TopBar', () => {
       throw new Error('useCurrentProject must be used within a ProjectProvider')
     })
     expect(() => render(<TopBar />)).toThrow('useCurrentProject must be used within a ProjectProvider')
+  })
+
+  // VSR-015: Center view indicator
+  describe('center view indicator (VSR-015)', () => {
+    it('should show canvas indicator by default', () => {
+      render(<TopBar />)
+      const indicator = screen.getByTestId('center-view-indicator')
+      expect(indicator.textContent).toBe('Canvas')
+    })
+
+    it('should show Chat label for generic chat view', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'chat', threadId: 't-1', chatMode: 'generic' },
+      })
+      render(<TopBar />)
+      const indicator = screen.getByTestId('center-view-indicator')
+      expect(indicator.textContent).toBe('Chat')
+    })
+
+    it('should show CEO label for ceo chat view', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+      })
+      render(<TopBar />)
+      const indicator = screen.getByTestId('center-view-indicator')
+      expect(indicator.textContent).toBe('CEO')
+    })
+
+    it('should show document title when document data is loaded', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'document', documentId: 'doc-1' },
+      })
+      mockUseProjectDocument.mockReturnValue({
+        data: { id: 'doc-1', title: 'Company Vision' },
+        isLoading: false,
+      })
+      render(<TopBar />)
+      const indicator = screen.getByTestId('center-view-indicator')
+      expect(indicator.textContent).toBe('Company Vision')
+    })
+
+    it('should show fallback Document label when document is loading', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'document', documentId: 'doc-1' },
+      })
+      mockUseProjectDocument.mockReturnValue({ data: undefined, isLoading: true })
+      render(<TopBar />)
+      const indicator = screen.getByTestId('center-view-indicator')
+      expect(indicator.textContent).toBe('Document')
+    })
+
+    it('should call useProjectDocument with correct projectId and documentId', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'document', documentId: 'doc-42' },
+      })
+      render(<TopBar />)
+      expect(mockUseProjectDocument).toHaveBeenCalledWith('p1', 'doc-42')
+    })
+
+    it('should call useProjectDocument with empty id when not on document view', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'canvas' },
+      })
+      render(<TopBar />)
+      expect(mockUseProjectDocument).toHaveBeenCalledWith('p1', '')
+    })
+  })
+
+  // VSR-016: Back button
+  describe('center view back button (VSR-016)', () => {
+    it('should not show back button when history is empty', () => {
+      useVisualWorkspaceStore.setState({ centerViewHistory: [] })
+      render(<TopBar />)
+      expect(screen.queryByTestId('center-view-back-button')).toBeNull()
+    })
+
+    it('should show back button when history has entries', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerViewHistory: [{ type: 'canvas' }],
+      })
+      render(<TopBar />)
+      expect(screen.getByTestId('center-view-back-button')).toBeDefined()
+    })
+
+    it('should call goBackCenterView on click', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerViewHistory: [{ type: 'canvas' }],
+      })
+      render(<TopBar />)
+      fireEvent.click(screen.getByTestId('center-view-back-button'))
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'canvas' })
+      expect(state.centerViewHistory).toEqual([])
+    })
+
+    it('should hide back button after navigating back to empty history', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerViewHistory: [{ type: 'canvas' }],
+      })
+      const { rerender } = render(<TopBar />)
+      fireEvent.click(screen.getByTestId('center-view-back-button'))
+      rerender(<TopBar />)
+      expect(screen.queryByTestId('center-view-back-button')).toBeNull()
+    })
+
+    it('should navigate back through multiple history entries', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'document', documentId: 'doc-1' },
+        centerViewHistory: [
+          { type: 'canvas' },
+          { type: 'chat', threadId: null, chatMode: 'ceo' },
+        ],
+      })
+      render(<TopBar />)
+      fireEvent.click(screen.getByTestId('center-view-back-button'))
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
+    })
+
+    it('should have accessible aria-label', () => {
+      useVisualWorkspaceStore.setState({
+        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerViewHistory: [{ type: 'canvas' }],
+      })
+      render(<TopBar />)
+      const button = screen.getByTestId('center-view-back-button')
+      expect(button.getAttribute('aria-label')).toBe('Back')
+    })
   })
 })

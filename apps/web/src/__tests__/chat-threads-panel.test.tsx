@@ -38,7 +38,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 describe('ChatThreadsPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useVisualWorkspaceStore.setState({ chatDockOpen: false })
+    useVisualWorkspaceStore.setState({ centerView: { type: 'canvas' }, centerViewHistory: [] })
   })
 
   it('shows no project message when no projectId', () => {
@@ -67,10 +67,18 @@ describe('ChatThreadsPanel', () => {
     )
   })
 
-  it('opens chat dock on click if closed', () => {
+  it('opens chat as center view on thread click (VSR-008)', () => {
     render(<ChatThreadsPanel projectId="p1" />, { wrapper: Wrapper })
     fireEvent.click(screen.getByText('Chat: company'))
-    expect(useVisualWorkspaceStore.getState().chatDockOpen).toBe(true)
+    const state = useVisualWorkspaceStore.getState()
+    expect(state.centerView).toEqual({ type: 'chat', threadId: 't1', chatMode: 'generic' })
+  })
+
+  it('opens chat view for department thread with correct threadId', () => {
+    render(<ChatThreadsPanel projectId="p1" />, { wrapper: Wrapper })
+    fireEvent.click(screen.getByText('Chat: Engineering'))
+    const state = useVisualWorkspaceStore.getState()
+    expect(state.centerView).toEqual({ type: 'chat', threadId: 't2', chatMode: 'generic' })
   })
 
   it('sorts threads by last message (newest first)', () => {

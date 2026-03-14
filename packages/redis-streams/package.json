@@ -1,0 +1,38 @@
+{
+  "name": "@the-crew/redis-streams",
+  "private": true,
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.4.15",
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/testing": "^10.4.15",
+    "@the-crew/eslint-config": "workspace:*",
+    "@the-crew/tsconfig": "workspace:*",
+    "eslint": "^9.16.0",
+    "reflect-metadata": "^0.2.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "peerDependencies": {
+    "@nestjs/core": "^10.0.0",
+    "reflect-metadata": "^0.2.0"
+  }
+}

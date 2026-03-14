@@ -1,0 +1,29 @@
+{
+  "title": "Settings",
+  "aiProviders": {
+    "title": "AI Providers",
+    "description": "Configure your Claude Max subscription token. Used for AI-powered features like CEO chat."
+  },
+  "provider": {
+    "apiKey": "Token",
+    "placeholder": "OAuth token...",
+    "save": "Save",
+    "clear": "Clear",
+    "configured": "Configured",
+    "notConfigured": "Not configured",
+    "comingSoon": "Coming soon",
+    "show": "Show",
+    "hide": "Hide",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "saveError": "Failed to save. Check that services are running.",
+    "oauthHint": "Run `claude setup-token` in your terminal, paste the generated token here."
+  },
+  "preferences": {
+    "title": "Preferences",
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "noProviderError": "Claude Max not configured. Set up your Claude Max token in Settings to use AI features.",
+  "goToSettings": "Go to Settings"
+}

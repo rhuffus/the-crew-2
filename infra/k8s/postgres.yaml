@@ -1,3 +1,28 @@
+# Single PostgreSQL instance with multiple databases and service users
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: the-crew
+data:
+  init-databases.sql: |
+    -- Service users (one per microservice)
+    CREATE USER svc_platform WITH PASSWORD 'svc_platform';
+    CREATE USER svc_company_design WITH PASSWORD 'svc_company_design';
+    CREATE USER svc_temporal WITH PASSWORD 'svc_temporal';
+
+    -- Databases with dedicated owners
+    CREATE DATABASE platform OWNER svc_platform;
+    CREATE DATABASE company_design OWNER svc_company_design;
+    CREATE DATABASE temporal OWNER svc_temporal;
+    CREATE DATABASE temporal_visibility OWNER svc_temporal;
+
+    -- Isolate databases: revoke public connect
+    REVOKE CONNECT ON DATABASE platform FROM PUBLIC;
+    REVOKE CONNECT ON DATABASE company_design FROM PUBLIC;
+    REVOKE CONNECT ON DATABASE temporal FROM PUBLIC;
+    REVOKE CONNECT ON DATABASE temporal_visibility FROM PUBLIC;
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -8,7 +33,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 2Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,30 +59,35 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: thecrew
+              value: thecrew_admin
             - name: POSTGRES_PASSWORD
-              value: thecrew
+              value: thecrew_admin
             - name: POSTGRES_DB
-              value: thecrew
+              value: postgres
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 500m
+              cpu: 200m
               memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
           readinessProbe:
             exec:
-              command: ['pg_isready', '-U', 'thecrew']
+              command: ['pg_isready', '-U', 'thecrew_admin', '-d', 'postgres']
             initialDelaySeconds: 5
             periodSeconds: 5
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-pvc
+        - name: init-scripts
+          configMap:
+            name: postgres-init
 ---
 apiVersion: v1
 kind: Service

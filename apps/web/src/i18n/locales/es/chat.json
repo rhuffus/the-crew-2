@@ -1,7 +1,5 @@
 {
   "dock": {
-    "ceoAgent": "Agente CEO",
-    "chatScope": "Chat: {{scope}}",
     "readOnly": "Solo lectura — necesitas acceso de comentarista para enviar mensajes"
   },
   "input": {

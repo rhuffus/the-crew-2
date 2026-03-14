@@ -11,7 +11,7 @@ interface ChatThreadsPanelProps {
 export function ChatThreadsPanel({ projectId }: ChatThreadsPanelProps) {
   const { data: threads, isLoading } = useChatThreads(projectId ?? '')
   const navigate = useNavigate()
-  const chatDockOpen = useVisualWorkspaceStore((s) => s.chatDockOpen)
+  const openChatView = useVisualWorkspaceStore((s) => s.openChatView)
   const { projectSlug } = useCurrentProject()
 
   if (!projectId) {
@@ -38,7 +38,7 @@ export function ChatThreadsPanel({ projectId }: ChatThreadsPanelProps) {
   }
 
   const handleThreadClick = (thread: (typeof sortedThreads)[0]) => {
-    // Navigate to the scope
+    // Navigate to the scope so canvas context is correct when user returns
     if (thread.scopeType === 'company') {
       navigate({ to: '/projects/$projectSlug/org', params: { projectSlug } })
     } else if (thread.scopeType === 'department' && thread.entityId) {
@@ -52,10 +52,8 @@ export function ChatThreadsPanel({ projectId }: ChatThreadsPanelProps) {
         params: { projectSlug, workflowId: thread.entityId },
       })
     }
-    // Open the chat dock
-    if (!chatDockOpen) {
-      useVisualWorkspaceStore.getState().toggleChatDock()
-    }
+    // Open chat as center view (VSR-008)
+    openChatView(thread.id, 'generic')
   }
 
   const formatTime = (iso: string | null) => {

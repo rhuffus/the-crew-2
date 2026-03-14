@@ -1,0 +1,2 @@
+export const REDIS_STORE_CLIENT = Symbol('REDIS_STORE_CLIENT')
+export const REDIS_STORE_OPTIONS = Symbol('REDIS_STORE_OPTIONS')

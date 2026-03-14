@@ -1,6 +1,12 @@
 export { VERTICALER_PROJECT_ID, VERTICALER_PROJECT_NAME, VERTICALER_PROJECT_DESCRIPTION } from './verticaler.js'
 export * from './live-company-types.js'
-import type { OverlayId } from './live-company-types'
+export * from './claude-runner-types.js'
+export * from './bootstrap-workflow-types.js'
+export * from './agent-task-types.js'
+export * from './foundation-document-workflow-types.js'
+export * from './ai-provider-config-types.js'
+export * from './stream-events/index.js'
+import type { OverlayId, ProposalDto, MaturityPhase } from './live-company-types'
 
 export interface ProjectSummary {
   id: string
@@ -385,6 +391,44 @@ export interface UpdateRoleDto {
   capabilityIds?: string[]
   accountability?: string
   authority?: string
+}
+
+// Project Documents (AIR-010)
+
+export type DocumentStatus = 'draft' | 'review' | 'approved'
+export type DocumentSourceType = 'user' | 'agent' | 'system'
+
+export interface ProjectDocumentDto {
+  id: string
+  projectId: string
+  slug: string
+  title: string
+  bodyMarkdown: string
+  status: DocumentStatus
+  linkedEntityIds: string[]
+  lastUpdatedBy: string
+  sourceType: DocumentSourceType
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateProjectDocumentDto {
+  slug: string
+  title: string
+  bodyMarkdown?: string
+  status?: DocumentStatus
+  linkedEntityIds?: string[]
+  lastUpdatedBy?: string
+  sourceType?: DocumentSourceType
+}
+
+export interface UpdateProjectDocumentDto {
+  title?: string
+  bodyMarkdown?: string
+  status?: DocumentStatus
+  linkedEntityIds?: string[]
+  lastUpdatedBy?: string
+  sourceType?: DocumentSourceType
 }
 
 // Artifacts
@@ -1465,6 +1509,72 @@ export interface ChatThreadDto {
 export interface CreateChatMessageDto {
   content: string
   entityRefs?: ChatEntityRef[]
+}
+
+// --- Bootstrap Conversation (AIR-009) ---
+
+export type BootstrapConversationStatus =
+  | 'not-started'
+  | 'collecting-context'
+  | 'drafting-foundation-docs'
+  | 'reviewing-foundation-docs'
+  | 'ready-to-grow'
+  | 'growth-started'
+
+export interface BootstrapConversationDto {
+  id: string
+  projectId: string
+  threadId: string
+  ceoAgentId: string
+  status: BootstrapConversationStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SendBootstrapMessageDto {
+  content: string
+}
+
+export interface SendBootstrapMessageResponseDto {
+  userMessage: ChatMessageDto
+  assistantMessage: ChatMessageDto
+  conversationStatus: BootstrapConversationStatus
+}
+
+// --- Growth Proposals (AIR-016) ---
+
+export interface GrowthProposalSuggestion {
+  proposalType: 'create-department' | 'create-team' | 'create-specialist'
+  name: string
+  description: string
+  mandate: string
+  parentUoId?: string | null
+  motivation: string
+}
+
+export interface ProposeGrowthResponseDto {
+  proposals: ProposalDto[]
+  assistantMessage: ChatMessageDto
+  conversationStatus: BootstrapConversationStatus
+}
+
+export interface ImplementProposalResultDto {
+  proposal: ProposalDto
+  createdUnitId: string | null
+  createdAgentId: string | null
+  newPhase: MaturityPhase | null
+}
+
+export interface ApproveGrowthProposalResponseDto {
+  result: ImplementProposalResultDto
+  assistantMessage: ChatMessageDto
+  conversationStatus: BootstrapConversationStatus
+}
+
+export interface RejectGrowthProposalResponseDto {
+  proposal: ProposalDto
+  assistantMessage: ChatMessageDto
+  conversationStatus: BootstrapConversationStatus
 }
 
 // --- View Presets ---

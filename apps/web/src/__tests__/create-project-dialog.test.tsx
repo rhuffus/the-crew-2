@@ -10,6 +10,26 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => navigateMock,
 }))
 
+vi.mock('@/lib/bootstrap-api', () => ({
+  bootstrapApi: {
+    bootstrap: vi.fn().mockResolvedValue({
+      projectSeedId: '42',
+      constitutionId: '42',
+      companyUoId: 'uo-1',
+      ceoAgentId: 'ceo-1',
+      maturityPhase: 'seed',
+      nextStep: 'bootstrap-conversation',
+    }),
+  },
+}))
+
+vi.mock('@/stores/visual-workspace-store', () => ({
+  useVisualWorkspaceStore: Object.assign(
+    () => ({}),
+    { getState: () => ({ openChatView: vi.fn() }) },
+  ),
+}))
+
 function renderWithQuery(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
@@ -20,11 +40,17 @@ describe('CreateProjectForm', () => {
     navigateMock.mockReset()
   })
 
-  it('should show wizard form directly', () => {
+  it('should show simplified form with name and description only', () => {
     renderWithQuery(<CreateProjectForm />)
     expect(screen.getByTestId('create-project-wizard')).toBeDefined()
     expect(screen.getByLabelText(/company name/i)).toBeDefined()
-    expect(screen.getByLabelText(/mission/i)).toBeDefined()
+    expect(screen.getByLabelText(/short description/i)).toBeDefined()
+  })
+
+  it('should NOT show wizard steps or progress bar', () => {
+    renderWithQuery(<CreateProjectForm />)
+    expect(screen.queryByText(/step.*of/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /next/i })).toBeNull()
   })
 
   it('should have required name field', () => {
@@ -38,7 +64,21 @@ describe('CreateProjectForm', () => {
     expect(screen.getByRole('button', { name: /cancel/i })).toBeDefined()
   })
 
-  it('should navigate to slug-based org route on successful creation', async () => {
+  it('should disable submit when fields are empty', () => {
+    renderWithQuery(<CreateProjectForm />)
+    const submitBtn = screen.getByRole('button', { name: /create company/i })
+    expect(submitBtn).toHaveProperty('disabled', true)
+  })
+
+  it('should enable submit when both fields are filled', () => {
+    renderWithQuery(<CreateProjectForm />)
+    fireEvent.change(screen.getByLabelText(/company name/i), { target: { value: 'Acme Corp' } })
+    fireEvent.change(screen.getByLabelText(/short description/i), { target: { value: 'Build things' } })
+    const submitBtn = screen.getByRole('button', { name: /create company/i })
+    expect(submitBtn).toHaveProperty('disabled', false)
+  })
+
+  it('should create project, bootstrap, and navigate to org route on submit', async () => {
     const createdProject = {
       id: '42',
       name: 'Acme Corp',
@@ -54,16 +94,9 @@ describe('CreateProjectForm', () => {
 
     renderWithQuery(<CreateProjectForm />)
 
-    // Step 1: fill required fields
     fireEvent.change(screen.getByLabelText(/company name/i), { target: { value: 'Acme Corp' } })
-    fireEvent.change(screen.getByLabelText(/mission/i), { target: { value: 'Build things' } })
-
-    // Advance to step 2, then step 3
-    fireEvent.click(screen.getByRole('button', { name: /next/i }))
-    fireEvent.click(screen.getByRole('button', { name: /next/i }))
-
-    // Submit from step 3
-    fireEvent.click(screen.getByRole('button', { name: /bootstrap company/i }))
+    fireEvent.change(screen.getByLabelText(/short description/i), { target: { value: 'Build things' } })
+    fireEvent.click(screen.getByRole('button', { name: /create company/i }))
 
     await waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith({

@@ -1,9 +1,7 @@
 import { Global, Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { AuditController } from './audit.controller'
 import { AuditService } from './application/audit.service'
-import { InMemoryAuditRepository } from './infra/in-memory-audit.repository'
-import { DrizzleAuditRepository } from './infra/drizzle-audit.repository'
+import { PrismaAuditRepository } from './infra/prisma-audit.repository'
 import { AUDIT_REPOSITORY } from './domain/audit-repository'
 
 @Global()
@@ -13,9 +11,7 @@ import { AUDIT_REPOSITORY } from './domain/audit-repository'
     AuditService,
     {
       provide: AUDIT_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleAuditRepository
-        : InMemoryAuditRepository,
+      useClass: PrismaAuditRepository,
     },
   ],
   exports: [AuditService],

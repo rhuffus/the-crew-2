@@ -1,6 +1,6 @@
 ---
 name: tc-next
-description: Sincroniza el backlog actual de TheCrew y devuelve la siguiente tarea ejecutable sin pedir prompt adicional
+description: Sincroniza el backlog activo y devuelve la siguiente tarea ejecutable sin prompt adicional
 argument-hint: ""
 ---
 
@@ -8,25 +8,27 @@ Objetivo: decidir la siguiente tarea correcta de la fase activa.
 
 Instrucciones:
 1. Leer `CLAUDE.md`.
-2. Detectar la fase activa:
-   - si el proyecto está en **Live Company Pivot**, leer `docs/39-live-company-task-registry.md` y `docs/38-live-company-backlog-v5.md`
-   - si no, usar el registry/backlog activos anteriores
-3. Leer además, cuando aplique:
-   - `docs/31-live-company-pivot-decision.md`
-   - `docs/33-live-company-domain-model.md`
-   - `docs/34-live-company-canvas-v3-spec.md`
-   - `docs/35-live-company-growth-protocol.md`
-   - `docs/36-live-company-runtime-live-mode-spec.md`
-4. Identificar la siguiente tarea desbloqueada.
-5. Responder exactamente con este formato:
-   - `next-task:` task-id
-   - `why-now:` explicación corta
-   - `depends-on:` dependencias satisfechas o faltantes
-   - `recommended-mode:` plan|edit
-   - `fresh-session:` yes|no
-   - `parallelizable-now:` lista de task-id o `none`
-   - `run-now:` `/tc-run <task-id>`
-   - `restart-with:` `.claude/bin/tc-plan` | `.claude/bin/tc-edit` | `not-needed`
-   - `notes:` riesgos, foco y sincronización documental requerida
-6. No pedir prompt adicional.
-7. No empezar a implementar nada.
+2. Si la fase activa es **Visual Shell Redesign**, leer:
+   - `docs/71-visual-shell-task-registry.md`
+   - `docs/70-visual-shell-backlog-v7.md`
+   - `docs/69-visual-shell-redesign-spec.md`
+3. Si no hay tareas pendientes en el registry activo, buscar en registries anteriores:
+   - `docs/66-ai-runtime-task-registry.md`
+   - `docs/65-ai-runtime-backlog-v6.md`
+4. Leer ademas, cuando aplique:
+   - `docs/59-ceo-interactive-bootstrap-runtime-spec.md`
+   - `docs/60-foundation-documents-spec.md`
+   - `docs/61-markdown-document-system-spec.md`
+5. Identificar la siguiente tarea desbloqueada.
+6. Responder exactamente con:
+   - `next-task:`
+   - `why-now:`
+   - `depends-on:`
+   - `recommended-mode:`
+   - `fresh-session:`
+   - `parallelizable-now:`
+   - `run-now:`
+   - `restart-with:`
+   - `notes:`
+7. No pedir prompt adicional.
+8. No empezar implementacion.

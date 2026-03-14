@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { ChatController } from './application/chat.controller'
 import { ChatService } from './application/chat.service'
-import { InMemoryChatRepository } from './infra/in-memory-chat.repository'
-import { DrizzleChatRepository } from './infra/drizzle-chat.repository'
+import { PrismaChatRepository } from './infra/prisma-chat.repository'
 import { CHAT_REPOSITORY } from './domain/chat-repository'
 
 @Module({
@@ -12,11 +10,9 @@ import { CHAT_REPOSITORY } from './domain/chat-repository'
     ChatService,
     {
       provide: CHAT_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleChatRepository
-        : InMemoryChatRepository,
+      useClass: PrismaChatRepository,
     },
   ],
-  exports: [ChatService],
+  exports: [ChatService, CHAT_REPOSITORY],
 })
 export class ChatModule {}

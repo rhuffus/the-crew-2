@@ -1,81 +1,117 @@
 # TheCrew
 
-TheCrew está en **pivot completo a Live Company**.
+TheCrew ha completado el pivot **Live Company**, la fase **AI Runtime Enablement**, y está en la fase **Visual Shell Redesign**:
 
-## Qué significa
-Cada proyecto deja de ser una empresa definida entera desde el principio y pasa a ser una **empresa viva** que:
+## Estado actual
 
-- nace con una semilla mínima
-- arranca con un CEO agent
-- se refina conversando con el usuario
-- crea departamentos, equipos y especialistas de forma incremental
-- define workflows, contratos y artefactos conforme aparecen necesidades reales
-- opera en tiempo real con observabilidad de estado, decisiones, comunicaciones y outputs
+La fase AI Runtime Enablement (Epics 59–65, 67) está **completada**.
+La fase Visual Shell Redesign (Epics 69–72) está **en progreso**:
+- 🔄 Dynamic center view infrastructure (Epic 69)
+- ⏳ Chat as center view (Epic 70)
+- ⏳ Document editor as center view (Epic 71)
+- ⏳ Shell polish & navigation (Epic 72)
 
-## Regla principal de producto
-La empresa debe entenderse primero como:
+## Arquitectura de comunicacion (OBLIGATORIO)
 
-1. unidades organizativas
-2. agentes responsables
-3. colaboración/workflows
-4. runtime vivo
+ADR: `docs/73-redis-streams-cqrs-architecture-adr.md`
 
-No priorizar modelos demasiado abstractos por encima de esta estructura humana.
+### Reglas inquebrantables
 
-## Fuente de verdad del pivot
-Claude debe tratar como documentos principales:
+1. **NO hay llamadas HTTP directas entre microservicios** — toda comunicacion inter-servicio es via **Redis Streams** con mensajes tipados
+2. **Cada microservicio tiene su propia base de datos Redis** — es su fuente de verdad. Ningun servicio lee la base de datos de otro
+3. **web-bff es el UNICO backend que habla con web-admin** — expone REST (commands) y WebSocket (events)
+4. **web-bff usa MongoDB** para vistas materializadas — proyecciones de lectura construidas a partir de eventos de Redis Streams
+5. **Optimistic updates son OBLIGATORIOS** — el frontend nunca espera confirmacion del backend para actualizar la UI
+6. **WebSocket es el UNICO canal para eventos servidor→cliente** — el web-admin recibe actualizaciones en tiempo real via WebSocket
+7. **Todos los mensajes inter-servicio DEBEN estar tipados** — definidos en `shared-types`
+8. **DDD + CQRS** — comando (write) separado de query (read). Redis es write-side, MongoDB es read-side
 
-- `docs/31-live-company-pivot-decision.md`
-- `docs/32-live-company-repo-analysis.md`
-- `docs/33-live-company-domain-model.md`
-- `docs/34-live-company-canvas-v3-spec.md`
-- `docs/35-live-company-growth-protocol.md`
-- `docs/36-live-company-runtime-live-mode-spec.md`
-- `docs/37-live-company-migration-strategy.md`
-- `docs/38-live-company-backlog-v5.md`
-- `docs/39-live-company-task-registry.md`
+### Flujo de datos
 
-## Regla de sincronización documental
-Si cambia cualquiera de estos:
-- dominio
-- canvas v3
-- growth protocol
-- runtime/live mode
-- backlog
-- task registry
+```
+web-admin (React)
+    | REST (commands)     ^ WebSocket (domain events)
+    v                     |
+  web-bff (NestJS + MongoDB)
+    |                     ^
+    v                     |
+  Redis Streams ──────────────────
+    |       |       |       |
+  svc-A   svc-B   svc-C   svc-D
+  (Redis)  (Redis) (Redis) (Redis)
+```
 
-Claude debe comprobar si también hay que actualizar:
-- `README.md`
-- `CLAUDE.md`
-- `docs/25-verticaler-reference-company-spec.md`
+### Patron de interaccion web-admin ↔ web-bff
 
-## Flujo con Claude Code
-- `/tc-next` decide la siguiente tarea desbloqueada del pivot
-- `/tc-run <task-id>` ejecuta la tarea
-- una tarea por sesión cuando sea posible
-- no marcar una tarea como done sin tests y sin sincronizar docs afectadas
+1. Usuario hace accion → **optimistic update inmediato** en la UI
+2. web-admin envia REST POST/PUT/DELETE a web-bff → web-bff publica comando en Redis Stream
+3. Microservicio destino procesa comando → publica evento de dominio en Redis Stream
+4. web-bff recibe evento → actualiza vista materializada en MongoDB → filtra y reenvia al web-admin via WebSocket
+5. web-admin recibe evento WebSocket → reconcilia con estado optimista (confirma o rollback)
 
 ## Persistencia
-- **PostgreSQL 16** vía Drizzle ORM (paquete `packages/drizzle-db`)
-- 1 instancia, 2 schemas: `platform`, `company_design`
-- `PERSISTENCE_MODE=drizzle` (default en k3d) o `in-memory` (tests unitarios)
-- 30 repos tienen implementación Drizzle + in-memory
-- Schemas en `services/*/src/drizzle/schema/`
-- `docs/28-persistence-bootstrap-strategy.md` está SUPERSEDED
 
-## Regla de implementación
-No abrir nuevas features arbitrarias.
-Todo trabajo debe encajar en el roadmap del pivot Live Company.
+- **Redis** — base de datos por microservicio (source of truth per bounded context)
+- **MongoDB** — vistas materializadas en web-bff (read-only projections)
+- **Redis Streams** — bus de eventos entre microservicios
+- InMemory repos solo para unit tests directos (sin DI)
 
-## Regla de diseño
-No diseñar la empresa como un conjunto de capas abstractas equivalentes.
-Diseñarla como:
-- Company
-- Department
-- Team
-- Coordinator Agent
-- Specialist Agent
-- Objective / Event / External Source
-- Workflow / Handoff
-- Contract / Artifact / Policy
-- Live runtime state
+## Autenticacion IA
+
+- **Claude Max (suscripcion)** — UNICO metodo de autenticacion para funciones IA
+- Auth type: `oauth-token`, env var: `CLAUDE_CODE_OAUTH_TOKEN`, provider: `claude-max`
+- NUNCA usar API keys de Anthropic
+
+## Documentos canonicos de la fase activa
+Claude debe tratar como fuente de verdad principal:
+
+- `docs/69-visual-shell-redesign-spec.md` (spec completa)
+- `docs/70-visual-shell-backlog-v7.md` (backlog epics 69-72)
+- `docs/71-visual-shell-task-registry.md` (task registry VSR)
+- `docs/73-redis-streams-cqrs-architecture-adr.md` (ADR arquitectura Redis Streams + CQRS)
+
+## Documentos canonicos de fases anteriores
+- `docs/57-ai-runtime-epic-decision.md`
+- `docs/58-ai-runtime-gap-analysis.md`
+- `docs/59-ceo-interactive-bootstrap-runtime-spec.md`
+- `docs/60-foundation-documents-spec.md`
+- `docs/61-markdown-document-system-spec.md`
+- `docs/62-claude-container-runtime-spec.md`
+- `docs/63-temporal-orchestration-spec.md`
+- `docs/64-basic-autonomous-work-spec.md`
+- `docs/65-ai-runtime-backlog-v6.md`
+- `docs/66-ai-runtime-task-registry.md`
+- `docs/67-prisma-migration-adr.md`
+- `docs/68-single-postgres-instance-adr.md`
+
+## Regla de producto
+No construir una "demo fake" de IA.
+El chat del CEO, la generacion de documentos y la creacion minima de estructura deben apoyarse en ejecucion real del runtime.
+
+## Regla de alcance
+Para esta fase:
+- si se permite trabajo real con IA
+- no hace falta todavia cerrar toda la plataforma multiagente final
+- si hace falta una primera cadena funcional end-to-end:
+  - crear proyecto
+  - abrir canvas con empresa
+  - CEO conversa
+  - se generan documentos Markdown base
+  - el usuario puede abrir/editar/revisar documentos
+  - el CEO puede empezar a proponer/crear estructura minima
+  - Temporal orquesta al menos algunos workflows basicos
+  - Claude Code corre dentro de contenedores Docker para tareas acotadas
+
+## Flujo con Claude Code
+- `/tc-next` debe priorizar `docs/71-visual-shell-task-registry.md`
+- `/tc-run <task-id>` debe resolver primero en `docs/71-visual-shell-task-registry.md`, luego en registries anteriores
+- una tarea por sesion cuando sea posible
+- si una tarea toca visual shell, sincronizar con `docs/69-visual-shell-redesign-spec.md`
+
+## Regla de honestidad tecnica
+- si una parte depende de limitaciones del runtime de Claude Code, dejarlo explicito
+- no vender como "produccion lista" algo que en esta fase solo es valido para local/dev
+- distinguir claramente:
+  - local trusted dev
+  - multiusuario
+  - produccion

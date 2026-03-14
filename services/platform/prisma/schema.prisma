@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/platform-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id
+  name        String   @db.VarChar(255)
+  description String   @default("")
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("projects")
+}
+
+model AiProviderConfig {
+  id         String   @id @default(uuid())
+  providerId String   @unique @map("provider_id") @db.VarChar(50)
+  name       String   @db.VarChar(100)
+  apiKey     String   @map("api_key")
+  authType   String   @default("api-key") @map("auth_type") @db.VarChar(20)
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("ai_provider_configs")
+}

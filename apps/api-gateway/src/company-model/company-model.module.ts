@@ -27,6 +27,8 @@ import { ProposalsProxyController } from './proposals.controller'
 import { GrowthEngineProxyController } from './growth-engine.controller'
 import { OrganizationalUnitsProxyController } from './organizational-units.controller'
 import { LcpAgentsProxyController } from './lcp-agents.controller'
+import { BootstrapConversationProxyController } from './bootstrap-conversation.controller'
+import { ProjectDocumentsProxyController } from './project-documents.controller'
 import { CompanyDesignClient } from './company-design.client'
 
 @Module({
@@ -39,7 +41,8 @@ import { CompanyDesignClient } from './company-design.client'
     PermissionsController, ArtifactsController, CommentsController, CollaborationController,
     OperationsController, RuntimeProxyController,
     BootstrapProxyController, ProposalsProxyController, GrowthEngineProxyController,
-    OrganizationalUnitsProxyController, LcpAgentsProxyController,
+    OrganizationalUnitsProxyController, LcpAgentsProxyController, BootstrapConversationProxyController,
+    ProjectDocumentsProxyController,
   ],
   providers: [CompanyDesignClient],
 })

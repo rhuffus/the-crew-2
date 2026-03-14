@@ -1,13 +1,16 @@
 import { useState, useRef, type KeyboardEvent } from 'react'
 import { Send } from 'lucide-react'
+import type { ProjectDocumentDto } from '@the-crew/shared-types'
+import { DocumentMentionPopover } from './document-mention-popover'
 
 interface ChatInputProps {
   onSend: (content: string) => void
   disabled?: boolean
   isPending?: boolean
+  projectId?: string
 }
 
-export function ChatInput({ onSend, disabled, isPending }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, isPending, projectId }: ChatInputProps) {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -36,8 +39,32 @@ export function ChatInput({ onSend, disabled, isPending }: ChatInputProps) {
     }
   }
 
+  const handleDocMention = (doc: ProjectDocumentDto) => {
+    const mention = `@doc:${doc.slug}`
+    const el = textareaRef.current
+    if (el) {
+      const start = el.selectionStart
+      const before = value.slice(0, start)
+      const after = value.slice(el.selectionEnd)
+      const space = before.length > 0 && !before.endsWith(' ') ? ' ' : ''
+      const newValue = `${before}${space}${mention} ${after}`
+      setValue(newValue)
+      // Move cursor after the mention
+      const cursorPos = before.length + space.length + mention.length + 1
+      requestAnimationFrame(() => {
+        el.focus()
+        el.setSelectionRange(cursorPos, cursorPos)
+      })
+    } else {
+      setValue((prev) => (prev ? `${prev} ${mention} ` : `${mention} `))
+    }
+  }
+
   return (
     <div data-testid="chat-input" className="flex items-end gap-2 border-t border-border p-2">
+      {projectId && (
+        <DocumentMentionPopover projectId={projectId} onSelect={handleDocMention} />
+      )}
       <textarea
         ref={textareaRef}
         value={value}

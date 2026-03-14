@@ -21,10 +21,12 @@ import { ChangesTab } from './changes-tab'
 import { EdgeInspector } from './edge-inspector'
 import { MultiSelectSummary } from './multi-select-summary'
 import { CanvasSummary } from './canvas-summary'
+import { ChatInspectorPanel } from './chat-inspector-panel'
 import { DiffSummaryPanel } from './diff-summary-panel'
 import { UoDetailPanel } from './uo-detail-panel'
 import { AgentDetailPanel } from './agent-detail-panel'
 import { ProposalDetailPanel } from './proposal-detail-panel'
+import { DocumentInspectorPanel } from './document-inspector-panel'
 import {
   getSelectionSummary,
   findNodeInGraph,
@@ -79,6 +81,7 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
   const currentScope = useVisualWorkspaceStore((s) => s.currentScope)
   const showOperationsOverlay = useVisualWorkspaceStore((s) => s.showOperationsOverlay)
   const designMode = useVisualWorkspaceStore((s) => s.designMode)
+  const centerView = useVisualWorkspaceStore((s) => s.centerView)
   const [activeTab, setActiveTab] = useState<InspectorTabId>('edit')
   const { t } = useTranslation('inspector')
 
@@ -341,6 +344,10 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
         <div className="flex-1 overflow-y-auto p-3">
           {isDiffMode && diffSummary ? (
             <DiffSummaryPanel summary={diffSummary} />
+          ) : centerView.type === 'chat' ? (
+            <ChatInspectorPanel />
+          ) : centerView.type === 'document' && projectId ? (
+            <DocumentInspectorPanel projectId={projectId} documentId={centerView.documentId} />
           ) : (
             <CanvasSummary nodes={resolvedNodes} edges={resolvedEdges} />
           )}

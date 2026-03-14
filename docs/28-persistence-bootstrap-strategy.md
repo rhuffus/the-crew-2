@@ -1,9 +1,10 @@
 # Persistence & Bootstrap Strategy — Audit + Plan
 
-> **SUPERSEDED** — PostgreSQL persistence via Drizzle ORM has been implemented.
-> All 30 repositories now have `Drizzle*Repository` implementations alongside in-memory ones.
-> The `PERSISTENCE_MODE` env var (`drizzle` | `in-memory`) controls which backend is active.
-> In-memory repos remain for unit tests. k3d runs with real PostgreSQL.
+> **SUPERSEDED** — PostgreSQL persistence via Prisma ORM has been implemented (Epic 67, ADR `docs/67-prisma-migration-adr.md`).
+> All 32 repositories use `Prisma*Repository` implementations. Drizzle ORM has been fully removed.
+> Database-per-service: each microservice has its own PostgreSQL instance.
+> No `PERSISTENCE_MODE` env var — modules always inject the Prisma implementation.
+> In-memory repos remain only for direct use in unit tests. k3d runs with real PostgreSQL.
 > This document is preserved as historical reference of the original audit.
 
 ## 1. Purpose

@@ -1,13 +1,10 @@
 import { Module } from '@nestjs/common'
 import { EventEmitterModule } from '@nestjs/event-emitter'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { RuntimeController } from './application/runtime.controller'
 import { RuntimeService } from './application/runtime.service'
 import { RuntimeStatusProjector } from './application/runtime-status.projector'
-import { InMemoryRuntimeExecutionRepository } from './infra/in-memory-runtime-execution.repository'
-import { InMemoryRuntimeEventRepository } from './infra/in-memory-runtime-event.repository'
-import { DrizzleRuntimeExecutionRepository } from './infra/drizzle-runtime-execution.repository'
-import { DrizzleRuntimeEventRepository } from './infra/drizzle-runtime-event.repository'
+import { PrismaRuntimeExecutionRepository } from './infra/prisma-runtime-execution.repository'
+import { PrismaRuntimeEventRepository } from './infra/prisma-runtime-event.repository'
 import {
   RUNTIME_EXECUTION_REPOSITORY,
   RUNTIME_EVENT_REPOSITORY,
@@ -21,15 +18,11 @@ import {
     RuntimeStatusProjector,
     {
       provide: RUNTIME_EXECUTION_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleRuntimeExecutionRepository
-        : InMemoryRuntimeExecutionRepository,
+      useClass: PrismaRuntimeExecutionRepository,
     },
     {
       provide: RUNTIME_EVENT_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleRuntimeEventRepository
-        : InMemoryRuntimeEventRepository,
+      useClass: PrismaRuntimeEventRepository,
     },
   ],
   exports: [RuntimeService],

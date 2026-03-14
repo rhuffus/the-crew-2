@@ -71,10 +71,10 @@ describe('visual shell', () => {
     })
   })
 
-  it('should render chat dock', async () => {
+  it('should render center panel', async () => {
     await renderWithRouter('/projects/acme-corp/org')
     await waitFor(() => {
-      expect(screen.getByTestId('chat-dock')).toBeInTheDocument()
+      expect(screen.getByTestId('center-panel')).toBeInTheDocument()
     })
   })
 

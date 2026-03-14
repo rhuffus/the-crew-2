@@ -1,0 +1,29 @@
+{
+  "title": "Configuración",
+  "aiProviders": {
+    "title": "Proveedores de IA",
+    "description": "Configura tu token de suscripción Claude Max. Se usa para funciones con IA como el chat del CEO."
+  },
+  "provider": {
+    "apiKey": "Token",
+    "placeholder": "Token OAuth...",
+    "save": "Guardar",
+    "clear": "Limpiar",
+    "configured": "Configurado",
+    "notConfigured": "No configurado",
+    "comingSoon": "Próximamente",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "saving": "Guardando...",
+    "saved": "¡Guardado!",
+    "saveError": "Error al guardar. Verifica que los servicios estén corriendo.",
+    "oauthHint": "Ejecuta `claude setup-token` en tu terminal y pega aquí el token generado."
+  },
+  "preferences": {
+    "title": "Preferencias",
+    "language": "Idioma",
+    "theme": "Tema"
+  },
+  "noProviderError": "Claude Max no configurado. Configura tu token de Claude Max en Configuración para usar funciones con IA.",
+  "goToSettings": "Ir a Configuración"
+}

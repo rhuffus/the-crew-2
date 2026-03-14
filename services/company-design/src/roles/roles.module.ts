@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { RolesController } from './roles.controller'
 import { RoleService } from './application/role.service'
-import { InMemoryRoleRepository } from './infra/in-memory-role.repository'
-import { DrizzleRoleRepository } from './infra/drizzle-role.repository'
+import { PrismaRoleRepository } from './infra/prisma-role.repository'
 import { ROLE_REPOSITORY } from './domain/role-repository'
 
 @Module({
@@ -12,9 +10,7 @@ import { ROLE_REPOSITORY } from './domain/role-repository'
     RoleService,
     {
       provide: ROLE_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleRoleRepository
-        : InMemoryRoleRepository,
+      useClass: PrismaRoleRepository,
     },
   ],
   exports: [ROLE_REPOSITORY],

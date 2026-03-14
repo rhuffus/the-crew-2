@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { DepartmentsController } from './departments.controller'
 import { DepartmentService } from './application/department.service'
-import { InMemoryDepartmentRepository } from './infra/in-memory-department.repository'
-import { DrizzleDepartmentRepository } from './infra/drizzle-department.repository'
+import { PrismaDepartmentRepository } from './infra/prisma-department.repository'
 import { DEPARTMENT_REPOSITORY } from './domain/department-repository'
 
 @Module({
@@ -12,9 +10,7 @@ import { DEPARTMENT_REPOSITORY } from './domain/department-repository'
     DepartmentService,
     {
       provide: DEPARTMENT_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleDepartmentRepository
-        : InMemoryDepartmentRepository,
+      useClass: PrismaDepartmentRepository,
     },
   ],
   exports: [DEPARTMENT_REPOSITORY],

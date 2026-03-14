@@ -36,6 +36,14 @@ const SHORTCUT_SECTIONS: { title: string; shortcuts: ShortcutEntry[] }[] = [
     ],
   },
   {
+    title: 'Center Views',
+    shortcuts: [
+      { keys: 'Ctrl + 1', description: 'Switch to canvas' },
+      { keys: 'Ctrl + 2', description: 'Switch to chat' },
+      { keys: 'Ctrl + 3', description: 'Switch to last document' },
+    ],
+  },
+  {
     title: 'Panels & View',
     shortcuts: [
       { keys: 'Ctrl + Shift + E', description: 'Toggle explorer' },

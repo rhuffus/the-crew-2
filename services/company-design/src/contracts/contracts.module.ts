@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { ContractsController } from './contracts.controller'
 import { ContractService } from './application/contract.service'
-import { InMemoryContractRepository } from './infra/in-memory-contract.repository'
-import { DrizzleContractRepository } from './infra/drizzle-contract.repository'
+import { PrismaContractRepository } from './infra/prisma-contract.repository'
 import { CONTRACT_REPOSITORY } from './domain/contract-repository'
 
 @Module({
@@ -12,9 +10,7 @@ import { CONTRACT_REPOSITORY } from './domain/contract-repository'
     ContractService,
     {
       provide: CONTRACT_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleContractRepository
-        : InMemoryContractRepository,
+      useClass: PrismaContractRepository,
     },
   ],
   exports: [CONTRACT_REPOSITORY],

@@ -4,6 +4,15 @@ import { SCOPE_REGISTRY, VIEW_PRESET_REGISTRY, OVERLAY_DEFINITIONS, overlaysToLa
 
 export type DesignMode = 'design' | 'live'
 
+// Dynamic center view (VSR-002)
+export type CenterView =
+  | { type: 'canvas' }
+  | { type: 'chat'; threadId: string | null; chatMode: 'generic' | 'ceo' }
+  | { type: 'document'; documentId: string }
+
+const DEFAULT_CENTER_VIEW: CenterView = { type: 'canvas' }
+const MAX_CENTER_VIEW_HISTORY = 20
+
 /** @deprecated Use ScopeType instead */
 export type CanvasView = 'org' | 'department' | 'workflow'
 
@@ -75,7 +84,10 @@ export interface VisualWorkspaceState {
 
   explorerCollapsed: boolean
   inspectorCollapsed: boolean
-  chatDockOpen: boolean
+
+  // Dynamic center view (VSR-002)
+  centerView: CenterView
+  centerViewHistory: CenterView[]
 
   activeLayers: LayerId[]
   nodeTypeFilter: NodeType[] | null
@@ -141,6 +153,9 @@ export interface VisualWorkspaceState {
   // Design / Live mode (LCP-012)
   designMode: DesignMode
 
+  // Seed auto-open tracking (persists across remounts)
+  seedChatAutoOpened: boolean
+
   // Canvas interaction
   setAddEdgeSource(nodeId: string | null): void
   setPreselectedEdgeType(edgeType: EdgeType | null): void
@@ -162,7 +177,14 @@ export interface VisualWorkspaceState {
   clearFocus(): void
   toggleExplorer(): void
   toggleInspector(): void
-  toggleChatDock(): void
+
+  // Dynamic center view actions (VSR-002)
+  setCenterView(view: CenterView): void
+  openChatView(threadId?: string | null, chatMode?: 'generic' | 'ceo'): void
+  openDocumentView(documentId: string): void
+  openCanvasView(): void
+  goBackCenterView(): void
+
   toggleLayer(layer: LayerId): void
   setActiveLayers(layers: LayerId[]): void
   // Overlay-aware methods (LCP-010)
@@ -228,6 +250,9 @@ export interface VisualWorkspaceState {
   // Design / Live mode (LCP-012)
   setDesignMode(mode: DesignMode): void
 
+  // Seed auto-open tracking
+  markSeedChatAutoOpened(): void
+
   // Diff mode (VIS-015f)
   enterDiffMode(baseReleaseId: string, compareReleaseId: string): void
   exitDiffMode(): void
@@ -287,7 +312,8 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
 
   explorerCollapsed: false,
   inspectorCollapsed: false,
-  chatDockOpen: false,
+  centerView: DEFAULT_CENTER_VIEW,
+  centerViewHistory: [],
 
   activeLayers: SCOPE_REGISTRY.company.defaultLayers,
   nodeTypeFilter: null,
@@ -333,6 +359,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   nodePaletteOpen: false,
   relationshipPaletteOpen: false,
   designMode: 'design',
+  seedChatAutoOpened: false,
 
   setAddEdgeSource(nodeId) {
     set({ addEdgeSource: nodeId })
@@ -343,7 +370,7 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
   },
 
   setProjectId(projectId) {
-    set({ projectId })
+    set({ projectId, seedChatAutoOpened: false })
   },
 
   setScope(scopeType, entityId = null) {
@@ -427,8 +454,39 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
     set((s) => ({ inspectorCollapsed: !s.inspectorCollapsed }))
   },
 
-  toggleChatDock() {
-    set((s) => ({ chatDockOpen: !s.chatDockOpen }))
+  // Dynamic center view actions (VSR-002)
+  setCenterView(view) {
+    const current = get().centerView
+    // Don't push to history if same type
+    const history = current.type === view.type
+      ? get().centerViewHistory
+      : [...get().centerViewHistory, current].slice(-MAX_CENTER_VIEW_HISTORY)
+    set({
+      centerView: view,
+      centerViewHistory: history,
+    })
+  },
+
+  openChatView(threadId = null, chatMode = 'ceo') {
+    get().setCenterView({ type: 'chat', threadId, chatMode })
+  },
+
+  openDocumentView(documentId) {
+    get().setCenterView({ type: 'document', documentId })
+  },
+
+  openCanvasView() {
+    get().setCenterView({ type: 'canvas' })
+  },
+
+  goBackCenterView() {
+    const history = get().centerViewHistory
+    if (history.length === 0) return
+    const prev = history[history.length - 1]!
+    set({
+      centerView: prev,
+      centerViewHistory: history.slice(0, -1),
+    })
   },
 
   toggleLayer(layer) {
@@ -642,6 +700,10 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
         activeLayers: overlaysToLayers(nextOverlays),
       }
     })
+  },
+
+  markSeedChatAutoOpened() {
+    set({ seedChatAutoOpened: true })
   },
 
   enterDiffMode(baseReleaseId, compareReleaseId) {

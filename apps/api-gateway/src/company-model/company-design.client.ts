@@ -91,6 +91,14 @@ import type {
   ProposalStatus,
   GrowthPace,
   ApprovalLevel,
+  BootstrapConversationDto,
+  SendBootstrapMessageResponseDto,
+  ProjectDocumentDto,
+  CreateProjectDocumentDto,
+  UpdateProjectDocumentDto,
+  ProposeGrowthResponseDto,
+  ApproveGrowthProposalResponseDto,
+  RejectGrowthProposalResponseDto,
 } from '@the-crew/shared-types'
 
 @Injectable()
@@ -1114,5 +1122,100 @@ export class CompanyDesignClient {
     await firstValueFrom(
       this.http.delete(`${this.baseUrl}/projects/${projectId}/lcp-agents/${id}`),
     )
+  }
+
+  // ── Project Documents (AIR-010) ──────────────────────────────────
+
+  async listProjectDocuments(projectId: string): Promise<ProjectDocumentDto[]> {
+    const { data } = await firstValueFrom(
+      this.http.get<ProjectDocumentDto[]>(`${this.baseUrl}/projects/${projectId}/documents`),
+    )
+    return data
+  }
+
+  async getProjectDocument(projectId: string, id: string): Promise<ProjectDocumentDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<ProjectDocumentDto>(`${this.baseUrl}/projects/${projectId}/documents/${id}`),
+    )
+    return data
+  }
+
+  async getProjectDocumentBySlug(projectId: string, slug: string): Promise<ProjectDocumentDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<ProjectDocumentDto>(`${this.baseUrl}/projects/${projectId}/documents/by-slug?slug=${encodeURIComponent(slug)}`),
+    )
+    return data
+  }
+
+  async createProjectDocument(projectId: string, dto: CreateProjectDocumentDto): Promise<ProjectDocumentDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<ProjectDocumentDto>(`${this.baseUrl}/projects/${projectId}/documents`, dto),
+    )
+    return data
+  }
+
+  async updateProjectDocument(projectId: string, id: string, dto: UpdateProjectDocumentDto): Promise<ProjectDocumentDto> {
+    const { data } = await firstValueFrom(
+      this.http.patch<ProjectDocumentDto>(`${this.baseUrl}/projects/${projectId}/documents/${id}`, dto),
+    )
+    return data
+  }
+
+  async deleteProjectDocument(projectId: string, id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.baseUrl}/projects/${projectId}/documents/${id}`),
+    )
+  }
+
+  // ── Bootstrap Conversation (AIR-009) ──────────────────────────────
+
+  async startBootstrapConversation(projectId: string): Promise<BootstrapConversationDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<BootstrapConversationDto>(`${this.baseUrl}/projects/${projectId}/bootstrap-conversation/start`, {}),
+    )
+    return data
+  }
+
+  async sendBootstrapMessage(projectId: string, body: { content: string }): Promise<SendBootstrapMessageResponseDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<SendBootstrapMessageResponseDto>(`${this.baseUrl}/projects/${projectId}/bootstrap-conversation/messages`, body),
+    )
+    return data
+  }
+
+  async getBootstrapConversationStatus(projectId: string): Promise<BootstrapConversationDto> {
+    const { data } = await firstValueFrom(
+      this.http.get<BootstrapConversationDto>(`${this.baseUrl}/projects/${projectId}/bootstrap-conversation/status`),
+    )
+    return data
+  }
+
+  // ── Growth Proposals (AIR-016) ────────────────────────────────────
+
+  async proposeGrowth(projectId: string): Promise<ProposeGrowthResponseDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<ProposeGrowthResponseDto>(`${this.baseUrl}/projects/${projectId}/bootstrap-conversation/propose-growth`, {}),
+    )
+    return data
+  }
+
+  async approveGrowthProposal(projectId: string, proposalId: string): Promise<ApproveGrowthProposalResponseDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<ApproveGrowthProposalResponseDto>(
+        `${this.baseUrl}/projects/${projectId}/bootstrap-conversation/proposals/${proposalId}/approve`,
+        {},
+      ),
+    )
+    return data
+  }
+
+  async rejectGrowthProposal(projectId: string, proposalId: string, reason: string): Promise<RejectGrowthProposalResponseDto> {
+    const { data } = await firstValueFrom(
+      this.http.post<RejectGrowthProposalResponseDto>(
+        `${this.baseUrl}/projects/${projectId}/bootstrap-conversation/proposals/${proposalId}/reject`,
+        { reason },
+      ),
+    )
+    return data
   }
 }

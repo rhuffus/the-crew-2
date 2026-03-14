@@ -7,7 +7,7 @@ import { CeoConversationDock } from '@/components/visual-shell/chat-dock/ceo-con
 import { ProposalCard } from '@/components/visual-shell/chat-dock/proposal-card'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { useProposalsStore } from '@/stores/proposals-store'
-import type { ProposalDto, ProposalStatus, ProposalType, MaturityPhase } from '@the-crew/shared-types'
+import type { ProposalDto, ProposalStatus, ProposalType } from '@the-crew/shared-types'
 
 // Mock fetch
 vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('no backend')))
@@ -33,6 +33,29 @@ vi.mock('@/hooks/use-proposals', () => ({
   useApproveProposal: (...args: unknown[]) => mockApprove(...args),
   useRejectProposal: (...args: unknown[]) => mockReject(...args),
   useSubmitProposal: () => ({ mutate: vi.fn() }),
+}))
+
+// Mock bootstrap conversation hooks (AIR-009)
+const mockBootstrapConversation = vi.fn().mockReturnValue({ data: null, isError: true })
+const mockStartConversation = vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false })
+const mockSendBootstrapMessage = vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false })
+vi.mock('@/hooks/use-bootstrap-conversation', () => ({
+  useBootstrapConversation: (...args: unknown[]) => mockBootstrapConversation(...args),
+  useStartBootstrapConversation: (...args: unknown[]) => mockStartConversation(...args),
+  useSendBootstrapMessage: (...args: unknown[]) => mockSendBootstrapMessage(...args),
+  useProposeGrowth: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useApproveGrowthProposal: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRejectGrowthProposal: () => ({ mutateAsync: vi.fn(), isPending: false }),
+}))
+
+// Mock chat hooks
+const mockChatThread = vi.fn().mockReturnValue({ data: { id: 'thread-1' } })
+const mockChatMessages = vi.fn().mockReturnValue({ data: [], isLoading: false })
+vi.mock('@/hooks/use-chat', () => ({
+  useChatThread: (...args: unknown[]) => mockChatThread(...args),
+  useChatMessages: (...args: unknown[]) => mockChatMessages(...args),
+  useSendMessage: () => ({ mutate: vi.fn(), isPending: false }),
+  useChatThreads: () => ({ data: [] }),
 }))
 
 // Mock growth hooks
@@ -78,15 +101,17 @@ function createProposal(overrides: Partial<ProposalDto> = {}): ProposalDto {
 
 describe('CeoConversationDock', () => {
   beforeEach(() => {
-    mockBootstrapStatus.mockReturnValue({
-      data: { maturityPhase: 'seed' as MaturityPhase },
+    mockBootstrapConversation.mockReturnValue({
+      data: { id: 'conv-1', projectId: 'test-project', threadId: 'thread-1', status: 'collecting-context' },
+      isError: false,
     })
-    mockProposals.mockReturnValue({ data: [], refetch: vi.fn() })
-    mockApprove.mockReturnValue({ mutate: vi.fn() })
-    mockReject.mockReturnValue({ mutate: vi.fn() })
+    mockStartConversation.mockReturnValue({ mutate: vi.fn(), isPending: false })
+    mockSendBootstrapMessage.mockReturnValue({ mutate: vi.fn(), isPending: false })
+    mockChatThread.mockReturnValue({ data: { id: 'thread-1' } })
+    mockChatMessages.mockReturnValue({ data: [], isLoading: false })
   })
 
-  it('should render CEO welcome message', () => {
+  it('should render CEO conversation dock', () => {
     render(
       <QueryClientProvider client={createQueryClient()}>
         <CeoConversationDock projectId="test-project" />
@@ -96,46 +121,52 @@ describe('CeoConversationDock', () => {
     expect(screen.getByText('CEO Agent')).toBeInTheDocument()
   })
 
-  it('should show phase indicator', () => {
+  it('should show status indicator', () => {
     render(
       <QueryClientProvider client={createQueryClient()}>
         <CeoConversationDock projectId="test-project" />
       </QueryClientProvider>,
     )
-    expect(screen.getByText(/Phase: seed/i)).toBeInTheDocument()
+    expect(screen.getByText('Collecting context')).toBeInTheDocument()
   })
 
-  it('should show empty state when no proposals', () => {
+  it('should show chat input for active conversation', () => {
     render(
       <QueryClientProvider client={createQueryClient()}>
         <CeoConversationDock projectId="test-project" />
       </QueryClientProvider>,
     )
-    expect(screen.getByText(/No pending proposals/)).toBeInTheDocument()
+    expect(screen.getByTestId('chat-input')).toBeInTheDocument()
   })
 
-  it('should show pending proposals when they exist', () => {
-    const proposal = createProposal()
-    mockProposals.mockReturnValue({ data: [proposal], refetch: vi.fn() })
+  it('should show messages when available', () => {
+    mockChatMessages.mockReturnValue({
+      data: [
+        { id: 'msg-1', threadId: 'thread-1', role: 'assistant', content: 'Hello, I am the CEO', entityRefs: [], actions: [], createdAt: new Date().toISOString() },
+      ],
+      isLoading: false,
+    })
 
     render(
       <QueryClientProvider client={createQueryClient()}>
         <CeoConversationDock projectId="test-project" />
       </QueryClientProvider>,
     )
-    expect(screen.getByText('Pending Proposals (1)')).toBeInTheDocument()
+    expect(screen.getByText('Hello, I am the CEO')).toBeInTheDocument()
   })
 
-  it('should show recently approved proposals', () => {
-    const approved = createProposal({ id: 'prop-2', status: 'approved', title: 'Approved One' })
-    mockProposals.mockReturnValue({ data: [approved], refetch: vi.fn() })
+  it('should show ready-to-grow status', () => {
+    mockBootstrapConversation.mockReturnValue({
+      data: { id: 'conv-1', projectId: 'test-project', threadId: 'thread-1', status: 'ready-to-grow' },
+      isError: false,
+    })
 
     render(
       <QueryClientProvider client={createQueryClient()}>
         <CeoConversationDock projectId="test-project" />
       </QueryClientProvider>,
     )
-    expect(screen.getByText('Recently Approved')).toBeInTheDocument()
+    expect(screen.getByText('Ready to grow')).toBeInTheDocument()
   })
 })
 

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
-import { InMemoryLcpAgentRepository } from './infra/in-memory-lcp-agent.repository'
-import { DrizzleLcpAgentRepository } from './infra/drizzle-lcp-agent.repository'
+import { PrismaLcpAgentRepository } from './infra/prisma-lcp-agent.repository'
 import { LCP_AGENT_REPOSITORY } from './domain/lcp-agent-repository'
 import { LcpAgentsController } from './application/lcp-agents.controller'
 
@@ -10,9 +8,7 @@ import { LcpAgentsController } from './application/lcp-agents.controller'
   providers: [
     {
       provide: LCP_AGENT_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleLcpAgentRepository
-        : InMemoryLcpAgentRepository,
+      useClass: PrismaLcpAgentRepository,
     },
   ],
   exports: [LCP_AGENT_REPOSITORY],

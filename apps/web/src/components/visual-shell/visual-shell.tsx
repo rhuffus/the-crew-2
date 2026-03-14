@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useCallback } from 'react'
+import { type ReactNode, useState, useCallback, useEffect } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
 import type { VisualNodeDto, VisualEdgeDto, NodeType, EdgeType, VisualDiffSummary } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
@@ -6,8 +6,7 @@ import { useBeforeUnload } from '@/hooks/use-before-unload'
 import { TopBar } from './top-bar'
 import { Explorer } from './explorer/explorer'
 import { Inspector } from './inspector/inspector'
-import { CanvasViewport } from './canvas-viewport'
-import { ChatDock } from './chat-dock/chat-dock'
+import { CenterPanel } from './center-panel'
 import { MutationErrorBanner, type MutationError } from './mutation-error-banner'
 
 export interface VisualShellProps {
@@ -44,6 +43,43 @@ export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onN
 
   useBeforeUnload(isPending)
 
+  // Center view keyboard shortcuts (VSR-017): Cmd/Ctrl + 1/2/3
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return
+      if (e.key !== '1' && e.key !== '2' && e.key !== '3') return
+
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if ((e.target as HTMLElement)?.isContentEditable) return
+
+      const state = useVisualWorkspaceStore.getState()
+
+      switch (e.key) {
+        case '1':
+          e.preventDefault()
+          state.openCanvasView()
+          break
+        case '2':
+          e.preventDefault()
+          state.openChatView(null, 'ceo')
+          break
+        case '3': {
+          e.preventDefault()
+          if (state.centerView.type === 'document') return
+          const lastDoc = [...state.centerViewHistory].reverse().find((v) => v.type === 'document')
+          if (lastDoc && lastDoc.type === 'document') {
+            state.openDocumentView(lastDoc.documentId)
+          }
+          break
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
   return (
     <div data-testid="visual-shell" className="flex h-screen flex-col overflow-hidden bg-background">
       <TopBar />
@@ -67,10 +103,7 @@ export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onN
             </>
           )}
           <Panel id="panel-center" defaultSize={inspectorCollapsed ? "80" : "60"} minSize="30">
-            <div className="flex h-full min-w-0 flex-col overflow-hidden">
-              {children ?? <CanvasViewport />}
-              <ChatDock />
-            </div>
+            <CenterPanel canvasContent={children} />
           </Panel>
           {!inspectorCollapsed && (
             <>

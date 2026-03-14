@@ -1,0 +1,6 @@
+export { REDIS_STREAMS_CLIENT, REDIS_STREAMS_OPTIONS } from './redis-streams.constants'
+export { RedisStreamsModule } from './redis-streams.module'
+export { StreamPublisher } from './stream-publisher'
+export { StreamConsumer, type RedisStreamsModuleOptions } from './stream-consumer'
+export { OnStreamEvent, type StreamEventHandlerMetadata } from './on-stream-event.decorator'
+export { type StreamEnvelope, createEnvelope } from './stream-envelope'

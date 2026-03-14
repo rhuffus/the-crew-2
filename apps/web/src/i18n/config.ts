@@ -13,6 +13,7 @@ import enEntities from './locales/en/entities.json'
 import enAdmin from './locales/en/admin.json'
 import enContextMenu from './locales/en/context-menu.json'
 import enChat from './locales/en/chat.json'
+import enSettings from './locales/en/settings.json'
 
 // ES namespaces
 import esCommon from './locales/es/common.json'
@@ -26,6 +27,7 @@ import esEntities from './locales/es/entities.json'
 import esAdmin from './locales/es/admin.json'
 import esContextMenu from './locales/es/context-menu.json'
 import esChat from './locales/es/chat.json'
+import esSettings from './locales/es/settings.json'
 
 export const defaultNS = 'common'
 export const supportedLanguages = ['en', 'es'] as const
@@ -58,6 +60,7 @@ i18n.use(initReactI18next).init({
       admin: enAdmin,
       'context-menu': enContextMenu,
       chat: enChat,
+      settings: enSettings,
     },
     es: {
       common: esCommon,
@@ -71,12 +74,13 @@ i18n.use(initReactI18next).init({
       admin: esAdmin,
       'context-menu': esContextMenu,
       chat: esChat,
+      settings: esSettings,
     },
   },
   lng: getInitialLanguage(),
   fallbackLng: 'en',
   defaultNS,
-  ns: ['common', 'navigation', 'canvas', 'explorer', 'inspector', 'shortcuts', 'forms', 'entities', 'admin', 'context-menu', 'chat'],
+  ns: ['common', 'navigation', 'canvas', 'explorer', 'inspector', 'shortcuts', 'forms', 'entities', 'admin', 'context-menu', 'chat', 'settings'],
   interpolation: {
     escapeValue: false, // React already escapes
   },

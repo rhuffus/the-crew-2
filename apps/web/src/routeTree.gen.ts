@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsNewRouteImport } from './routes/projects/new'
 import { Route as ProjectsProjectSlugRouteImport } from './routes/projects/$projectSlug'
@@ -33,6 +34,11 @@ import { Route as ProjectsProjectSlugAdminAuditRouteImport } from './routes/proj
 import { Route as ProjectsProjectSlugAdminAgentsRouteImport } from './routes/projects/$projectSlug/admin/agents'
 import { Route as ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRouteImport } from './routes/projects/$projectSlug/workflows.$workflowId.stages.$stageId'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -169,6 +175,7 @@ const ProjectsProjectSlugWorkflowsWorkflowIdStagesStageIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/projects/$projectSlug': typeof ProjectsProjectSlugRouteWithChildren
   '/projects/new': typeof ProjectsNewRoute
   '/projects/$projectSlug/admin': typeof ProjectsProjectSlugAdminRouteWithChildren
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/projects/new': typeof ProjectsNewRoute
   '/projects/$projectSlug/admin': typeof ProjectsProjectSlugAdminRouteWithChildren
   '/projects/$projectSlug/diff': typeof ProjectsProjectSlugDiffRoute
@@ -219,6 +227,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/projects/$projectSlug': typeof ProjectsProjectSlugRouteWithChildren
   '/projects/new': typeof ProjectsNewRoute
   '/projects/$projectSlug/admin': typeof ProjectsProjectSlugAdminRouteWithChildren
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/projects/$projectSlug'
     | '/projects/new'
     | '/projects/$projectSlug/admin'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings'
     | '/projects/new'
     | '/projects/$projectSlug/admin'
     | '/projects/$projectSlug/diff'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/settings'
     | '/projects/$projectSlug'
     | '/projects/new'
     | '/projects/$projectSlug/admin'
@@ -321,12 +333,20 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   ProjectsProjectSlugRoute: typeof ProjectsProjectSlugRouteWithChildren
   ProjectsNewRoute: typeof ProjectsNewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -578,6 +598,7 @@ const ProjectsProjectSlugRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   ProjectsProjectSlugRoute: ProjectsProjectSlugRouteWithChildren,
   ProjectsNewRoute: ProjectsNewRoute,
 }

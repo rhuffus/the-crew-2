@@ -1,20 +1,13 @@
 {
   "bootstrap": {
-    "title": "Bootstrap a Live Company",
-    "stepOf": "Step {{step}} of {{total}}",
+    "title": "Create a Live Company",
+    "subtitle": "Give your company a name and a brief description. The CEO agent will guide you from there.",
     "companyName": "Company Name *",
     "companyNamePlaceholder": "Acme Corp",
-    "mission": "Mission *",
-    "missionPlaceholder": "What does this company do?",
-    "companyType": "Company Type",
-    "vision": "Vision (optional)",
-    "visionPlaceholder": "Where do you see this company in 3 years?",
-    "growthPace": "Growth Pace",
-    "growthPaceDescription": "Controls how quickly the CEO proposes structural changes",
-    "approvalLevel": "Approval Level",
-    "approvalLevelDescription": "What types of proposals require your approval",
-    "bootstrapping": "Bootstrapping...",
-    "bootstrapCompany": "Bootstrap Company"
+    "shortDescription": "Short Description *",
+    "shortDescriptionPlaceholder": "What does this company do?",
+    "creating": "Creating...",
+    "createCompany": "Create Company"
   },
   "companyType": {
     "startup": "Startup",

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-worker
+  namespace: the-crew
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-worker
+  template:
+    metadata:
+      labels:
+        app: temporal-worker
+    spec:
+      containers:
+        - name: temporal-worker
+          image: the-crew/temporal-worker
+          ports:
+            - containerPort: 4030
+          env:
+            - name: TEMPORAL_ADDRESS
+              value: temporal:7233
+            - name: PLATFORM_SERVICE_URL
+              value: http://platform:4010
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-worker
+  namespace: the-crew
+spec:
+  selector:
+    app: temporal-worker
+  ports:
+    - port: 4030
+      targetPort: 4030

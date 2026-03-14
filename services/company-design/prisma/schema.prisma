@@ -1,0 +1,540 @@
+// Prisma schema for company-design service.
+// 32 models. Database-per-service: this service owns its own PostgreSQL instance.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Core Domain ────────────────────────────────────────────
+
+model CompanyModel {
+  projectId  String   @id @map("project_id")
+  purpose    String   @default("")
+  type       String   @default("")
+  scope      String   @default("")
+  principles String[] @default([])
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("company_models")
+}
+
+model Department {
+  id          String   @id
+  projectId   String   @map("project_id")
+  name        String   @db.VarChar(255)
+  description String   @default("")
+  mandate     String   @default("")
+  parentId    String?  @map("parent_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("departments")
+}
+
+model Capability {
+  id                String   @id
+  projectId         String   @map("project_id")
+  name              String   @db.VarChar(255)
+  description       String   @default("")
+  ownerDepartmentId String?  @map("owner_department_id")
+  inputs            String[] @default([])
+  outputs           String[] @default([])
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("capabilities")
+}
+
+model Role {
+  id             String   @id
+  projectId      String   @map("project_id")
+  name           String   @db.VarChar(255)
+  description    String   @default("")
+  departmentId   String   @map("department_id")
+  capabilityIds  String[] @default([]) @map("capability_ids")
+  accountability String   @default("")
+  authority      String   @default("")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("roles")
+}
+
+model Contract {
+  id                 String   @id
+  projectId          String   @map("project_id")
+  name               String   @db.VarChar(255)
+  description        String   @default("")
+  type               String   @db.VarChar(50)
+  status             String   @default("draft") @db.VarChar(20)
+  providerId         String   @map("provider_id")
+  providerType       String   @map("provider_type") @db.VarChar(20)
+  consumerId         String   @map("consumer_id")
+  consumerType       String   @map("consumer_type") @db.VarChar(20)
+  acceptanceCriteria String[] @default([]) @map("acceptance_criteria")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("contracts")
+}
+
+model Workflow {
+  id                 String   @id
+  projectId          String   @map("project_id")
+  name               String   @db.VarChar(255)
+  description        String   @default("")
+  ownerDepartmentId  String?  @map("owner_department_id")
+  status             String   @default("draft") @db.VarChar(20)
+  triggerDescription String   @default("") @map("trigger_description")
+  stages             Json     @default(dbgenerated("'[]'::jsonb"))
+  participants       Json     @default(dbgenerated("'[]'::jsonb"))
+  contractIds        String[] @default([]) @map("contract_ids")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("workflows")
+}
+
+model Policy {
+  id           String   @id
+  projectId    String   @map("project_id")
+  name         String   @db.VarChar(255)
+  description  String   @default("")
+  scope        String   @db.VarChar(20)
+  departmentId String?  @map("department_id")
+  type         String   @db.VarChar(30)
+  condition    String   @default("")
+  enforcement  String   @db.VarChar(20)
+  status       String   @default("active") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("policies")
+}
+
+model Skill {
+  id                String   @id
+  projectId         String   @map("project_id")
+  name              String   @db.VarChar(255)
+  description       String   @default("")
+  category          String   @default("") @db.VarChar(100)
+  tags              String[] @default([])
+  compatibleRoleIds String[] @default([]) @map("compatible_role_ids")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("skills")
+}
+
+// ─── Agents ─────────────────────────────────────────────────
+
+model AgentArchetype {
+  id           String   @id
+  projectId    String   @map("project_id")
+  name         String   @db.VarChar(255)
+  description  String   @default("")
+  roleId       String   @map("role_id")
+  departmentId String   @map("department_id")
+  skillIds     String[] @default([]) @map("skill_ids")
+  constraints  Json     @default(dbgenerated("'{}'::jsonb"))
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("agent_archetypes")
+}
+
+model AgentAssignment {
+  id          String   @id
+  projectId   String   @map("project_id")
+  archetypeId String   @map("archetype_id")
+  name        String   @db.VarChar(255)
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("agent_assignments")
+}
+
+// ─── Artifacts ──────────────────────────────────────────────
+
+model Artifact {
+  id           String   @id
+  projectId    String   @map("project_id")
+  name         String   @db.VarChar(255)
+  description  String   @default("")
+  type         String   @db.VarChar(50)
+  status       String   @db.VarChar(20)
+  producerId   String?  @map("producer_id")
+  producerType String?  @map("producer_type") @db.VarChar(20)
+  consumerIds  String[] @default([]) @map("consumer_ids")
+  tags         String[] @default([])
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("artifacts")
+}
+
+// ─── Audit ──────────────────────────────────────────────────
+
+model AuditEntry {
+  id         String   @id
+  projectId  String   @map("project_id")
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id")
+  entityName String   @map("entity_name") @db.VarChar(255)
+  action     String   @db.VarChar(20)
+  changes    Json?
+  timestamp  DateTime @default(now()) @db.Timestamptz
+
+  @@map("audit_entries")
+}
+
+// ─── Chat ───────────────────────────────────────────────────
+
+model ChatThread {
+  id        String   @id
+  projectId String   @map("project_id")
+  scopeType String   @map("scope_type") @db.VarChar(30)
+  entityId  String?  @map("entity_id")
+  title     String   @default("") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("chat_threads")
+}
+
+model ChatMessage {
+  id         String   @id
+  threadId   String   @map("thread_id")
+  role       String   @db.VarChar(20)
+  content    String
+  entityRefs Json     @default(dbgenerated("'[]'::jsonb")) @map("entity_refs")
+  actions    Json     @default(dbgenerated("'[]'::jsonb"))
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("chat_messages")
+}
+
+// ─── Comments ───────────────────────────────────────────────
+
+model Comment {
+  id         String   @id
+  projectId  String   @map("project_id")
+  targetType String   @map("target_type") @db.VarChar(30)
+  targetId   String?  @map("target_id")
+  scopeType  String   @map("scope_type") @db.VarChar(30)
+  authorId   String   @map("author_id")
+  authorName String   @map("author_name") @db.VarChar(255)
+  content    String
+  resolved   Boolean  @default(false)
+  parentId   String?  @map("parent_id")
+  replyCount Int      @default(0) @map("reply_count")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("comments")
+}
+
+// ─── Collaboration ──────────────────────────────────────────
+
+model EntityLock {
+  id           String   @id
+  projectId    String   @map("project_id")
+  entityId     String   @map("entity_id")
+  nodeType     String   @map("node_type") @db.VarChar(50)
+  lockedBy     String   @map("locked_by")
+  lockedByName String   @map("locked_by_name") @db.VarChar(255)
+  lockedAt     DateTime @default(now()) @map("locked_at") @db.Timestamptz
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz
+
+  @@map("entity_locks")
+}
+
+model ReviewMarker {
+  id           String   @id
+  projectId    String   @map("project_id")
+  entityId     String   @map("entity_id")
+  nodeType     String   @map("node_type") @db.VarChar(50)
+  status       String   @db.VarChar(20)
+  reviewerId   String   @map("reviewer_id")
+  reviewerName String   @map("reviewer_name") @db.VarChar(255)
+  feedback     String?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("review_markers")
+}
+
+model SavedView {
+  id        String   @id
+  projectId String   @map("project_id")
+  name      String   @db.VarChar(255)
+  state     Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("saved_views")
+}
+
+// ─── Releases & Compliance ──────────────────────────────────
+
+model Release {
+  id               String    @id
+  projectId        String    @map("project_id")
+  version          String    @db.VarChar(50)
+  status           String    @default("draft") @db.VarChar(20)
+  notes            String    @default("")
+  snapshot         Json?
+  validationIssues Json      @default(dbgenerated("'[]'::jsonb")) @map("validation_issues")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  publishedAt      DateTime? @map("published_at") @db.Timestamptz
+
+  @@map("releases")
+}
+
+model ContractCompliance {
+  id            String   @id
+  projectId     String   @map("project_id")
+  contractId    String   @map("contract_id")
+  status        String   @db.VarChar(20)
+  reason        String?
+  lastCheckedAt DateTime @map("last_checked_at") @db.Timestamptz
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("contract_compliances")
+}
+
+// ─── Operations ─────────────────────────────────────────────
+
+model Incident {
+  id         String    @id
+  projectId  String    @map("project_id")
+  entityType String    @map("entity_type") @db.VarChar(50)
+  entityId   String    @map("entity_id")
+  severity   String    @db.VarChar(20)
+  status     String    @db.VarChar(20)
+  title      String    @db.VarChar(255)
+  description String   @default("")
+  reportedAt DateTime  @map("reported_at") @db.Timestamptz
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("incidents")
+}
+
+model WorkflowRun {
+  id                String    @id
+  projectId         String    @map("project_id")
+  workflowId        String    @map("workflow_id")
+  status            String    @db.VarChar(20)
+  currentStageIndex Int?      @map("current_stage_index")
+  startedAt         DateTime  @map("started_at") @db.Timestamptz
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz
+  failureReason     String?   @map("failure_reason")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("workflow_runs")
+}
+
+model StageExecution {
+  id          String    @id
+  runId       String    @map("run_id")
+  workflowId  String    @map("workflow_id")
+  stageName   String    @map("stage_name") @db.VarChar(255)
+  stageIndex  Int       @map("stage_index")
+  status      String    @db.VarChar(20)
+  assigneeId  String?   @map("assignee_id")
+  blockReason String?   @map("block_reason")
+  startedAt   DateTime? @map("started_at") @db.Timestamptz
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+
+  @@map("stage_executions")
+}
+
+// ─── Live Company Pivot ─────────────────────────────────────
+
+model ProjectSeed {
+  projectId          String   @id @map("project_id")
+  name               String   @db.VarChar(255)
+  description        String   @default("")
+  mission            String   @default("")
+  vision             String   @default("")
+  companyType        String   @default("") @map("company_type") @db.VarChar(100)
+  restrictions       String[] @default([])
+  principles         String[] @default([])
+  aiBudget           Json     @default(dbgenerated("'{}'::jsonb")) @map("ai_budget")
+  initialObjectives  String[] @default([]) @map("initial_objectives")
+  founderPreferences Json     @default(dbgenerated("'{}'::jsonb")) @map("founder_preferences")
+  maturityPhase      String   @default("seed") @map("maturity_phase") @db.VarChar(20)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("project_seeds")
+}
+
+model CompanyConstitution {
+  projectId                  String   @id @map("project_id")
+  operationalPrinciples      String[] @default([]) @map("operational_principles")
+  autonomyLimits             Json     @default(dbgenerated("'{}'::jsonb")) @map("autonomy_limits")
+  budgetConfig               Json     @default(dbgenerated("'{}'::jsonb")) @map("budget_config")
+  approvalCriteria           Json     @default(dbgenerated("'[]'::jsonb")) @map("approval_criteria")
+  namingConventions          String[] @default([]) @map("naming_conventions")
+  expansionRules             Json     @default(dbgenerated("'[]'::jsonb")) @map("expansion_rules")
+  contextMinimizationPolicy  String   @default("") @map("context_minimization_policy")
+  qualityRules               String[] @default([]) @map("quality_rules")
+  deliveryRules              String[] @default([]) @map("delivery_rules")
+  createdAt                  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("company_constitutions")
+}
+
+model OrganizationalUnit {
+  id                 String   @id
+  projectId          String   @map("project_id")
+  name               String   @db.VarChar(255)
+  description        String   @default("")
+  uoType             String   @map("uo_type") @db.VarChar(20)
+  mandate            String   @default("")
+  purpose            String   @default("")
+  parentUoId         String?  @map("parent_uo_id")
+  coordinatorAgentId String?  @map("coordinator_agent_id")
+  functions          String[] @default([])
+  status             String   @default("active") @db.VarChar(20)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("organizational_units")
+}
+
+model LcpAgent {
+  id              String   @id
+  projectId       String   @map("project_id")
+  name            String   @db.VarChar(255)
+  description     String   @default("")
+  agentType       String   @map("agent_type") @db.VarChar(20)
+  uoId            String   @map("uo_id")
+  role            String   @default("")
+  skills          Json     @default(dbgenerated("'[]'::jsonb"))
+  inputs          String[] @default([])
+  outputs         String[] @default([])
+  responsibilities String[] @default([])
+  budget          Json?
+  contextWindow   Int?     @map("context_window")
+  status          String   @default("active") @db.VarChar(20)
+  systemPromptRef String?  @map("system_prompt_ref")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("lcp_agents")
+}
+
+model Proposal {
+  id                  String    @id
+  projectId           String    @map("project_id")
+  proposalType        String    @map("proposal_type") @db.VarChar(30)
+  title               String    @db.VarChar(255)
+  description         String    @default("")
+  motivation          String    @default("")
+  problemDetected     String    @default("") @map("problem_detected")
+  expectedBenefit     String    @default("") @map("expected_benefit")
+  estimatedCost       String    @default("") @map("estimated_cost")
+  contextToAssign     String    @default("") @map("context_to_assign")
+  affectedContractIds String[]  @default([]) @map("affected_contract_ids")
+  affectedWorkflowIds String[]  @default([]) @map("affected_workflow_ids")
+  requiredApproval    String    @default("") @map("required_approval")
+  status              String    @default("draft") @db.VarChar(20)
+  proposedByAgentId   String    @map("proposed_by_agent_id")
+  reviewedByUserId    String?   @map("reviewed_by_user_id")
+  approvedByUserId    String?   @map("approved_by_user_id")
+  rejectionReason     String?   @map("rejection_reason")
+  implementedAt       DateTime? @map("implemented_at") @db.Timestamptz
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("proposals")
+}
+
+// ─── Runtime ────────────────────────────────────────────────
+
+model RuntimeExecution {
+  id                String    @id
+  projectId         String    @map("project_id")
+  executionType     String    @map("execution_type") @db.VarChar(30)
+  workflowId        String?   @map("workflow_id")
+  agentId           String?   @map("agent_id")
+  status            String    @db.VarChar(20)
+  startedAt         DateTime? @map("started_at") @db.Timestamptz
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz
+  input             Json      @default(dbgenerated("'{}'::jsonb"))
+  output            Json?
+  errors            Json      @default(dbgenerated("'[]'::jsonb"))
+  waitingFor        String?   @map("waiting_for")
+  approvals         Json      @default(dbgenerated("'[]'::jsonb"))
+  aiCost            Float     @default(0) @map("ai_cost")
+  logSummary        String    @default("") @map("log_summary")
+  parentExecutionId String?   @map("parent_execution_id")
+  operationsRunId   String?   @map("operations_run_id")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("runtime_executions")
+}
+
+model RuntimeEvent {
+  id               String   @id
+  projectId        String   @map("project_id")
+  eventType        String   @map("event_type") @db.VarChar(50)
+  severity         String   @db.VarChar(20)
+  title            String   @db.VarChar(255)
+  description      String   @default("")
+  sourceEntityType String   @map("source_entity_type") @db.VarChar(50)
+  sourceEntityId   String   @map("source_entity_id")
+  targetEntityType String?  @map("target_entity_type") @db.VarChar(50)
+  targetEntityId   String?  @map("target_entity_id")
+  executionId      String?  @map("execution_id")
+  metadata         Json     @default(dbgenerated("'{}'::jsonb"))
+  occurredAt       DateTime @default(now()) @map("occurred_at") @db.Timestamptz
+
+  @@map("runtime_events")
+}
+
+// ─── Bootstrap Conversation ─────────────────────────────────
+
+model BootstrapConversation {
+  id         String   @id
+  projectId  String   @unique @map("project_id")
+  threadId   String   @map("thread_id")
+  ceoAgentId String   @map("ceo_agent_id")
+  status     String   @default("not-started") @db.VarChar(40)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("bootstrap_conversations")
+}
+
+// ─── Project Documents ──────────────────────────────────────
+
+model ProjectDocument {
+  id              String   @id
+  projectId       String   @map("project_id")
+  slug            String   @db.VarChar(255)
+  title           String   @db.VarChar(500)
+  bodyMarkdown    String   @default("") @map("body_markdown")
+  status          String   @default("draft") @db.VarChar(20)
+  linkedEntityIds String[] @default([]) @map("linked_entity_ids")
+  lastUpdatedBy   String   @default("system") @map("last_updated_by") @db.VarChar(255)
+  sourceType      String   @default("system") @map("source_type") @db.VarChar(20)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@map("project_documents")
+}

@@ -1,20 +1,13 @@
 {
   "bootstrap": {
     "title": "Crear una Empresa Viva",
-    "stepOf": "Paso {{step}} de {{total}}",
+    "subtitle": "Dale un nombre y una descripción breve a tu empresa. El agente CEO te guiará desde ahí.",
     "companyName": "Nombre de la Empresa *",
     "companyNamePlaceholder": "Acme Corp",
-    "mission": "Misión *",
-    "missionPlaceholder": "¿Qué hace esta empresa?",
-    "companyType": "Tipo de Empresa",
-    "vision": "Visión (opcional)",
-    "visionPlaceholder": "¿Dónde ves esta empresa en 3 años?",
-    "growthPace": "Ritmo de Crecimiento",
-    "growthPaceDescription": "Controla la velocidad con la que el CEO propone cambios estructurales",
-    "approvalLevel": "Nivel de Aprobación",
-    "approvalLevelDescription": "Qué tipos de propuestas requieren tu aprobación",
-    "bootstrapping": "Iniciando...",
-    "bootstrapCompany": "Crear Empresa"
+    "shortDescription": "Descripción Breve *",
+    "shortDescriptionPlaceholder": "¿Qué hace esta empresa?",
+    "creating": "Creando...",
+    "createCompany": "Crear Empresa"
   },
   "companyType": {
     "startup": "Startup",

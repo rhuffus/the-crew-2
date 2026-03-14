@@ -11,12 +11,15 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/eslint-config/package.json packages/eslint-config/
 COPY packages/domain-core/package.json packages/domain-core/
-COPY packages/drizzle-db/package.json packages/drizzle-db/
+COPY packages/prisma-db/package.json packages/prisma-db/
+COPY packages/redis-streams/package.json packages/redis-streams/
+COPY packages/redis-store/package.json packages/redis-store/
 COPY packages/shared-types/package.json packages/shared-types/
 COPY apps/api-gateway/package.json apps/api-gateway/
 COPY apps/web/package.json apps/web/
 COPY services/platform/package.json services/platform/
 COPY services/company-design/package.json services/company-design/
+COPY services/temporal-worker/package.json services/temporal-worker/
 
 # Install dependencies + SWC for transpilation
 RUN pnpm install --frozen-lockfile \
@@ -40,14 +43,28 @@ RUN cd packages/domain-core \
     && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json \
     && sed -i '/"type": "module"/d' package.json
 
-RUN cd packages/drizzle-db \
+RUN cd packages/prisma-db \
+    && npx prisma generate \
     && npx tsc -p tsconfig.build.json --module commonjs --moduleResolution node --skipLibCheck \
     && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json \
     && sed -i '/"type": "module"/d' package.json
+
+RUN cd packages/redis-streams \
+    && npx tsc -p tsconfig.build.json --skipLibCheck \
+    && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json
+
+RUN cd packages/redis-store \
+    && npx tsc -p tsconfig.build.json --skipLibCheck \
+    && sed -i 's|"./src/index.ts"|"./dist/index.js"|g' package.json
+
+# Generate Prisma client if service has a prisma schema
+RUN if [ -f "${SERVICE_PATH}/prisma/schema.prisma" ]; then \
+      cd ${SERVICE_PATH} && npx prisma generate; \
+    fi
 
 # Build the NestJS service with SWC (transpile only, no type-check)
 RUN cd ${SERVICE_PATH} && npx nest build --builder swc
 
 ENV SERVICE_PATH=${SERVICE_PATH}
 
-CMD sh -c "node ${SERVICE_PATH}/dist/main.js"
+CMD ["sh", "-c", "node ${SERVICE_PATH}/dist/main.js"]

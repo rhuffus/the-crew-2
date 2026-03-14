@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { PoliciesController } from './policies.controller'
 import { PolicyService } from './application/policy.service'
-import { InMemoryPolicyRepository } from './infra/in-memory-policy.repository'
-import { DrizzlePolicyRepository } from './infra/drizzle-policy.repository'
+import { PrismaPolicyRepository } from './infra/prisma-policy.repository'
 import { POLICY_REPOSITORY } from './domain/policy-repository'
 
 @Module({
@@ -12,9 +10,7 @@ import { POLICY_REPOSITORY } from './domain/policy-repository'
     PolicyService,
     {
       provide: POLICY_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzlePolicyRepository
-        : InMemoryPolicyRepository,
+      useClass: PrismaPolicyRepository,
     },
   ],
   exports: [POLICY_REPOSITORY],

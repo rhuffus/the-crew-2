@@ -2,6 +2,7 @@ import type { ChatMessageDto } from '@the-crew/shared-types'
 import { cn } from '@/lib/utils'
 import { EntityRefChip } from './entity-ref-chip'
 import { ActionButton } from './action-button'
+import { renderWithDocLinks } from './document-link'
 
 interface ChatMessageProps {
   message: ChatMessageDto
@@ -30,7 +31,7 @@ export function ChatMessageBubble({ message, projectId }: ChatMessageProps) {
           isSystem && 'bg-transparent text-center text-xs italic text-muted-foreground',
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className="whitespace-pre-wrap">{renderWithDocLinks(message.content, projectId)}</p>
         {message.entityRefs.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
             {message.entityRefs.map((entityRef) => (

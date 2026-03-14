@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
-import { DrizzleModule, isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { HealthController } from './health.controller'
+import { CompanyDesignPrismaModule } from './prisma'
 import { BootstrapModule } from './bootstrap/bootstrap.module'
 import { LegacyBootstrapModule } from './bootstrap/legacy-bootstrap.module'
 import { CompanyModelModule } from './company-model/company-model.module'
@@ -30,14 +30,12 @@ import { LcpAgentsModule } from './lcp-agents/lcp-agents.module'
 import { ProposalsModule } from './proposals/proposals.module'
 import { GrowthEngineModule } from './growth-engine/growth-engine.module'
 import { RuntimeModule } from './runtime/runtime.module'
-
-const drizzleImport = isPersistenceModeDrizzle()
-  ? [DrizzleModule.forRoot({ connectionString: process.env.DATABASE_URL! })]
-  : []
+import { BootstrapConversationModule } from './bootstrap-conversation/bootstrap-conversation.module'
+import { ProjectDocumentsModule } from './project-documents/project-documents.module'
 
 @Module({
   imports: [
-    ...drizzleImport,
+    CompanyDesignPrismaModule.forRoot({ url: process.env.DATABASE_URL }),
     // CEO-first bootstrap (new projects)
     BootstrapModule,
     // Legacy Verticaler bootstrap (pre-populated company)
@@ -49,6 +47,10 @@ const drizzleImport = isPersistenceModeDrizzle()
     LcpAgentsModule,
     ProposalsModule,
     GrowthEngineModule,
+    // Bootstrap conversation (AIR-009)
+    BootstrapConversationModule,
+    // Project Documents (AIR-010)
+    ProjectDocumentsModule,
     // Legacy domain modules
     CompanyModelModule,
     DepartmentsModule,

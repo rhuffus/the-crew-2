@@ -1,43 +1,41 @@
 ---
 name: tc-run
-description: Ejecuta una tarea concreta del task registry actual de forma autosuficiente
+description: Ejecuta una tarea concreta del task registry activo de forma autosuficiente
 argument-hint: "<task-id>"
 ---
 
 Objetivo: ejecutar la tarea `$ARGUMENTS`.
 
 Instrucciones:
-1. Resolver `$ARGUMENTS` en el registry de la fase activa:
-   - priorizar `docs/39-live-company-task-registry.md` si la fase es Live Company Pivot
-   - si no, usar el registry anterior
-2. Leer la tarea, dependencias y modo recomendado.
-3. Leer solo el contexto mínimo necesario entre:
-   - `docs/31-live-company-pivot-decision.md`
-   - `docs/32-live-company-repo-analysis.md`
-   - `docs/33-live-company-domain-model.md`
-   - `docs/34-live-company-canvas-v3-spec.md`
-   - `docs/35-live-company-growth-protocol.md`
-   - `docs/36-live-company-runtime-live-mode-spec.md`
-   - `docs/37-live-company-migration-strategy.md`
-   - archivos del repo afectados por la tarea
-4. Si la tarea no existe, responder pidiendo un task-id válido.
+1. Resolver `$ARGUMENTS` primero en `docs/71-visual-shell-task-registry.md`.
+2. Si no existe ahi, mirar `docs/66-ai-runtime-task-registry.md` y registries anteriores.
+3. Leer la tarea, dependencias y modo recomendado.
+4. Leer solo el contexto minimo necesario entre:
+   - `docs/69-visual-shell-redesign-spec.md`
+   - `docs/70-visual-shell-backlog-v7.md`
+   - `docs/59-ceo-interactive-bootstrap-runtime-spec.md`
+   - `docs/60-foundation-documents-spec.md`
+   - `docs/61-markdown-document-system-spec.md`
+   - `docs/62-claude-container-runtime-spec.md`
+   - `docs/63-temporal-orchestration-spec.md`
+   - `docs/64-basic-autonomous-work-spec.md`
+   - archivos del repo afectados
 5. Si faltan dependencias, no implementar y explicar el bloqueo.
-6. Si `fresh-session` es `yes` y la sesión actual no es adecuada, decirlo al principio.
-7. Si la tarea es ejecutable:
-   - ejecutar el alcance sin pedir prompt adicional
-   - no abrir nuevas funcionalidades ajenas al pivot actual
-   - mantener sincronizada la documentación afectada
-   - ejecutar `/quality-gate` al final
-   - actualizar registry/backlog si cambia el estado real
-8. Bloque inicial obligatorio:
-   - `task:` task-id
-   - `status:` executable|blocked
-   - `mode:` plan|edit
-   - `fresh-session-required:` yes|no
-   - `scope-docs:` lista corta de ficheros leídos
-   - `execution-contract:` self-contained
-9. Cierre obligatorio:
-   - qué se ha hecho
-   - qué no se ha hecho
-   - resultados del quality gate
-   - si conviene nueva sesión antes de la siguiente tarea
+6. Si `fresh-session` es `yes`, indicarlo al principio.
+7. Ejecutar el alcance sin pedir prompt adicional.
+8. Ejecutar `/quality-gate` al final.
+9. Si la tarea cambia el estado real del roadmap, actualizar registry/backlog/docs relacionadas.
+
+Bloque inicial obligatorio:
+- `task:`
+- `status: executable|blocked`
+- `mode:`
+- `fresh-session-required:`
+- `scope-docs:`
+- `execution-contract: self-contained`
+
+Cierre obligatorio:
+- que se ha hecho
+- que no se ha hecho
+- resultados del quality gate
+- si conviene nueva sesion antes de la siguiente tarea

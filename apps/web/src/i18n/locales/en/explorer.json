@@ -45,7 +45,7 @@
     "warning_other": "{{count}} warnings"
   },
   "chat": {
-    "noThreads": "No chat threads yet. Open the chat dock to start a conversation.",
+    "noThreads": "No chat threads yet. Open the chat view to start a conversation.",
     "loadingThreads": "Loading threads...",
     "messages": "messages"
   },

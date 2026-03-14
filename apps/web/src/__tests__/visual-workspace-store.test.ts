@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { VisualNodeDto, BreadcrumbEntry } from '@the-crew/shared-types'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
-import type { NavigationEntry } from '@/stores/visual-workspace-store'
+import type { NavigationEntry, CenterView } from '@/stores/visual-workspace-store'
 
 function makeNode(id: string, nodeType: VisualNodeDto['nodeType'] = 'department', label = id): VisualNodeDto {
   return {
@@ -31,7 +31,8 @@ describe('visual workspace store', () => {
       focusNodeId: null,
       explorerCollapsed: false,
       inspectorCollapsed: false,
-      chatDockOpen: false,
+      centerView: { type: 'canvas' },
+      centerViewHistory: [],
       activeLayers: ['organization'],
       nodeTypeFilter: null,
       statusFilter: null,
@@ -59,7 +60,6 @@ describe('visual workspace store', () => {
     expect(state.focusNodeId).toBeNull()
     expect(state.explorerCollapsed).toBe(false)
     expect(state.inspectorCollapsed).toBe(false)
-    expect(state.chatDockOpen).toBe(false)
     expect(state.activeLayers).toEqual(['organization'])
   })
 
@@ -125,12 +125,6 @@ describe('visual workspace store', () => {
     expect(useVisualWorkspaceStore.getState().inspectorCollapsed).toBe(false)
     useVisualWorkspaceStore.getState().toggleInspector()
     expect(useVisualWorkspaceStore.getState().inspectorCollapsed).toBe(true)
-  })
-
-  it('should toggle chat dock', () => {
-    expect(useVisualWorkspaceStore.getState().chatDockOpen).toBe(false)
-    useVisualWorkspaceStore.getState().toggleChatDock()
-    expect(useVisualWorkspaceStore.getState().chatDockOpen).toBe(true)
   })
 
   it('should toggle layer on', () => {
@@ -461,5 +455,112 @@ describe('visual workspace store', () => {
     useVisualWorkspaceStore.getState().toggleCollapse('dept:d1')
     useVisualWorkspaceStore.getState().setView('workflow', 'wf-1')
     expect(useVisualWorkspaceStore.getState().collapsedNodeIds).toEqual([])
+  })
+
+  // VSR-002: CenterView
+  describe('center view (VSR-002)', () => {
+    it('should have canvas as default center view', () => {
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'canvas' })
+      expect(state.centerViewHistory).toEqual([])
+    })
+
+    it('should open chat view', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+    })
+
+    it('should open chat view with defaults', () => {
+      useVisualWorkspaceStore.getState().openChatView()
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+    })
+
+    it('should open chat view with thread id and generic mode', () => {
+      useVisualWorkspaceStore.getState().openChatView('thread-1', 'generic')
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'chat', threadId: 'thread-1', chatMode: 'generic' })
+    })
+
+    it('should open document view', () => {
+      useVisualWorkspaceStore.getState().openDocumentView('doc-123')
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'document', documentId: 'doc-123' })
+    })
+
+    it('should open canvas view', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openCanvasView()
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'canvas' })
+    })
+
+    it('should set arbitrary center view', () => {
+      const view: CenterView = { type: 'document', documentId: 'doc-456' }
+      useVisualWorkspaceStore.getState().setCenterView(view)
+      expect(useVisualWorkspaceStore.getState().centerView).toEqual(view)
+    })
+
+    // History
+    it('should push to history when changing view type', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
+    })
+
+    it('should not push to history when staying on same view type', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView('thread-2', 'generic')
+      const state = useVisualWorkspaceStore.getState()
+      // Only one history entry (canvas), not two
+      expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
+    })
+
+    it('should build history across different view types', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openDocumentView('doc-1')
+      useVisualWorkspaceStore.getState().openCanvasView()
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerViewHistory).toEqual([
+        { type: 'canvas' },
+        { type: 'chat', threadId: null, chatMode: 'ceo' },
+        { type: 'document', documentId: 'doc-1' },
+      ])
+    })
+
+    it('should limit history to 20 entries', () => {
+      for (let i = 0; i < 25; i++) {
+        if (i % 2 === 0) {
+          useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+        } else {
+          useVisualWorkspaceStore.getState().openCanvasView()
+        }
+      }
+      expect(useVisualWorkspaceStore.getState().centerViewHistory.length).toBeLessThanOrEqual(20)
+    })
+
+    // goBackCenterView
+    it('should go back to previous view', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openDocumentView('doc-1')
+      useVisualWorkspaceStore.getState().goBackCenterView()
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
+    })
+
+    it('should do nothing when going back with empty history', () => {
+      useVisualWorkspaceStore.getState().goBackCenterView()
+      expect(useVisualWorkspaceStore.getState().centerView).toEqual({ type: 'canvas' })
+    })
+
+    it('should go back to canvas from chat', () => {
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().goBackCenterView()
+      const state = useVisualWorkspaceStore.getState()
+      expect(state.centerView).toEqual({ type: 'canvas' })
+      expect(state.centerViewHistory).toEqual([])
+    })
   })
 })

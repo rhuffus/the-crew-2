@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { WorkflowsController } from './workflows.controller'
 import { WorkflowService } from './application/workflow.service'
-import { InMemoryWorkflowRepository } from './infra/in-memory-workflow.repository'
-import { DrizzleWorkflowRepository } from './infra/drizzle-workflow.repository'
+import { PrismaWorkflowRepository } from './infra/prisma-workflow.repository'
 import { WORKFLOW_REPOSITORY } from './domain/workflow-repository'
 
 @Module({
@@ -12,9 +10,7 @@ import { WORKFLOW_REPOSITORY } from './domain/workflow-repository'
     WorkflowService,
     {
       provide: WORKFLOW_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleWorkflowRepository
-        : InMemoryWorkflowRepository,
+      useClass: PrismaWorkflowRepository,
     },
   ],
   exports: [WORKFLOW_REPOSITORY],

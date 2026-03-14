@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common'
-import { isPersistenceModeDrizzle } from '@the-crew/drizzle-db'
 import { ReleasesController } from './releases.controller'
 import { ReleaseService } from './application/release.service'
 import { SnapshotCollector } from './application/snapshot-collector'
 import { SnapshotDiffer } from './application/snapshot-differ'
-import { InMemoryReleaseRepository } from './infra/in-memory-release.repository'
-import { DrizzleReleaseRepository } from './infra/drizzle-release.repository'
+import { PrismaReleaseRepository } from './infra/prisma-release.repository'
 import { RELEASE_REPOSITORY } from './domain/release-repository'
 import { CompanyModelModule } from '../company-model/company-model.module'
 import { DepartmentsModule } from '../departments/departments.module'
@@ -48,9 +46,7 @@ import { ProposalsModule } from '../proposals/proposals.module'
     SnapshotDiffer,
     {
       provide: RELEASE_REPOSITORY,
-      useClass: isPersistenceModeDrizzle()
-        ? DrizzleReleaseRepository
-        : InMemoryReleaseRepository,
+      useClass: PrismaReleaseRepository,
     },
   ],
   exports: [SnapshotCollector, RELEASE_REPOSITORY],

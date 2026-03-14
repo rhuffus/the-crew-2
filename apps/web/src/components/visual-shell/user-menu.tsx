@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { User, Globe, Check, Sun, Moon, Monitor } from 'lucide-react'
+import { User, Globe, Check, Sun, Moon, Monitor, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from '@tanstack/react-router'
 import { useLanguageStore } from '@/stores/language-store'
 import { type Theme, useThemeStore } from '@/stores/theme-store'
 import type { SupportedLanguage } from '@/i18n/config'
@@ -20,6 +21,7 @@ export function UserMenu() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { t } = useTranslation('common')
+  const navigate = useNavigate()
   const { language, setLanguage } = useLanguageStore()
   const { theme, setTheme } = useThemeStore()
 
@@ -110,6 +112,21 @@ export function UserMenu() {
               {theme === opt.value && <Check className="h-4 w-4" />}
             </button>
           ))}
+
+          <div className="mx-1 my-1 h-px bg-border" />
+
+          <button
+            type="button"
+            data-testid="settings-link"
+            onClick={() => {
+              navigate({ to: '/settings' })
+              setOpen(false)
+            }}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground hover:bg-accent"
+          >
+            <Settings className="h-4 w-4" />
+            {t('settings')}
+          </button>
         </div>
       )}
     </div>

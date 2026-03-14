@@ -33,6 +33,7 @@ coverage/
 test-results/
 playwright-report/
 blob-report/
+*.timestamp-*
 
 # Drizzle migrations (generated)
 drizzle/migrations/

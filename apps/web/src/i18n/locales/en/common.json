@@ -41,5 +41,12 @@
   "theme": "Theme",
   "themeLight": "Light",
   "themeDark": "Dark",
-  "themeSystem": "System"
+  "themeSystem": "System",
+  "settings": "Settings",
+  "centerView": {
+    "canvas": "Canvas",
+    "chat": "Chat",
+    "ceoChat": "CEO",
+    "document": "Document"
+  }
 }
