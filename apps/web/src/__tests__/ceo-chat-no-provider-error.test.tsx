@@ -52,6 +52,31 @@ vi.mock('@/hooks/use-ai-provider-config', () => ({
   useDeleteAiProviderConfig: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
+// --- Agent chat hook — derives hasNoProvider from mockValidationData ---
+vi.mock('@/hooks/use-agent-chat', () => ({
+  useAgentChat: vi.fn(() => ({
+    agent: null,
+    isAgentChat: true,
+    isCeoAgent: true,
+    threadId: 't1',
+    messages: [],
+    send: vi.fn(),
+    isSending: false,
+    isLoading: false,
+    bootstrapStatus: 'collecting-context' as const,
+    aiValidation: mockValidationData,
+    hasNoProvider: !!(mockValidationData && !mockValidationData.configured),
+    inputDisabled: !!(mockValidationData && !mockValidationData.configured),
+    thinkingStartTime: undefined,
+    lastThinkingDurationMs: undefined,
+  })),
+}))
+
+// --- LCP agents hook ---
+vi.mock('@/hooks/use-lcp-agents', () => ({
+  useLcpAgent: vi.fn(() => ({ data: null, isLoading: false })),
+}))
+
 // --- Bootstrap conversation hooks ---
 vi.mock('@/hooks/use-bootstrap-conversation', () => ({
   useBootstrapConversation: vi.fn(() => ({
@@ -85,7 +110,7 @@ vi.mock('@/hooks/use-permissions', () => ({
   usePermission: vi.fn(() => true),
 }))
 
-// --- Scope used for all CEO-mode renders ---
+// --- Scope used for all agent-mode renders ---
 const companyScope: ScopeDescriptor = {
   scopeType: 'company',
   entityId: null,
@@ -113,7 +138,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -128,7 +153,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -147,7 +172,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -165,7 +190,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -184,7 +209,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -199,7 +224,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -214,7 +239,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -233,7 +258,7 @@ describe('CEO chat — no-provider-warning banner', () => {
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
@@ -242,21 +267,21 @@ describe('CEO chat — no-provider-warning banner', () => {
     expect(screen.queryByTestId('no-provider-warning')).toBeNull()
   })
 
-  // --- CEO mode status bar is always rendered ---
+  // --- Agent mode status bar is always rendered ---
 
-  it('renders the CEO Agent status bar regardless of provider state', () => {
+  it('renders the Agent status bar regardless of provider state', () => {
     mockValidationData = { providerId: 'claude-max', configured: false }
 
     render(
       <ChatConversationContent
         projectId="p1"
-        chatMode="ceo"
+        agentId="ceo-agent-1"
         currentScope={companyScope}
       />,
       { wrapper: Wrapper },
     )
 
-    expect(screen.getByText('CEO Agent')).toBeDefined()
-    expect(screen.getByTestId('ceo-chat-content')).toBeDefined()
+    expect(screen.getByText('Agent')).toBeDefined()
+    expect(screen.getByTestId('agent-chat-content')).toBeDefined()
   })
 })

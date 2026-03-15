@@ -53,7 +53,7 @@ export function ChatThreadsPanel({ projectId }: ChatThreadsPanelProps) {
       })
     }
     // Open chat as center view (VSR-008)
-    openChatView(thread.id, 'generic')
+    openChatView(thread.id)
   }
 
   const formatTime = (iso: string | null) => {

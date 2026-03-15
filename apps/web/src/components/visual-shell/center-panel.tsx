@@ -27,9 +27,9 @@ export function CenterPanel({ canvasContent }: CenterPanelProps) {
   useEffect(() => {
     if (phase === 'seed' && centerView.type !== 'chat' && !seedChatAutoOpened) {
       markSeedChatAutoOpened()
-      openChatView(null, 'ceo')
+      openChatView(null, bootstrapStatus?.ceoAgentId ?? undefined)
     }
-  }, [phase, centerView.type, openChatView, seedChatAutoOpened, markSeedChatAutoOpened])
+  }, [phase, centerView.type, openChatView, seedChatAutoOpened, markSeedChatAutoOpened, bootstrapStatus?.ceoAgentId])
 
   switch (centerView.type) {
     case 'chat':

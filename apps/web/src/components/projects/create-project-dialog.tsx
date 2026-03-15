@@ -26,19 +26,21 @@ export function CreateProjectForm() {
       { name: name.trim(), description: description.trim() },
       {
         onSuccess: async (project) => {
+          let ceoAgentId: string | undefined
           try {
-            await bootstrapApi.bootstrap(project.id, {
+            const result = await bootstrapApi.bootstrap(project.id, {
               name: name.trim(),
               mission: description.trim(),
               companyType: 'startup',
             })
+            ceoAgentId = result.ceoAgentId
           } catch {
             // Bootstrap failure is non-fatal; the org page will detect
             // an unbootstrapped project and can retry.
           }
 
           // Open chat as center view so the CEO conversation is visible on landing (VSR-008)
-          useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+          useVisualWorkspaceStore.getState().openChatView(null, ceoAgentId)
 
           navigate({ to: '/projects/$projectSlug/org', params: { projectSlug: slugify(project.name) } })
         },

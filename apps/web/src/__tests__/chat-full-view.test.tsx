@@ -24,11 +24,9 @@ vi.mock('@/hooks/use-permissions', () => ({
   usePermission: vi.fn(() => true),
 }))
 
-let mockBootstrapPhase: string | undefined = 'seed'
-
 vi.mock('@/hooks/use-bootstrap', () => ({
   useBootstrapStatus: vi.fn(() => ({
-    data: mockBootstrapPhase ? { maturityPhase: mockBootstrapPhase } : undefined,
+    data: { ceoAgentId: 'ceo-agent-1' },
   })),
   useBootstrapProject: vi.fn(() => ({ mutate: vi.fn() })),
 }))
@@ -45,6 +43,29 @@ vi.mock('@/hooks/use-bootstrap-conversation', () => ({
   useRejectGrowthProposal: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
+vi.mock('@/hooks/use-agent-chat', () => ({
+  useAgentChat: vi.fn(() => ({
+    agent: null,
+    isAgentChat: true,
+    isCeoAgent: true,
+    threadId: 't1',
+    messages: mockMessages,
+    send: vi.fn(),
+    isSending: false,
+    isLoading: false,
+    bootstrapStatus: 'collecting-context' as const,
+    aiValidation: undefined,
+    hasNoProvider: false,
+    inputDisabled: false,
+    thinkingStartTime: undefined,
+    lastThinkingDurationMs: undefined,
+  })),
+}))
+
+vi.mock('@/hooks/use-lcp-agents', () => ({
+  useLcpAgent: vi.fn(() => ({ data: null, isLoading: false })),
+}))
+
 function Wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
@@ -53,11 +74,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 describe('ChatFullView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockBootstrapPhase = 'seed'
     useVisualWorkspaceStore.setState({
       projectId: 'p1',
       currentScope: { scopeType: 'company', entityId: null, zoomLevel: 'L1' },
-      centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+      centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
     })
   })
 
@@ -66,34 +86,15 @@ describe('ChatFullView', () => {
     expect(screen.getByTestId('chat-full-view')).toBeDefined()
   })
 
-  it('renders CEO mode when centerView specifies ceo', () => {
+  it('renders agent mode when centerView specifies agentId', () => {
     render(<ChatFullView />, { wrapper: Wrapper })
-    expect(screen.getByTestId('ceo-chat-content')).toBeDefined()
-    expect(screen.getByText('CEO Agent')).toBeDefined()
+    expect(screen.getByTestId('agent-chat-content')).toBeDefined()
+    expect(screen.getByText('Agent')).toBeDefined()
   })
 
-  it('renders generic mode when phase is mature and centerView is generic', () => {
-    mockBootstrapPhase = 'growth'
+  it('renders generic mode when centerView has no agentId', () => {
     useVisualWorkspaceStore.setState({
-      centerView: { type: 'chat', threadId: null, chatMode: 'generic' },
-    })
-    render(<ChatFullView />, { wrapper: Wrapper })
-    expect(screen.getByTestId('generic-chat-content')).toBeDefined()
-  })
-
-  it('falls back to ceo mode for seed phase when centerView has no chatMode', () => {
-    mockBootstrapPhase = 'seed'
-    useVisualWorkspaceStore.setState({
-      centerView: { type: 'canvas' },
-    })
-    render(<ChatFullView />, { wrapper: Wrapper })
-    expect(screen.getByTestId('ceo-chat-content')).toBeDefined()
-  })
-
-  it('falls back to generic mode for non-seed phase', () => {
-    mockBootstrapPhase = 'growth'
-    useVisualWorkspaceStore.setState({
-      centerView: { type: 'canvas' },
+      centerView: { type: 'chat', threadId: null },
     })
     render(<ChatFullView />, { wrapper: Wrapper })
     expect(screen.getByTestId('generic-chat-content')).toBeDefined()

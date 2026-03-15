@@ -1,15 +1,18 @@
 # TheCrew
 
-TheCrew ha completado el pivot **Live Company**, la fase **AI Runtime Enablement**, y está en la fase **Visual Shell Redesign**:
+TheCrew ha completado el pivot **Live Company**, la fase **AI Runtime Enablement**, la fase **Visual Shell Redesign**, y está en la fase **Documentation, Context & Entity Workspace**:
 
 ## Estado actual
 
 La fase AI Runtime Enablement (Epics 59–65, 67) está **completada**.
-La fase Visual Shell Redesign (Epics 69–72) está **en progreso**:
-- 🔄 Dynamic center view infrastructure (Epic 69)
-- ⏳ Chat as center view (Epic 70)
-- ⏳ Document editor as center view (Epic 71)
-- ⏳ Shell polish & navigation (Epic 72)
+La fase Visual Shell Redesign (Epics 69–72) está **completada**.
+La fase Documentation, Context & Entity Workspace (Epics 74A–74J) está **en progreso**:
+- ⏳ Hierarchical document model (Epic 74A)
+- ⏳ Document tree en Explorer (Epic 74B)
+- ⏳ Wiki-links en markdown (Epic 74C)
+- ⏳ Sistema de contexto de agentes (Epic 74D)
+- ⏳ Entity Workspace (Epic 74E)
+- ⏳ Backlinks computados (Epic 74J)
 
 ## Arquitectura de comunicacion (OBLIGATORIO)
 
@@ -65,12 +68,15 @@ web-admin (React)
 ## Documentos canonicos de la fase activa
 Claude debe tratar como fuente de verdad principal:
 
-- `docs/69-visual-shell-redesign-spec.md` (spec completa)
-- `docs/70-visual-shell-backlog-v7.md` (backlog epics 69-72)
-- `docs/71-visual-shell-task-registry.md` (task registry VSR)
+- `docs/74-documentation-context-system-spec.md` (spec completa)
+- `docs/75-documentation-context-backlog.md` (backlog epics 74A-74J)
+- `docs/76-documentation-context-task-registry.md` (task registry DCS)
 - `docs/73-redis-streams-cqrs-architecture-adr.md` (ADR arquitectura Redis Streams + CQRS)
 
 ## Documentos canonicos de fases anteriores
+- `docs/69-visual-shell-redesign-spec.md` (spec VSR, completada)
+- `docs/70-visual-shell-backlog-v7.md` (backlog VSR, completado)
+- `docs/71-visual-shell-task-registry.md` (task registry VSR, completado)
 - `docs/57-ai-runtime-epic-decision.md`
 - `docs/58-ai-runtime-gap-analysis.md`
 - `docs/59-ceo-interactive-bootstrap-runtime-spec.md`
@@ -103,10 +109,10 @@ Para esta fase:
   - Claude Code corre dentro de contenedores Docker para tareas acotadas
 
 ## Flujo con Claude Code
-- `/tc-next` debe priorizar `docs/71-visual-shell-task-registry.md`
-- `/tc-run <task-id>` debe resolver primero en `docs/71-visual-shell-task-registry.md`, luego en registries anteriores
+- `/tc-next` debe priorizar `docs/76-documentation-context-task-registry.md`
+- `/tc-run <task-id>` debe resolver primero en `docs/76-documentation-context-task-registry.md`, luego en registries anteriores
 - una tarea por sesion cuando sea posible
-- si una tarea toca visual shell, sincronizar con `docs/69-visual-shell-redesign-spec.md`
+- si una tarea toca visual shell, sincronizar con `docs/74-documentation-context-system-spec.md`
 
 ## Regla de honestidad tecnica
 - si una parte depende de limitaciones del runtime de Claude Code, dejarlo explicito

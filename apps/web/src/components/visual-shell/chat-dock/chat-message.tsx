@@ -3,13 +3,16 @@ import { cn } from '@/lib/utils'
 import { EntityRefChip } from './entity-ref-chip'
 import { ActionButton } from './action-button'
 import { renderWithDocLinks } from './document-link'
+import { MarkdownContent } from './markdown-content'
+import { ThinkingDurationBadge } from './thinking-bubble'
 
 interface ChatMessageProps {
   message: ChatMessageDto
   projectId: string
+  thinkingDurationMs?: number
 }
 
-export function ChatMessageBubble({ message, projectId }: ChatMessageProps) {
+export function ChatMessageBubble({ message, projectId, thinkingDurationMs }: ChatMessageProps) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
 
@@ -31,7 +34,14 @@ export function ChatMessageBubble({ message, projectId }: ChatMessageProps) {
           isSystem && 'bg-transparent text-center text-xs italic text-muted-foreground',
         )}
       >
-        <p className="whitespace-pre-wrap">{renderWithDocLinks(message.content, projectId)}</p>
+        {message.role === 'assistant' && thinkingDurationMs != null && (
+          <ThinkingDurationBadge durationMs={thinkingDurationMs} />
+        )}
+        {message.role === 'assistant' ? (
+          <MarkdownContent content={message.content} projectId={projectId} />
+        ) : (
+          <p className="whitespace-pre-wrap">{renderWithDocLinks(message.content, projectId)}</p>
+        )}
         {message.entityRefs.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
             {message.entityRefs.map((entityRef) => (

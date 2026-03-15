@@ -47,6 +47,7 @@
     "canvas": "Canvas",
     "chat": "Chat",
     "ceoChat": "CEO",
+    "agentChat": "Agent Chat",
     "document": "Document"
   }
 }

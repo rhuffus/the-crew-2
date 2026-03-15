@@ -1,6 +1,8 @@
-import { type ReactNode, useState, useCallback, useEffect } from 'react'
+import { type ReactNode, useState, useCallback, useEffect, useRef } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
+import { useQueryClient } from '@tanstack/react-query'
 import type { VisualNodeDto, VisualEdgeDto, NodeType, EdgeType, VisualDiffSummary } from '@the-crew/shared-types'
+import type { BootstrapStatus } from '@/lib/bootstrap-api'
 import { useVisualWorkspaceStore } from '@/stores/visual-workspace-store'
 import { useBeforeUnload } from '@/hooks/use-before-unload'
 import { TopBar } from './top-bar'
@@ -44,6 +46,10 @@ export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onN
   useBeforeUnload(isPending)
 
   // Center view keyboard shortcuts (VSR-017): Cmd/Ctrl + 1/2/3
+  const queryClient = useQueryClient()
+  const queryClientRef = useRef(queryClient)
+  queryClientRef.current = queryClient
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return
@@ -60,10 +66,18 @@ export function VisualShell({ children, graphNodes, graphEdges, diffSummary, onN
           e.preventDefault()
           state.openCanvasView()
           break
-        case '2':
+        case '2': {
           e.preventDefault()
-          state.openChatView(null, 'ceo')
+          let ceoAgentId: string | undefined
+          if (state.projectId) {
+            const cached = queryClientRef.current.getQueryData<BootstrapStatus>(
+              ['bootstrap', 'status', state.projectId],
+            )
+            ceoAgentId = cached?.ceoAgentId ?? undefined
+          }
+          state.openChatView(null, ceoAgentId)
           break
+        }
         case '3': {
           e.preventDefault()
           if (state.centerView.type === 'document') return

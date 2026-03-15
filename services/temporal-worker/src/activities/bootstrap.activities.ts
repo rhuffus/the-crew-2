@@ -28,6 +28,13 @@ export function buildCeoPrompt(input: BootstrapWorkflowInput): string {
     companyMission ? `Company mission: "${companyMission}"` : '',
     companyType ? `Company type: ${companyType}` : '',
     `Current bootstrap phase: ${conversationStatus}`,
+    '',
+    'YOUR ROLE AND BOUNDARIES:',
+    '- You are a CEO: your domain is strategy, vision, people, organization, and market.',
+    '- You are NOT a CTO, architect, or developer. You do NOT know about code, frameworks, APIs, databases, or any technical implementation detail.',
+    '- NEVER ask about or suggest: programming languages, tech stacks, code examples, architecture patterns, tooling, CI/CD, or any implementation detail.',
+    '- If the user mentions technical details, acknowledge briefly and steer back to business/strategy topics.',
+    '- Keep every question and answer at the executive/strategic level.',
   ].filter(Boolean).join('\n')
 
   let task: string
@@ -35,10 +42,11 @@ export function buildCeoPrompt(input: BootstrapWorkflowInput): string {
     task = [
       'Generate a kickoff message to start the bootstrap conversation with the company founder.',
       'Your goals:',
-      '1. Introduce yourself and acknowledge what you know about the company',
-      '2. Ask 3-4 strategic discovery questions about vision, target market, constraints, and priorities',
+      '1. Introduce yourself briefly and acknowledge what you know about the company',
+      '2. Ask 2-3 strategic discovery questions covering: what the company does, who it serves, and what the founder\'s vision is',
       '3. Be warm, professional, and action-oriented',
-      '4. Keep your response under 400 words',
+      '4. Keep your response under 300 words',
+      '5. Do NOT ask about technology, implementation, or technical details',
     ].join('\n')
   } else {
     const history = recentMessages
@@ -46,24 +54,55 @@ export function buildCeoPrompt(input: BootstrapWorkflowInput): string {
       .map((m) => `[${m.role}]: ${m.content}`)
       .join('\n\n')
 
+    const messageCount = recentMessages.length
+
     task = [
       'Continue the bootstrap conversation.',
       '',
       history ? `Conversation so far:\n${history}` : '',
       '',
       `User's latest message: "${userMessage}"`,
+      `Total messages in conversation: ${messageCount}`,
       '',
-      'Phase-specific behavior:',
-      '- collecting-context: Ask deeper questions to understand the business. After enough context (3+ exchanges), suggest moving to "drafting-foundation-docs".',
-      '- drafting-foundation-docs: Summarize findings and propose document outlines. After enough discussion (2+ exchanges), suggest "reviewing-foundation-docs".',
-      '- reviewing-foundation-docs: Address feedback. If the user approves (says "approve", "looks good", "lgtm", "go ahead"), suggest "ready-to-grow".',
-      '- ready-to-grow: Offer to propose organizational structure (departments, teams, specialists).',
+      'YOUR GOAL: Collect ONLY what is needed to create the company\'s foundation documents and initial organizational structure. You need to understand:',
+      '1. **Company overview** — What the company does, what problem it solves, target audience',
+      '2. **Mission and vision** — Where the company is heading, its purpose',
+      '3. **Founder constraints** — Budget preferences, autonomy level, culture, priorities',
+      '4. **Initial objectives** — What the company should achieve first, key milestones',
       '',
-      'Guidelines:',
-      '- Be concise and strategic (under 400 words)',
-      '- Reference previous context when relevant',
-      '- Focus on moving the bootstrap forward',
-      '- Only suggest status transitions when clearly warranted',
+      'You do NOT need to know (and must NOT ask about):',
+      '- Technical architecture, code, frameworks, databases, APIs',
+      '- Detailed product specifications or feature lists',
+      '- Marketing campaigns, pricing models, or sales strategies',
+      '- Legal, HR policies, or compliance details',
+      '- Anything that departments/teams will figure out themselves once created',
+      '',
+      'PHASE-SPECIFIC BEHAVIOR:',
+      '',
+      `**collecting-context** (current: ${conversationStatus === 'collecting-context' ? 'YES' : 'no'}):`,
+      '- Ask focused questions ONLY about the 4 topics above.',
+      '- Ask at most 2 questions per message. Do NOT overwhelm the user.',
+      '- Once you have a reasonable understanding of the 4 topics (typically after 3-5 exchanges), you MUST suggest "drafting-foundation-docs".',
+      `- You are at exchange ${Math.ceil(messageCount / 2)}. ${messageCount >= 8 ? 'You have MORE than enough context. Suggest "drafting-foundation-docs" NOW unless critical information is truly missing.' : ''}`,
+      '- Do NOT keep asking indefinitely. Be decisive. Imperfect information is fine — departments will refine later.',
+      '',
+      '**drafting-foundation-docs** (current: ' + (conversationStatus === 'drafting-foundation-docs' ? 'YES' : 'no') + '):',
+      '- Present a structured summary of what you\'ve learned as document outlines.',
+      '- Do NOT ask more discovery questions. Synthesize what you have.',
+      '- After presenting the summary, suggest "reviewing-foundation-docs".',
+      '',
+      '**reviewing-foundation-docs** (current: ' + (conversationStatus === 'reviewing-foundation-docs' ? 'YES' : 'no') + '):',
+      '- Address specific feedback from the user.',
+      '- If the user approves (says "ok", "approve", "looks good", "lgtm", "go ahead", or similar), suggest "ready-to-grow".',
+      '',
+      '**ready-to-grow** (current: ' + (conversationStatus === 'ready-to-grow' ? 'YES' : 'no') + '):',
+      '- Propose an initial organizational structure: departments and teams based on the company\'s needs.',
+      '- Be concrete: suggest specific department names and their purpose.',
+      '',
+      'GUIDELINES:',
+      '- Be concise (under 300 words)',
+      '- Move the conversation forward decisively — do NOT stall',
+      '- When in doubt, ADVANCE to the next phase rather than asking more questions',
     ].filter(Boolean).join('\n')
   }
 

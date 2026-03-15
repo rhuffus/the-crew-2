@@ -26,7 +26,7 @@ function CenterViewIndicator({ projectId }: { projectId: string }) {
   }
 
   if (centerView.type === 'chat') {
-    const label = centerView.chatMode === 'ceo' ? t('centerView.ceoChat') : t('centerView.chat')
+    const label = centerView.agentId ? t('centerView.agentChat') : t('centerView.chat')
     return (
       <span data-testid="center-view-indicator" className="ml-3 flex items-center gap-1.5 border-l border-border pl-3">
         <MessageSquare className="h-3.5 w-3.5 text-primary" />

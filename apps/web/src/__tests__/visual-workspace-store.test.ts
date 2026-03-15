@@ -466,21 +466,21 @@ describe('visual workspace store', () => {
     })
 
     it('should open chat view', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       const state = useVisualWorkspaceStore.getState()
-      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, agentId: 'ceo-agent-1' })
     })
 
     it('should open chat view with defaults', () => {
       useVisualWorkspaceStore.getState().openChatView()
       const state = useVisualWorkspaceStore.getState()
-      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null })
     })
 
-    it('should open chat view with thread id and generic mode', () => {
-      useVisualWorkspaceStore.getState().openChatView('thread-1', 'generic')
+    it('should open chat view with thread id', () => {
+      useVisualWorkspaceStore.getState().openChatView('thread-1')
       const state = useVisualWorkspaceStore.getState()
-      expect(state.centerView).toEqual({ type: 'chat', threadId: 'thread-1', chatMode: 'generic' })
+      expect(state.centerView).toEqual({ type: 'chat', threadId: 'thread-1' })
     })
 
     it('should open document view', () => {
@@ -490,7 +490,7 @@ describe('visual workspace store', () => {
     })
 
     it('should open canvas view', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       useVisualWorkspaceStore.getState().openCanvasView()
       const state = useVisualWorkspaceStore.getState()
       expect(state.centerView).toEqual({ type: 'canvas' })
@@ -504,27 +504,27 @@ describe('visual workspace store', () => {
 
     // History
     it('should push to history when changing view type', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       const state = useVisualWorkspaceStore.getState()
       expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
     })
 
     it('should not push to history when staying on same view type', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
-      useVisualWorkspaceStore.getState().openChatView('thread-2', 'generic')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
+      useVisualWorkspaceStore.getState().openChatView('thread-2')
       const state = useVisualWorkspaceStore.getState()
       // Only one history entry (canvas), not two
       expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
     })
 
     it('should build history across different view types', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       useVisualWorkspaceStore.getState().openDocumentView('doc-1')
       useVisualWorkspaceStore.getState().openCanvasView()
       const state = useVisualWorkspaceStore.getState()
       expect(state.centerViewHistory).toEqual([
         { type: 'canvas' },
-        { type: 'chat', threadId: null, chatMode: 'ceo' },
+        { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         { type: 'document', documentId: 'doc-1' },
       ])
     })
@@ -532,7 +532,7 @@ describe('visual workspace store', () => {
     it('should limit history to 20 entries', () => {
       for (let i = 0; i < 25; i++) {
         if (i % 2 === 0) {
-          useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+          useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
         } else {
           useVisualWorkspaceStore.getState().openCanvasView()
         }
@@ -542,11 +542,11 @@ describe('visual workspace store', () => {
 
     // goBackCenterView
     it('should go back to previous view', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       useVisualWorkspaceStore.getState().openDocumentView('doc-1')
       useVisualWorkspaceStore.getState().goBackCenterView()
       const state = useVisualWorkspaceStore.getState()
-      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, agentId: 'ceo-agent-1' })
       expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
     })
 
@@ -556,7 +556,7 @@ describe('visual workspace store', () => {
     })
 
     it('should go back to canvas from chat', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       useVisualWorkspaceStore.getState().goBackCenterView()
       const state = useVisualWorkspaceStore.getState()
       expect(state.centerView).toEqual({ type: 'canvas' })

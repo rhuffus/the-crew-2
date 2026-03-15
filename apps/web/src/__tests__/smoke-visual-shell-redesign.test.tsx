@@ -162,6 +162,11 @@ vi.mock('@/stores/runtime-status-store', () => ({
   ),
 }))
 
+vi.mock('@/hooks/use-lcp-agents', () => ({
+  useLcpAgent: vi.fn(() => ({ data: null, isLoading: false })),
+  useLcpAgents: vi.fn(() => ({ data: [], isLoading: false })),
+}))
+
 // ---------------------------------------------------------------------------
 // Mocks — heavy components stubbed for speed
 // ---------------------------------------------------------------------------
@@ -265,9 +270,9 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
     })
 
     it('openChatView transitions to CEO chat', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       const state = useVisualWorkspaceStore.getState()
-      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, agentId: 'ceo-agent-1' })
     })
 
     it('openDocumentView transitions to document', () => {
@@ -277,13 +282,13 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
     })
 
     it('openCanvasView returns to canvas from any view', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       useVisualWorkspaceStore.getState().openCanvasView()
       expect(useVisualWorkspaceStore.getState().centerView).toEqual({ type: 'canvas' })
     })
 
     it('goBackCenterView pops history correctly', () => {
-      useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+      useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       useVisualWorkspaceStore.getState().openDocumentView('doc-smoke-1')
       // history: [canvas, chat] — current: document
       useVisualWorkspaceStore.getState().goBackCenterView()
@@ -293,7 +298,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
 
     it('full round-trip: canvas → chat → document → back → back → canvas', () => {
       const { getState } = useVisualWorkspaceStore
-      getState().openChatView(null, 'ceo')
+      getState().openChatView(null, 'ceo-agent-1')
       getState().openDocumentView('doc-smoke-1')
       expect(getState().centerView.type).toBe('document')
 
@@ -307,7 +312,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
     it('history stays within max limit', () => {
       const { getState } = useVisualWorkspaceStore
       for (let i = 0; i < 25; i++) {
-        getState().openChatView(`thread-${i}`, 'generic')
+        getState().openChatView(`thread-${i}`)
       }
       expect(getState().centerViewHistory.length).toBeLessThanOrEqual(20)
     })
@@ -325,7 +330,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
     })
 
     it('renders chat-full-view for chat view', () => {
-      resetStore({ centerView: { type: 'chat', threadId: null, chatMode: 'ceo' } })
+      resetStore({ centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' } })
       render(<CenterPanel />, { wrapper: Wrapper })
       expect(screen.getByTestId('chat-full-view')).toBeDefined()
       expect(screen.queryByTestId('canvas-viewport')).toBeNull()
@@ -345,7 +350,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
       expect(screen.getByTestId('canvas-viewport')).toBeDefined()
 
       act(() => {
-        useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+        useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       })
       expect(screen.getByTestId('chat-full-view')).toBeDefined()
 
@@ -369,10 +374,10 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
       expect(screen.queryByTestId('document-inspector-panel')).toBeNull()
     })
 
-    it('shows ChatInspectorPanel when center is chat', () => {
-      resetStore({ centerView: { type: 'chat', threadId: null, chatMode: 'ceo' } })
+    it('shows AgentChatInspectorPanel when center is chat with agentId', () => {
+      resetStore({ centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' } })
       render(<Inspector />, { wrapper: Wrapper })
-      expect(screen.getByTestId('chat-inspector-panel')).toBeDefined()
+      expect(screen.getByTestId('agent-chat-inspector-panel')).toBeDefined()
       expect(screen.queryByTestId('canvas-summary')).toBeNull()
       expect(screen.queryByTestId('document-inspector-panel')).toBeNull()
     })
@@ -382,7 +387,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
       render(<Inspector />, { wrapper: Wrapper })
       expect(screen.getByTestId('document-inspector-panel')).toBeDefined()
       expect(screen.queryByTestId('canvas-summary')).toBeNull()
-      expect(screen.queryByTestId('chat-inspector-panel')).toBeNull()
+      expect(screen.queryByTestId('agent-chat-inspector-panel')).toBeNull()
     })
 
     it('Inspector transitions reactively with store changes', () => {
@@ -390,9 +395,9 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
       expect(screen.getByTestId('canvas-summary')).toBeDefined()
 
       act(() => {
-        useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+        useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       })
-      expect(screen.getByTestId('chat-inspector-panel')).toBeDefined()
+      expect(screen.getByTestId('agent-chat-inspector-panel')).toBeDefined()
 
       act(() => {
         useVisualWorkspaceStore.getState().openDocumentView('doc-smoke-1')
@@ -424,7 +429,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
       render(<VisualShell />, { wrapper: Wrapper })
 
       act(() => {
-        useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+        useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       })
       expect(screen.getByTestId('center-view-back-button')).toBeDefined()
     })
@@ -433,7 +438,7 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
       render(<VisualShell />, { wrapper: Wrapper })
 
       act(() => {
-        useVisualWorkspaceStore.getState().openChatView(null, 'ceo')
+        useVisualWorkspaceStore.getState().openChatView(null, 'ceo-agent-1')
       })
       act(() => {
         useVisualWorkspaceStore.getState().openDocumentView('doc-smoke-1')
@@ -457,20 +462,17 @@ describe('VSR-019: Visual Shell Redesign Smoke Tests', () => {
   // -----------------------------------------------------------------------
   describe('Keyboard shortcuts switch center views', () => {
     it('Cmd+1 switches to canvas from chat', () => {
-      resetStore({ centerView: { type: 'chat', threadId: null, chatMode: 'ceo' } })
+      resetStore({ centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' } })
       render(<VisualShell />, { wrapper: Wrapper })
       pressKey('1', { metaKey: true })
       expect(useVisualWorkspaceStore.getState().centerView.type).toBe('canvas')
     })
 
-    it('Cmd+2 switches to CEO chat from canvas', () => {
+    it('Cmd+2 switches to chat from canvas', () => {
       render(<VisualShell />, { wrapper: Wrapper })
       pressKey('2', { metaKey: true })
       const state = useVisualWorkspaceStore.getState()
       expect(state.centerView.type).toBe('chat')
-      if (state.centerView.type === 'chat') {
-        expect(state.centerView.chatMode).toBe('ceo')
-      }
     })
 
     it('Cmd+3 navigates to last document in history', () => {

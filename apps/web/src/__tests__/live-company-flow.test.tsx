@@ -17,7 +17,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 // Mock bootstrap status hook
-const mockBootstrapStatus = vi.fn().mockReturnValue({ data: null })
+const mockBootstrapStatus = vi.fn().mockReturnValue({ data: { ceoAgentId: 'ceo-agent-1' } })
 vi.mock('@/hooks/use-bootstrap', () => ({
   useBootstrapStatus: (...args: unknown[]) => mockBootstrapStatus(...args),
   useBootstrapProject: () => ({ mutate: vi.fn(), isPending: false }),
@@ -62,6 +62,33 @@ vi.mock('@/hooks/use-chat', () => ({
 vi.mock('@/hooks/use-growth', () => ({
   useOrgHealth: () => ({ data: null }),
   usePhaseCapabilities: () => ({ data: null }),
+}))
+
+// Mock agent chat hook (used by ChatConversationContent in agent mode)
+vi.mock('@/hooks/use-agent-chat', () => ({
+  useAgentChat: vi.fn(({ agentId }: { agentId?: string }) => {
+    const conv = mockBootstrapConversation()
+    return {
+      agent: undefined,
+      isAgentChat: !!agentId,
+      isCeoAgent: !!agentId,
+      threadId: conv.data?.threadId ?? 'thread-1',
+      messages: mockChatMessages().data ?? [],
+      send: vi.fn(),
+      isSending: false,
+      isLoading: false,
+      bootstrapStatus: (conv.data?.status ?? 'not-started') as any,
+      aiValidation: undefined,
+      hasNoProvider: false,
+      inputDisabled: false,
+      thinkingStartTime: undefined,
+      lastThinkingDurationMs: undefined,
+    }
+  }),
+}))
+
+vi.mock('@/hooks/use-lcp-agents', () => ({
+  useLcpAgent: vi.fn(() => ({ data: null, isLoading: false })),
 }))
 
 function createQueryClient() {
@@ -118,7 +145,7 @@ describe('CeoConversationDock', () => {
       </QueryClientProvider>,
     )
     expect(screen.getByTestId('ceo-conversation-dock')).toBeInTheDocument()
-    expect(screen.getByText('CEO Agent')).toBeInTheDocument()
+    expect(screen.getByText('Agent')).toBeInTheDocument()
   })
 
   it('should show status indicator', () => {

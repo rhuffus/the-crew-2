@@ -75,6 +75,29 @@ vi.mock('@/hooks/use-bootstrap-conversation', () => ({
   })),
 }))
 
+vi.mock('@/hooks/use-agent-chat', () => ({
+  useAgentChat: vi.fn(() => ({
+    agent: undefined,
+    isAgentChat: true,
+    isCeoAgent: true,
+    threadId: 't1',
+    messages: mockMessages as any,
+    send: mockSendBootstrap,
+    isSending: false,
+    isLoading: false,
+    bootstrapStatus: 'collecting-context' as const,
+    aiValidation: undefined,
+    hasNoProvider: false,
+    inputDisabled: false,
+    thinkingStartTime: undefined,
+    lastThinkingDurationMs: undefined,
+  })),
+}))
+
+vi.mock('@/hooks/use-lcp-agents', () => ({
+  useLcpAgent: vi.fn(() => ({ data: null, isLoading: false })),
+}))
+
 const companyScope: ScopeDescriptor = { scopeType: 'company', entityId: null, zoomLevel: 'L1' }
 const deptScope: ScopeDescriptor = { scopeType: 'department', entityId: 'd1', zoomLevel: 'L2' }
 
@@ -92,7 +115,7 @@ describe('ChatConversationContent — generic mode', () => {
 
   it('renders generic chat content with messages', () => {
     render(
-      <ChatConversationContent projectId="p1" chatMode="generic" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     expect(screen.getByTestId('generic-chat-content')).toBeDefined()
@@ -102,7 +125,7 @@ describe('ChatConversationContent — generic mode', () => {
 
   it('renders chat input in generic mode', () => {
     render(
-      <ChatConversationContent projectId="p1" chatMode="generic" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     expect(screen.getByTestId('chat-input')).toBeDefined()
@@ -110,7 +133,7 @@ describe('ChatConversationContent — generic mode', () => {
 
   it('sends message on Enter in generic mode', () => {
     render(
-      <ChatConversationContent projectId="p1" chatMode="generic" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     const textarea = screen.getByPlaceholderText('Type a message...')
@@ -126,7 +149,7 @@ describe('ChatConversationContent — generic mode', () => {
     mockPerm.mockImplementation((perm: string) => perm === 'chat:read')
 
     render(
-      <ChatConversationContent projectId="p1" chatMode="generic" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     expect(screen.getByTestId('chat-read-only')).toBeDefined()
@@ -141,7 +164,7 @@ describe('ChatConversationContent — generic mode', () => {
     mockPerm.mockReturnValue(false)
 
     const { container } = render(
-      <ChatConversationContent projectId="p1" chatMode="generic" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     expect(container.querySelector('[data-testid="generic-chat-content"]')).toBeNull()
@@ -151,7 +174,7 @@ describe('ChatConversationContent — generic mode', () => {
 
   it('works with department scope', () => {
     render(
-      <ChatConversationContent projectId="p1" chatMode="generic" currentScope={deptScope} />,
+      <ChatConversationContent projectId="p1" currentScope={deptScope} />,
       { wrapper: Wrapper },
     )
     expect(screen.getByTestId('generic-chat-content')).toBeDefined()
@@ -167,68 +190,108 @@ describe('ChatConversationContent — CEO mode', () => {
 
   it('renders CEO chat content with status bar', () => {
     render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" agentId="ceo-agent-1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
-    expect(screen.getByTestId('ceo-chat-content')).toBeDefined()
-    expect(screen.getByText('CEO Agent')).toBeDefined()
+    expect(screen.getByTestId('agent-chat-content')).toBeDefined()
+    expect(screen.getByText('Agent')).toBeDefined()
     expect(screen.getByText('Collecting context')).toBeDefined()
   })
 
   it('renders messages in CEO mode', () => {
     render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" agentId="ceo-agent-1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     expect(screen.getByText('Hello')).toBeDefined()
     expect(screen.getByText('Hi there')).toBeDefined()
   })
 
-  it('sends message via bootstrap mutation in CEO mode', () => {
+  it('sends message via agent chat hook in agent mode', async () => {
+    const mockSendFn = vi.fn()
+    const { useAgentChat } = await import('@/hooks/use-agent-chat')
+    vi.mocked(useAgentChat).mockReturnValue({
+      agent: undefined,
+      isAgentChat: true,
+      isCeoAgent: true,
+      threadId: 't1',
+      messages: mockMessages as any,
+      send: mockSendFn,
+      isSending: false,
+      isLoading: false,
+      bootstrapStatus: 'collecting-context' as any,
+      aiValidation: undefined,
+      hasNoProvider: false,
+      inputDisabled: false,
+      thinkingStartTime: undefined,
+      lastThinkingDurationMs: undefined,
+    })
     render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" agentId="ceo-agent-1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     const textarea = screen.getByPlaceholderText('Type a message...')
     fireEvent.change(textarea, { target: { value: 'CEO message' } })
     fireEvent.keyDown(textarea, { key: 'Enter' })
-    expect(mockSendBootstrap).toHaveBeenCalledWith('CEO message')
+    expect(mockSendFn).toHaveBeenCalledWith('CEO message')
+    // Restore default
+    vi.mocked(useAgentChat).mockReturnValue({
+      agent: undefined,
+      isAgentChat: true,
+      isCeoAgent: true,
+      threadId: 't1',
+      messages: mockMessages as any,
+      send: mockSendBootstrap,
+      isSending: false,
+      isLoading: false,
+      bootstrapStatus: 'collecting-context' as any,
+      aiValidation: undefined,
+      hasNoProvider: false,
+      inputDisabled: false,
+      thinkingStartTime: undefined,
+      lastThinkingDurationMs: undefined,
+    })
   })
 
-  it('shows growth button when ready-to-grow', () => {
-    mockConversationData = { status: 'ready-to-grow', threadId: 't1' }
+  it('shows not-started status when no conversation', async () => {
+    const { useAgentChat } = await import('@/hooks/use-agent-chat')
+    vi.mocked(useAgentChat).mockReturnValue({
+      agent: undefined,
+      isAgentChat: true,
+      isCeoAgent: true,
+      threadId: undefined,
+      messages: [],
+      send: vi.fn(),
+      isSending: false,
+      isLoading: false,
+      bootstrapStatus: 'not-started' as any,
+      aiValidation: undefined,
+      hasNoProvider: false,
+      inputDisabled: true,
+      thinkingStartTime: undefined,
+      lastThinkingDurationMs: undefined,
+    })
     render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
-      { wrapper: Wrapper },
-    )
-    expect(screen.getByTestId('ceo-propose-growth-btn')).toBeDefined()
-  })
-
-  it('does not show growth button when collecting-context', () => {
-    mockConversationData = { status: 'collecting-context', threadId: 't1' }
-    render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
-      { wrapper: Wrapper },
-    )
-    expect(screen.queryByTestId('ceo-propose-growth-btn')).toBeNull()
-  })
-
-  it('shows not-started status when no conversation', () => {
-    mockConversationData = undefined
-    render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
+      <ChatConversationContent projectId="p1" agentId="ceo-agent-1" currentScope={companyScope} />,
       { wrapper: Wrapper },
     )
     expect(screen.getByText('Not started')).toBeDefined()
-  })
-
-  it('auto-starts conversation on error', () => {
-    mockConversationData = undefined
-    mockConversationError = true
-    render(
-      <ChatConversationContent projectId="p1" chatMode="ceo" currentScope={companyScope} />,
-      { wrapper: Wrapper },
-    )
-    expect(mockStartBootstrap).toHaveBeenCalled()
+    // Restore default
+    vi.mocked(useAgentChat).mockReturnValue({
+      agent: undefined,
+      isAgentChat: true,
+      isCeoAgent: true,
+      threadId: 't1',
+      messages: mockMessages as any,
+      send: mockSendBootstrap,
+      isSending: false,
+      isLoading: false,
+      bootstrapStatus: 'collecting-context' as any,
+      aiValidation: undefined,
+      hasNoProvider: false,
+      inputDisabled: false,
+      thinkingStartTime: undefined,
+      lastThinkingDurationMs: undefined,
+    })
   })
 })

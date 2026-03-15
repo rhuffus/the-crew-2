@@ -67,3 +67,64 @@
 .react-flow__node.draggable:not(.dragging) {
   cursor: pointer;
 }
+
+/* Chat markdown styles — compact prose for chat bubbles */
+.chat-markdown {
+  @apply text-sm leading-relaxed;
+}
+.chat-markdown > *:first-child {
+  @apply mt-0;
+}
+.chat-markdown > *:last-child {
+  @apply mb-0;
+}
+.chat-markdown p {
+  @apply my-1.5;
+}
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3,
+.chat-markdown h4 {
+  @apply mt-3 mb-1 font-semibold;
+}
+.chat-markdown h1 { @apply text-base; }
+.chat-markdown h2 { @apply text-sm; }
+.chat-markdown h3,
+.chat-markdown h4 { @apply text-sm; }
+.chat-markdown ul,
+.chat-markdown ol {
+  @apply my-1.5 pl-4;
+}
+.chat-markdown ul { @apply list-disc; }
+.chat-markdown ol { @apply list-decimal; }
+.chat-markdown li {
+  @apply my-0.5;
+}
+.chat-markdown code {
+  @apply rounded bg-black/10 px-1 py-0.5 text-xs font-mono;
+}
+.chat-markdown pre {
+  @apply my-2 overflow-x-auto rounded-md bg-black/10 p-2;
+}
+.chat-markdown pre code {
+  @apply bg-transparent p-0;
+}
+.chat-markdown blockquote {
+  @apply my-1.5 border-l-2 border-gray-300 pl-2 italic opacity-80;
+}
+.chat-markdown table {
+  @apply my-2 w-full border-collapse text-xs;
+}
+.chat-markdown th,
+.chat-markdown td {
+  @apply border border-gray-300 px-2 py-1;
+}
+.chat-markdown th {
+  @apply font-semibold;
+}
+.chat-markdown hr {
+  @apply my-2 border-gray-300;
+}
+.chat-markdown a {
+  @apply underline;
+}

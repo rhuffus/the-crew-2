@@ -7,7 +7,7 @@ export type DesignMode = 'design' | 'live'
 // Dynamic center view (VSR-002)
 export type CenterView =
   | { type: 'canvas' }
-  | { type: 'chat'; threadId: string | null; chatMode: 'generic' | 'ceo' }
+  | { type: 'chat'; threadId: string | null; agentId?: string }
   | { type: 'document'; documentId: string }
 
 const DEFAULT_CENTER_VIEW: CenterView = { type: 'canvas' }
@@ -180,7 +180,7 @@ export interface VisualWorkspaceState {
 
   // Dynamic center view actions (VSR-002)
   setCenterView(view: CenterView): void
-  openChatView(threadId?: string | null, chatMode?: 'generic' | 'ceo'): void
+  openChatView(threadId?: string | null, agentId?: string): void
   openDocumentView(documentId: string): void
   openCanvasView(): void
   goBackCenterView(): void
@@ -467,8 +467,8 @@ export const useVisualWorkspaceStore = create<VisualWorkspaceState>((set, get) =
     })
   },
 
-  openChatView(threadId = null, chatMode = 'ceo') {
-    get().setCenterView({ type: 'chat', threadId, chatMode })
+  openChatView(threadId = null, agentId?) {
+    get().setCenterView({ type: 'chat', threadId, agentId })
   },
 
   openDocumentView(documentId) {

@@ -114,30 +114,30 @@ describe('Center view keyboard shortcuts (VSR-017)', () => {
   })
 
   it('Cmd+1 should switch to canvas view', () => {
-    resetStore({ centerView: { type: 'chat', threadId: null, chatMode: 'ceo' } })
+    resetStore({ centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' } })
     render(<VisualShell />, { wrapper: Wrapper })
     pressKey('1', { metaKey: true })
     expect(useVisualWorkspaceStore.getState().centerView).toEqual({ type: 'canvas' })
   })
 
   it('Ctrl+1 should switch to canvas view', () => {
-    resetStore({ centerView: { type: 'chat', threadId: null, chatMode: 'ceo' } })
+    resetStore({ centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' } })
     render(<VisualShell />, { wrapper: Wrapper })
     pressKey('1', { ctrlKey: true })
     expect(useVisualWorkspaceStore.getState().centerView).toEqual({ type: 'canvas' })
   })
 
-  it('Cmd+2 should switch to CEO chat view', () => {
+  it('Cmd+2 should switch to chat view', () => {
     render(<VisualShell />, { wrapper: Wrapper })
     pressKey('2', { metaKey: true })
     const state = useVisualWorkspaceStore.getState()
     expect(state.centerView.type).toBe('chat')
     if (state.centerView.type === 'chat') {
-      expect(state.centerView.chatMode).toBe('ceo')
+      expect(state.centerView.agentId).toBeUndefined()
     }
   })
 
-  it('Ctrl+2 should switch to CEO chat view', () => {
+  it('Ctrl+2 should switch to chat view', () => {
     render(<VisualShell />, { wrapper: Wrapper })
     pressKey('2', { ctrlKey: true })
     const state = useVisualWorkspaceStore.getState()
@@ -148,7 +148,7 @@ describe('Center view keyboard shortcuts (VSR-017)', () => {
     resetStore({
       centerView: { type: 'canvas' },
       centerViewHistory: [
-        { type: 'chat', threadId: null, chatMode: 'ceo' },
+        { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         { type: 'document', documentId: 'doc-42' },
       ],
     })
@@ -164,7 +164,7 @@ describe('Center view keyboard shortcuts (VSR-017)', () => {
   it('Cmd+3 should do nothing when no document in history', () => {
     resetStore({
       centerView: { type: 'canvas' },
-      centerViewHistory: [{ type: 'chat', threadId: null, chatMode: 'ceo' }],
+      centerViewHistory: [{ type: 'chat', threadId: null, agentId: 'ceo-agent-1' }],
     })
     render(<VisualShell />, { wrapper: Wrapper })
     pressKey('3', { metaKey: true })
@@ -184,7 +184,7 @@ describe('Center view keyboard shortcuts (VSR-017)', () => {
 
   it('Cmd+3 should find the most recent document when multiple in history', () => {
     resetStore({
-      centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+      centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
       centerViewHistory: [
         { type: 'document', documentId: 'doc-old' },
         { type: 'canvas' },

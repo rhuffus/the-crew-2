@@ -205,20 +205,20 @@ describe('TopBar', () => {
 
     it('should show Chat label for generic chat view', () => {
       useVisualWorkspaceStore.setState({
-        centerView: { type: 'chat', threadId: 't-1', chatMode: 'generic' },
+        centerView: { type: 'chat', threadId: 't-1' },
       })
       render(<TopBar />)
       const indicator = screen.getByTestId('center-view-indicator')
       expect(indicator.textContent).toBe('Chat')
     })
 
-    it('should show CEO label for ceo chat view', () => {
+    it('should show Agent Chat label for agent chat view', () => {
       useVisualWorkspaceStore.setState({
-        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
       })
       render(<TopBar />)
       const indicator = screen.getByTestId('center-view-indicator')
-      expect(indicator.textContent).toBe('CEO')
+      expect(indicator.textContent).toBe('Agent Chat')
     })
 
     it('should show document title when document data is loaded', () => {
@@ -271,7 +271,7 @@ describe('TopBar', () => {
 
     it('should show back button when history has entries', () => {
       useVisualWorkspaceStore.setState({
-        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         centerViewHistory: [{ type: 'canvas' }],
       })
       render(<TopBar />)
@@ -280,7 +280,7 @@ describe('TopBar', () => {
 
     it('should call goBackCenterView on click', () => {
       useVisualWorkspaceStore.setState({
-        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         centerViewHistory: [{ type: 'canvas' }],
       })
       render(<TopBar />)
@@ -292,7 +292,7 @@ describe('TopBar', () => {
 
     it('should hide back button after navigating back to empty history', () => {
       useVisualWorkspaceStore.setState({
-        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         centerViewHistory: [{ type: 'canvas' }],
       })
       const { rerender } = render(<TopBar />)
@@ -306,19 +306,19 @@ describe('TopBar', () => {
         centerView: { type: 'document', documentId: 'doc-1' },
         centerViewHistory: [
           { type: 'canvas' },
-          { type: 'chat', threadId: null, chatMode: 'ceo' },
+          { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         ],
       })
       render(<TopBar />)
       fireEvent.click(screen.getByTestId('center-view-back-button'))
       const state = useVisualWorkspaceStore.getState()
-      expect(state.centerView).toEqual({ type: 'chat', threadId: null, chatMode: 'ceo' })
+      expect(state.centerView).toEqual({ type: 'chat', threadId: null, agentId: 'ceo-agent-1' })
       expect(state.centerViewHistory).toEqual([{ type: 'canvas' }])
     })
 
     it('should have accessible aria-label', () => {
       useVisualWorkspaceStore.setState({
-        centerView: { type: 'chat', threadId: null, chatMode: 'ceo' },
+        centerView: { type: 'chat', threadId: null, agentId: 'ceo-agent-1' },
         centerViewHistory: [{ type: 'canvas' }],
       })
       render(<TopBar />)

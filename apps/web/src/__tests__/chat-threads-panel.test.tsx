@@ -71,14 +71,14 @@ describe('ChatThreadsPanel', () => {
     render(<ChatThreadsPanel projectId="p1" />, { wrapper: Wrapper })
     fireEvent.click(screen.getByText('Chat: company'))
     const state = useVisualWorkspaceStore.getState()
-    expect(state.centerView).toEqual({ type: 'chat', threadId: 't1', chatMode: 'generic' })
+    expect(state.centerView).toEqual({ type: 'chat', threadId: 't1' })
   })
 
   it('opens chat view for department thread with correct threadId', () => {
     render(<ChatThreadsPanel projectId="p1" />, { wrapper: Wrapper })
     fireEvent.click(screen.getByText('Chat: Engineering'))
     const state = useVisualWorkspaceStore.getState()
-    expect(state.centerView).toEqual({ type: 'chat', threadId: 't2', chatMode: 'generic' })
+    expect(state.centerView).toEqual({ type: 'chat', threadId: 't2' })
   })
 
   it('sorts threads by last message (newest first)', () => {

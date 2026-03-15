@@ -22,6 +22,7 @@ import { EdgeInspector } from './edge-inspector'
 import { MultiSelectSummary } from './multi-select-summary'
 import { CanvasSummary } from './canvas-summary'
 import { ChatInspectorPanel } from './chat-inspector-panel'
+import { AgentChatInspectorPanel } from './agent-chat-inspector-panel'
 import { DiffSummaryPanel } from './diff-summary-panel'
 import { UoDetailPanel } from './uo-detail-panel'
 import { AgentDetailPanel } from './agent-detail-panel'
@@ -345,7 +346,11 @@ export function Inspector({ graphNodes, graphEdges, onEdgeDelete, onEdgeCreate, 
           {isDiffMode && diffSummary ? (
             <DiffSummaryPanel summary={diffSummary} />
           ) : centerView.type === 'chat' ? (
-            <ChatInspectorPanel />
+            centerView.agentId && projectId ? (
+              <AgentChatInspectorPanel projectId={projectId} agentId={centerView.agentId} />
+            ) : (
+              <ChatInspectorPanel />
+            )
           ) : centerView.type === 'document' && projectId ? (
             <DocumentInspectorPanel projectId={projectId} documentId={centerView.documentId} />
           ) : (

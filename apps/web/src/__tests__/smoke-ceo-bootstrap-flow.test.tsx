@@ -82,7 +82,7 @@ vi.mock('@/hooks/use-chat', () => ({
 // Other hooks
 // -------------------------------------------------------------------------
 vi.mock('@/hooks/use-bootstrap', () => ({
-  useBootstrapStatus: () => ({ data: null }),
+  useBootstrapStatus: () => ({ data: { ceoAgentId: 'ceo-agent-1' } }),
   useBootstrapProject: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
@@ -97,6 +97,32 @@ vi.mock('@/hooks/use-proposals', () => ({
 vi.mock('@/hooks/use-growth', () => ({
   useOrgHealth: () => ({ data: null }),
   usePhaseCapabilities: () => ({ data: null }),
+}))
+
+vi.mock('@/hooks/use-agent-chat', () => ({
+  useAgentChat: vi.fn(({ agentId }: { agentId?: string }) => {
+    const conv = mockBootstrapConversation()
+    return {
+      agent: null,
+      isAgentChat: !!agentId,
+      isCeoAgent: !!agentId,
+      threadId: conv.data?.threadId ?? 'thread-1',
+      messages: mockChatMessages().data ?? [],
+      send: vi.fn(),
+      isSending: false,
+      isLoading: false,
+      bootstrapStatus: (conv.data?.status ?? 'not-started') as never,
+      aiValidation: undefined,
+      hasNoProvider: false,
+      inputDisabled: false,
+      thinkingStartTime: undefined,
+      lastThinkingDurationMs: undefined,
+    }
+  }),
+}))
+
+vi.mock('@/hooks/use-lcp-agents', () => ({
+  useLcpAgent: vi.fn(() => ({ data: null, isLoading: false })),
 }))
 
 // -------------------------------------------------------------------------
@@ -216,7 +242,7 @@ describe('Smoke: CEO Conversation Dock', () => {
     )
 
     expect(screen.getByTestId('ceo-conversation-dock')).toBeInTheDocument()
-    expect(screen.getByText('CEO Agent')).toBeInTheDocument()
+    expect(screen.getByText('Agent')).toBeInTheDocument()
     expect(screen.getByText('Collecting context')).toBeInTheDocument()
     expect(screen.getByTestId('chat-input')).toBeInTheDocument()
   })
@@ -309,7 +335,6 @@ describe('Smoke: CEO Conversation Dock', () => {
     )
 
     expect(screen.getByText('Ready to grow')).toBeInTheDocument()
-    expect(screen.getByText('Propose Structure')).toBeInTheDocument()
   })
 
   it('should show growth-started status', () => {

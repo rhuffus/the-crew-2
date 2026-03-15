@@ -1,28 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
-import { Bot, Sparkles, Loader2, Building2, Lock, AlertTriangle } from 'lucide-react'
+import { Bot, Sparkles, Loader2, Lock, AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
-import type { BootstrapConversationStatus, ProposalDto, ScopeDescriptor } from '@the-crew/shared-types'
+import type { BootstrapConversationStatus, ScopeDescriptor } from '@the-crew/shared-types'
 import { usePermission } from '@/hooks/use-permissions'
 import { useChatThread, useChatMessages, useSendMessage } from '@/hooks/use-chat'
-import {
-  useBootstrapConversation,
-  useStartBootstrapConversation,
-  useSendBootstrapMessage,
-  useProposeGrowth,
-  useApproveGrowthProposal,
-  useRejectGrowthProposal,
-} from '@/hooks/use-bootstrap-conversation'
-import { useAiProviderValidation } from '@/hooks/use-ai-provider-config'
+import { useAgentChat } from '@/hooks/use-agent-chat'
 import { ChatMessageList } from './chat-message-list'
 import { ChatInput } from './chat-input'
-import { ProposalCard } from './proposal-card'
-
-export type ChatMode = 'generic' | 'ceo'
 
 interface ChatConversationContentProps {
   projectId: string
-  chatMode: ChatMode
+  agentId?: string
   currentScope: ScopeDescriptor
 }
 
@@ -37,11 +25,11 @@ const STATUS_LABELS: Record<BootstrapConversationStatus, string> = {
 
 export function ChatConversationContent({
   projectId,
-  chatMode,
+  agentId,
   currentScope,
 }: ChatConversationContentProps) {
-  if (chatMode === 'ceo') {
-    return <CeoContent projectId={projectId} />
+  if (agentId) {
+    return <AgentContent projectId={projectId} agentId={agentId} />
   }
   return <GenericContent projectId={projectId} currentScope={currentScope} />
 }
@@ -115,102 +103,30 @@ function GenericContent({
   )
 }
 
-// --- CEO chat content ---
+// --- Agent chat content ---
 
-function CeoContent({ projectId }: { projectId: string }) {
+function AgentContent({ projectId, agentId }: { projectId: string; agentId: string }) {
   const { t } = useTranslation('settings')
-  const { data: conversation, isError: conversationError } =
-    useBootstrapConversation(projectId)
-  const startMutation = useStartBootstrapConversation(projectId)
-  const proposeMutation = useProposeGrowth(projectId)
-  const approveMutation = useApproveGrowthProposal(projectId)
-  const rejectMutation = useRejectGrowthProposal(projectId)
-  const startedRef = useRef(false)
-  const [pendingProposals, setPendingProposals] = useState<ProposalDto[]>([])
-  const { data: aiValidation } = useAiProviderValidation('claude-max')
-  const hasNoProvider = aiValidation && !aiValidation.configured
+  const chat = useAgentChat({ projectId, agentId })
 
-  // Auto-start conversation when component mounts
-  useEffect(() => {
-    if (!startedRef.current && conversationError && !startMutation.isPending) {
-      startedRef.current = true
-      startMutation.mutate()
-    }
-  }, [conversationError, startMutation])
-
-  const threadId = conversation?.threadId
-  const { data: thread } = useChatThread(projectId, 'company')
-  const effectiveThreadId = threadId ?? thread?.id
-  const sendMutation = useSendBootstrapMessage(projectId, effectiveThreadId)
-  const { data: messages, isLoading: messagesLoading } = useChatMessages(
-    projectId,
-    effectiveThreadId,
-  )
-
-  const status = conversation?.status ?? 'not-started'
-
-  const handleSend = (content: string) => {
-    sendMutation.mutate(content)
-  }
-
-  const handleProposeGrowth = () => {
-    proposeMutation.mutate(undefined, {
-      onSuccess: (data) => {
-        const actionable = data.proposals.filter(
-          (p) => p.status === 'proposed' || p.status === 'under-review',
-        )
-        setPendingProposals(actionable)
-      },
-    })
-  }
-
-  const handleApproveProposal = (proposalId: string) => {
-    approveMutation.mutate(proposalId, {
-      onSuccess: () => {
-        setPendingProposals((prev) => prev.filter((p) => p.id !== proposalId))
-      },
-    })
-  }
-
-  const handleRejectProposal = (proposalId: string, reason: string) => {
-    rejectMutation.mutate(
-      { proposalId, reason },
-      {
-        onSuccess: () => {
-          setPendingProposals((prev) =>
-            prev.filter((p) => p.id !== proposalId),
-          )
-        },
-      },
-    )
-  }
-
-  const isLoading = startMutation.isPending || messagesLoading
-  const isSending = sendMutation.isPending
-  const isGrowthAction =
-    proposeMutation.isPending ||
-    approveMutation.isPending ||
-    rejectMutation.isPending
-  const canProposeGrowth =
-    status === 'ready-to-grow' || status === 'growth-started'
-  const inputDisabled = status === 'not-started' || !!hasNoProvider
+  const agentName = chat.agent?.name ?? 'Agent'
 
   return (
-    <div className="flex h-full flex-col" data-testid="ceo-chat-content">
+    <div className="flex h-full flex-col" data-testid="agent-chat-content">
       {/* Status bar */}
       <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
         <Bot className="h-4 w-4 text-blue-600" />
-        <span className="text-xs font-medium text-blue-700">CEO Agent</span>
+        <span className="text-xs font-medium text-blue-700" data-testid="agent-chat-name">{agentName}</span>
         <div className="ml-auto flex items-center gap-1.5">
           <Sparkles className="h-3 w-3 text-amber-500" />
           <span className="text-[10px] text-muted-foreground">
-            {STATUS_LABELS[status]}
+            {STATUS_LABELS[chat.bootstrapStatus]}
           </span>
         </div>
       </div>
 
       {/* No provider warning */}
-      {hasNoProvider && (
+      {chat.hasNoProvider && (
         <div
           className="flex items-center gap-2 border-b border-orange-200 bg-orange-50 px-3 py-2 dark:border-orange-800 dark:bg-orange-950"
           data-testid="no-provider-warning"
@@ -230,68 +146,26 @@ function CeoContent({ projectId }: { projectId: string }) {
       )}
 
       {/* Messages */}
-      {isLoading && !messages?.length ? (
+      {chat.isLoading && !chat.messages.length ? (
         <div className="flex flex-1 items-center justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <ChatMessageList
-          messages={messages ?? []}
+          messages={chat.messages}
           projectId={projectId}
           isLoading={false}
+          isThinking={chat.isSending}
+          thinkingStartTime={chat.thinkingStartTime}
+          lastThinkingDurationMs={chat.lastThinkingDurationMs}
         />
-      )}
-
-      {/* Pending proposals */}
-      {pendingProposals.length > 0 && (
-        <div
-          className="space-y-2 border-t border-border px-3 py-2"
-          data-testid="ceo-proposals-section"
-        >
-          <p className="text-xs font-medium text-muted-foreground">
-            Pending proposals:
-          </p>
-          {pendingProposals.map((proposal) => (
-            <ProposalCard
-              key={proposal.id}
-              proposal={proposal}
-              onApprove={handleApproveProposal}
-              onReject={handleRejectProposal}
-            />
-          ))}
-          {isGrowthAction && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Processing...
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Growth action bar */}
-      {canProposeGrowth && pendingProposals.length === 0 && (
-        <div className="border-t border-border px-3 py-2">
-          <button
-            onClick={handleProposeGrowth}
-            disabled={proposeMutation.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            data-testid="ceo-propose-growth-btn"
-          >
-            {proposeMutation.isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Building2 className="h-3 w-3" />
-            )}
-            Propose Structure
-          </button>
-        </div>
       )}
 
       {/* Input */}
       <ChatInput
-        onSend={handleSend}
-        disabled={inputDisabled}
-        isPending={isSending}
+        onSend={chat.send}
+        disabled={chat.inputDisabled}
+        isPending={chat.isSending}
         projectId={projectId}
       />
     </div>
